@@ -1,3 +1,4 @@
+/* jshint esversion: 6 */
 ( function () {
 	window.addEventListener( 'tizenhwkey', function( ev ) {
 		if( ev.keyName === "back" ) {
@@ -50,10 +51,6 @@
 			tau.openPopup(popup);
 		};
 		
-		const popupCancelButtonClickHandler = function() {
-			tau.closePopup();
-		};
-		
 		const page = root.getElementById("main");
 		if (!page) {
 			console.warn('setupMainMenu: root element "main" not found"');
@@ -77,6 +74,10 @@
 			console.warn('setupMainMenu: popup element "#cancel" not found"');
 			return;
 		}
+		
+		const popupCancelButtonClickHandler = function() {
+			tau.closePopup();
+		};
 		
 		popupCancelBtn.addEventListener('click', popupCancelButtonClickHandler);
 		
