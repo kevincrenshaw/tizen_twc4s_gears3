@@ -63,6 +63,24 @@
 			return;
 		}
 		
+		const setDataTitleAttributeValue = function(root, selector, value) {
+			const element = root.querySelector(selector);
+			
+			if (!element) {
+				console.warn('setupMainMenu::setDataTitleAttributeValue: no element for selector "' + selector + '"');
+				return false;
+			}
+			
+			element.setAttribute('data-title', value);
+			return true;
+		};
+		
+		setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
+		setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
+		setDataTitleAttributeValue(selector, '#compass',  TIZEN_L10N.MAIN_MENU_COMPASS);
+		setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
+		setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
+		
 		const popup = page.querySelector('#selector-value-popup');
 		if (!popup) {
 			console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
