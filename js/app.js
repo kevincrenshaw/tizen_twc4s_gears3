@@ -17,8 +17,12 @@
 			console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
 			switch(activeItem.id) {
 			case 'settings':
-				tau.changePage("settings.html");				
+				tau.changePage("html/settings.html");
 				break;
+				
+			case 'radar':
+				tau.changePage("html/radar.html");
+				break;	
 				
 			default:
 				//By default show popup with localized option title
