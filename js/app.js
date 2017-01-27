@@ -28,27 +28,37 @@
 				return;
 			}
 			
-			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
-			if (!dataTitleAttribute) {
-				console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
-				return;
+			console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
+			switch(activeItem.id) {
+			case 'settings':
+				tau.changePage("settings.html");				
+				break;
+				
+			default:
+				//By default show popup with localized option title
+				
+				const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
+				if (!dataTitleAttribute) {
+					console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
+					return;
+				}
+				
+				const activeItemDataTitleValue = dataTitleAttribute.value;
+				if (!activeItemDataTitleValue) {
+					console.warn('setupMainMenu::selectorClickHandler: missing activeItemDataTitleValue');
+					return;
+				}
+				
+				console.log('setupMainMenu::selectorClickHandler: default item handler, activeItem={id="' + activeItem.id + '", data-title="' + activeItemDataTitleValue +  '"}');
+				
+				if (!popupHeader) {
+					console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
+					return;
+				}
+				
+				popupHeader.innerHTML = activeItemDataTitleValue;
+				tau.openPopup(popup);
 			}
-			
-			const activeItemValue = dataTitleAttribute.value;
-			if (!activeItemValue) {
-				console.warn('setupMainMenu::selectorClickHandler: missing activeItemValue');
-				return;
-			}
-			
-			if (!popupHeader) {
-				console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
-				return;
-			}
-			
-			console.log('activeItemValue=' + activeItemValue);
-			
-			popupHeader.innerHTML = activeItemValue;
-			tau.openPopup(popup);
 		};
 		
 		const page = root.getElementById("main");
