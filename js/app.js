@@ -28,27 +28,37 @@
 				return;
 			}
 			
-			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
-			if (!dataTitleAttribute) {
-				console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
-				return;
+			console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
+			switch(activeItem.id) {
+			case 'settings':
+				tau.changePage("settings.html");				
+				break;
+				
+			default:
+				//By default show popup with localized option title
+				
+				const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
+				if (!dataTitleAttribute) {
+					console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
+					return;
+				}
+				
+				const activeItemDataTitleValue = dataTitleAttribute.value;
+				if (!activeItemDataTitleValue) {
+					console.warn('setupMainMenu::selectorClickHandler: missing activeItemDataTitleValue');
+					return;
+				}
+				
+				console.log('setupMainMenu::selectorClickHandler: default item handler, activeItem={id="' + activeItem.id + '", data-title="' + activeItemDataTitleValue +  '"}');
+				
+				if (!popupHeader) {
+					console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
+					return;
+				}
+				
+				popupHeader.innerHTML = activeItemDataTitleValue;
+				tau.openPopup(popup);
 			}
-			
-			const activeItemValue = dataTitleAttribute.value;
-			if (!activeItemValue) {
-				console.warn('setupMainMenu::selectorClickHandler: missing activeItemValue');
-				return;
-			}
-			
-			if (!popupHeader) {
-				console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
-				return;
-			}
-			
-			console.log('activeItemValue=' + activeItemValue);
-			
-			popupHeader.innerHTML = activeItemValue;
-			tau.openPopup(popup);
 		};
 		
 		const page = root.getElementById("main");
@@ -62,6 +72,24 @@
 			console.warn('setupMainMenu: page element "#selector" not found"');
 			return;
 		}
+		
+		const setDataTitleAttributeValue = function(root, selector, value) {
+			const element = root.querySelector(selector);
+			
+			if (!element) {
+				console.warn('setupMainMenu::setDataTitleAttributeValue: no element for selector "' + selector + '"');
+				return false;
+			}
+			
+			element.setAttribute('data-title', value);
+			return true;
+		};
+		
+		setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
+		setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
+		setDataTitleAttributeValue(selector, '#compass',  TIZEN_L10N.MAIN_MENU_COMPASS);
+		setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
+		setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
 		
 		const popup = page.querySelector('#selector-value-popup');
 		if (!popup) {
