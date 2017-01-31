@@ -1,19 +1,5 @@
 /* jshint esversion: 6 */
 ( function () {
-	window.addEventListener( 'tizenhwkey', function( ev ) {
-		if( ev.keyName === "back" ) {
-			var page = document.getElementsByClassName( 'ui-page-active' )[0],
-				pageid = page ? page.id : "";
-			if( pageid === "main" ) {
-				try {
-					tizen.application.getCurrentApplication().exit();
-				} catch (ignore) {
-				}
-			} else {
-				window.history.back();
-			}
-		}
-	} );
 	
 	const setupMainMenu = function(root) {
 		const selectorClickHandler = function() {		
@@ -31,8 +17,12 @@
 			console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
 			switch(activeItem.id) {
 			case 'settings':
-				tau.changePage("settings.html");				
+				tau.changePage("html/settings.html");
 				break;
+				
+			case 'radar':
+				tau.changePage("html/radar.html");
+				break;	
 				
 			default:
 				//By default show popup with localized option title
