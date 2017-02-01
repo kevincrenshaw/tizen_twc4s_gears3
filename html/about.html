@@ -2,29 +2,32 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,user-scalable=no">
-<link rel="stylesheet" href="lib/tau/wearable/theme/default/tau.min.css">
+<link rel="stylesheet" href="../lib/tau/wearable/theme/default/tau.min.css">
 <link rel="stylesheet" media="all and (-tizen-geometric-shape: circle)"
-	href="lib/tau/wearable/theme/default/tau.circle.min.css">
+	href="../lib/tau/wearable/theme/default/tau.circle.min.css">
 <!-- load theme file for your application -->
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/about.css">
 </head>
 <body>
 
-	<div class="ui-page ui-page-active" id="radar">
-		<div class="ui-header"></div>
-		<div id="content" class="ui-content">
-			<!-- content goes here  -->
+	<div class="ui-page ui-page-active" id="radar" style="background-color: #1F2123;">
+
+		<div class="ui-header" id="logo-header" style="padding-top: 25px; height:100px;">
+			<img class="storm-logo" src="../icon.png" alt="Storm logo" style="height:100px; width:100px; margin-left: auto; margin-right: auto; display: block;">		
 		</div>
-		<div class="ui-footer"></div>
+		
+		<div id="content" class="ui-content" style="padding-bottom:0px; margin-left:auto; margin-right: auto; display: block;">	
+			<h3 style="margin-bottom:10px">STORM</h3>
+			<p style="font-size:0.60em;">@ Copyright 2017 The Weather Company, LCC</p>
+			<p style="font-size:0.60em;">Version<br>0.0.1</p>
+		</div>
 	</div>
 
-	<script type="text/javascript" src="lib/tau/wearable/js/tau.min.js"></script>
-	<script src="language.js"></script>
-	<script src="lib/rx.lite.js"></script>
-	<script src="js/back.js"></script>
-	<script src="js/lowBatteryCheck.js"></script>
+	<script type="text/javascript" src="../lib/tau/wearable/js/tau.min.js"></script>
+	<script src="../language.js"></script>
+	<script src="../lib/rx.lite.js"></script>
+	<script src="../js/back.js"></script>
+	<script src="../js/lowBatteryCheck.js"></script>
 </body>
 </html>
-
-
-
