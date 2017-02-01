@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
-		<link rel="stylesheet"  href="../../lib/tau/wearable/theme/default/tau.min.css">
-		<link rel="stylesheet"  href="../../css/style.css">
 	</head>
 
 	<body>
@@ -13,14 +10,29 @@
 			</div>
 			<div class="ui-content">				
 				<ul class="ui-listview">
-					<li><a id="distance" href="units/distance.html">[Distance]</a></li>
-					<li><a id="mapzoom" href="units/mapzoom.html">[Map zoom]</a></li>
-					<li><a id="temperature" href="units/temperature.html">[Temperature]</a></li>
+					<li>
+						<a id="distance" href="units/distance.html">
+							<span id="text">[Distance]</span>
+							<span id="value" class="li-text-sub ui-li-sub-text">value</span>
+						</a>
+					</li>
+					<li>
+						<a id="mapzoom" href="units/mapzoom.html">
+							<span id="text">[Map zoom]</span>
+							<span id="value" class="li-text-sub ui-li-sub-text">value</span>
+						</a>
+					</li>
+					<li>
+						<a id="temperature" href="units/temperature.html">
+							<span id="text">[Temperature]</span>
+							<span id="value" class="li-text-sub ui-li-sub-text">value</span>
+						</a>
+					</li>
 				</ul>
 			</div>
 			<script src="../../language.js"></script>
-			<script src="../../js/utils.js"></script>
-			<script src="../../js/units.js"></script>
+			<script src="../../js/utils/utils.js"></script>
+			<script src="../../js/mainmenu/settings/units.js"></script>
 		</div>
 	</body>
 	<script type="text/javascript" src="../../lib/tau/wearable/js/tau.min.js"></script>

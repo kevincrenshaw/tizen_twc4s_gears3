@@ -19,7 +19,7 @@
 		 */
 		document.addEventListener("pagebeforeshow", function (e) {
 			page = e.target;
-			console.log('pagebeforeshow; page.id=' + page.id);
+			//console.log('pagebeforeshow; page.id=' + page.id);
 			
 			list = page.querySelectorAll(".ui-listview");
 			if (list) {
@@ -36,7 +36,7 @@
 		 */
 		document.addEventListener("pagebeforehide", function (e) {
 			page = e.target;
-			console.log('pagebeforehide; page.id=' + page.id);
+			//console.log('pagebeforehide; page.id=' + page.id);
 			
 			len = listHelper.length;
 			/**
