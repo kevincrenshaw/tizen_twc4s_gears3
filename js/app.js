@@ -105,8 +105,11 @@
 			return;
 		}
 		
+		//Remember widget object to destory it on leaving page (if not bezel may stop working)
+		var selectorWidget;
+		
 		page.addEventListener('pagebeforeshow', function() {
-			tau.widget.Selector(selector);
+			selectorWidget = tau.widget.Selector(selector);
 			
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
@@ -116,6 +119,11 @@
 		page.addEventListener('pagebeforehide', function() {
 			if (selector) {
 				selector.removeEventListener('click', selectorClickHandler, false);
+			}
+			
+			if (selectorWidget) {
+				selectorWidget.destroy();
+				selectorWidget = null;
 			}
 			
 			if (popupCancelBtn) {
