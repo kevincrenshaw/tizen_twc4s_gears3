@@ -105,6 +105,7 @@
 			return;
 		}
 		
+		//Remember widget object to destory it on leaving page (if not bezel may stop working)
 		var selectorWidget;
 		
 		page.addEventListener('pagebeforeshow', function() {
