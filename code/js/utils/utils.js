@@ -15,3 +15,25 @@ const modifyInnerHtml = function(root, selector, text) {
 		return true;
 	});
 };
+
+const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue) {	
+	return {
+		get: function() {
+			const value = localStorage.getItem(key) || defaultValue;
+			console.log('localStorage["' + key + '"]="' + value + '"');
+			return value;
+		},
+		
+		set: function(newValue) {
+			const oldValue = this.get();
+			localStorage.setItem(key, newValue);
+			console.log('localStorage["' + key + '"] value change: "' + oldValue + '" -> "' + newValue + '"');
+		},
+	};
+};
+
+const storage = {
+	settings: {
+		timeformat: createGetterAndSetterForLocalStorageImpl('settings_timeformat_key', 1), 
+	},
+};
