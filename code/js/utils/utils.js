@@ -34,6 +34,12 @@ const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue) {
 
 const storage = {
 	settings: {
-		timeformat: createGetterAndSetterForLocalStorageImpl('settings_timeformat_key', 1), 
+		timeformat: createGetterAndSetterForLocalStorageImpl('settings_timeformat_key', 1),
+		
+		units: {
+			distance: createGetterAndSetterForLocalStorageImpl('settings_units_distance_key', 1),
+			mapzoom: createGetterAndSetterForLocalStorageImpl('settings_units_mapzoom_key', 1),
+			temperature: createGetterAndSetterForLocalStorageImpl('settings_units_temperature_key', 1),
+		},
 	},
 };

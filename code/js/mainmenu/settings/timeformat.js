@@ -6,7 +6,7 @@
 				//Localize text
 				modifyInnerHtml(page, '.ui-title', TIZEN_L10N.SETTINGS_MENU_TIMEFORMAT);
 				
-				//Mark correct radio button as selected
+				//Mark correct radio button as checked
 				modifyElement(
 					page,
 					'ul.ui-listview input[value="' + storage.settings.timeformat.get() + '"]',
