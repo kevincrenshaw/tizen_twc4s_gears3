@@ -30,6 +30,8 @@ tizen cli-config -l
     
 cd ../../code/
 
+rm twc.wgt
+
 #magic happens
 tizen build-web
 
