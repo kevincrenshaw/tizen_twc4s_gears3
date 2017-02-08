@@ -37,8 +37,8 @@ tizen build-web
 
 #Storing build number and git commit short hash
 echo "const buildInfo = {
-		jenkinsBuildNumber: $BUILD_NUMBER,
-		commitHash: $GIT_COMMIT,
+		jenkinsBuildNumber: '$BUILD_NUMBER',
+		commitHash: '$GIT_COMMIT',
 	};" > `pwd`/.buildResult/js/data/buildInfo.js
 
 tizen package -s all2 -t wgt -o `pwd`/twc.wgt -- .buildResult
