@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<profiles version="3.0">
-<profile name="all2">
-<profileitem ca="" distributor="0" key="/home/xavarius/workspace/twc/CI/certs/author.p12" password="rDh8uIxLzRfGYRytc+XWyw==" rootca=""/>
-<profileitem ca="" distributor="1" key="/home/xavarius/workspace/twc/CI/certs/distributor.p12" password="rDh8uIxLzRfGYRytc+XWyw==" rootca=""/>
-<profileitem ca="" distributor="2" key="" password="xmEcrXPl1ss=" rootca=""/>
-</profile>
-</profiles>
