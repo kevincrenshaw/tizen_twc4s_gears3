@@ -53,7 +53,6 @@ const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue) {
 	return {
 		get: function() {
 			const value = localStorage.getItem(key) || defaultValue;
-			console.log('localStorage["' + key + '"]="' + value + '"');
 			return value;
 		},
 		
