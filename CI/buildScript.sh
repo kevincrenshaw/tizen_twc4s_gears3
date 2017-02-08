@@ -30,10 +30,14 @@ tizen cli-config -l
     
 cd ../../code/
 
+SHORT_COMMIT_HASH=$(git rev-parse --short HEAD)
+
+echo "\nShort version of commit has is $SHORT_COMMIT_HASH" 
+
 #Storing build number and git commit short hash
 echo "const buildInfo = {
 		jenkinsBuildNumber: '$BUILD_NUMBER',
-		commitHash: '$GIT_COMMIT',
+		commitHash: '$SHORT_COMMIT_HASH',
 	};" > `pwd`/js/data/buildInfo.js
 
 
@@ -43,5 +47,5 @@ tizen build-web
 
 tizen package -s all2 -t wgt -o `pwd`/twc.wgt -- .buildResult
 
-echo 'TWC path and info: '
+echo "\nTWC path and info: "
 ls -la | grep twc.wgt
