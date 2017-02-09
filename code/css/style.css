@@ -7,6 +7,19 @@ body {
     background-color:#222;
 }
 
+/* To remove shadow from radio buttons */
+.ui-listview li {
+	-webkit-mask-image: none;
+}
+
+.ui-page#main .ui-selector .ui-item {
+	background-color: rgba(138,138,138,1);
+}
+
+.ui-page#main .ui-selector .ui-item-active {
+	background-color: rgba(0,143,191,1);
+}
+
 .contents {
 	display: flex;
 	display: -webkit-flex;
@@ -29,12 +42,12 @@ body {
 }
 
 .radar-icon {
-    background-image: url("../resources/gfx/radar.png");
+    background-image: url("../resources/gfx/storm-icon-weather-radar.png");
     background-size: contain;
 }
 
 .weather-icon {
-    background-image: url("../resources/gfx/weather.png");
+    background-image: url("../resources/gfx/storm-icon-weather-changes.png");
     background-size: contain;
 }
 
@@ -44,16 +57,11 @@ body {
 }
 
 .alerts-icon {
-    background-image: url("../resources/gfx/alert.png");
+    background-image: url("../resources/gfx/storm-icon-weather-alerts.png");
     background-size: contain;
 }
 
 .settings-icon {
-    background-image: url("../resources/gfx/settings.png");
+    background-image: url("../resources/gfx/storm-icon-settings.png");
     background-size: contain;  
-}
-
-/* To remove shadow from radio buttons */
-.ui-listview li {
-	-webkit-mask-image: none;
 }
