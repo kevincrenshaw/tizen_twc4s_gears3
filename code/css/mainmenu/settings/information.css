@@ -1,0 +1,27 @@
+.about-header {
+	padding-top: 25px; 
+	height: 100px;
+}
+
+img.storm-logo {
+	height: 100px; 
+	width: 100px; 
+	margin-left: auto;
+	margin-right: auto; 
+	display: block;
+}
+
+.ui-page.ui-scroll-on .ui-content.about-content {
+	padding-bottom: 0px; 
+	margin-left: auto; 
+	margin-right: auto; 
+	display: block;
+}
+
+.about-content h3 {
+	margin-bottom: 10px;
+}
+
+.about-content p {
+	font-size: 0.70em;
+}

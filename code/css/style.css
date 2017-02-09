@@ -29,27 +29,27 @@ body {
 }
 
 .radar-icon {
-    background-image: url("../gfx/radar.png");
+    background-image: url("../resources/gfx/radar.png");
     background-size: contain;
 }
 
 .weather-icon {
-    background-image: url("../gfx/weather.png");
+    background-image: url("../resources/gfx/weather.png");
     background-size: contain;
 }
 
 .compass-icon {
-    background-image: url("../gfx/compass.png");
+    background-image: url("../resources/gfx/compass.png");
     background-size: contain;
 }
 
 .alerts-icon {
-    background-image: url("../gfx/alert.png");
+    background-image: url("../resources/gfx/alert.png");
     background-size: contain;
 }
 
 .settings-icon {
-    background-image: url("../gfx/settings.png");
+    background-image: url("../resources/gfx/settings.png");
     background-size: contain;  
 }
 

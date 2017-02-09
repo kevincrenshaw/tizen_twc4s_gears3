@@ -22,7 +22,7 @@
 				
 			case 'radar':
 				tau.changePage("html/radar.html");
-				break;	
+				break;
 				
 			default:
 				//By default show popup with localized option title

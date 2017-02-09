@@ -1,9 +1,9 @@
 .units-icon:before {
-    -webkit-mask-image: url("../gfx/units.png");
+    -webkit-mask-image: url("../resources/gfx/units.png");
 }
 
 .info-icon:before {
-    -webkit-mask-image: url("../gfx/info.png");
+    -webkit-mask-image: url("../resources/gfx/info.png");
 }
 
 .ui-listview li .li-text-sub {
