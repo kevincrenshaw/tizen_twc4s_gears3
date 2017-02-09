@@ -43,3 +43,7 @@
 .ui-li-thumb-left {
     border-radius: 50%;
 }
+
+ul.ui-listview li.with-radio-button-right {
+	padding-right: 5.5rem;
+}

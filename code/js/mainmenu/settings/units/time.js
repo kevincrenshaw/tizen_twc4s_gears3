@@ -7,7 +7,7 @@
 				modifyInnerHtml(page, '.ui-title', TIZEN_L10N.SETTINGS_MENU_UNITS_TIME);				
 				modifyElements(page, 'ul.ui-listview li input[name="time-radio"]', function(inputElement) {
 					modifyInnerHtml(inputElement.parentNode,
-							'span#text',
+							'div#text',
 							storage.settings.units.time.mapping.getLocalizedTextForValue(inputElement.value));
 				});
 				

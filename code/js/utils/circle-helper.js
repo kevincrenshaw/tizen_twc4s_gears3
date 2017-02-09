@@ -25,7 +25,19 @@
 			if (list) {
 				len = list.length;
 				for (i = 0; i < len; i++) {
-					listHelper[i] = tau.helper.SnapListStyle.create(list[i], {animate: "scale"});
+					listHelper.push(tau.helper.SnapListStyle.create(list[i], {animate: "scale"}));
+				}
+			}
+			
+			var maraqueeList = page.querySelectorAll(".ui-listview.circle-helper-snap-list-marquee");
+			if (maraqueeList.length > 0) {
+				for (i=0; i<maraqueeList.length; ++i) {
+					var element = maraqueeList[i];
+					
+					listHelper.push(tau.helper.SnapListMarqueeStyle.create(element, {
+						marqueeDelay: 1000,
+						marqueeStyle: "endToEnd"
+					}));
 				}
 			}
 		});
@@ -37,18 +49,11 @@
 		document.addEventListener("pagebeforehide", function (e) {
 			page = e.target;
 			//console.log('pagebeforehide; page.id=' + page.id);
-			
-			len = listHelper.length;
-			/**
-			 * Since the snap list helper attaches rotary event listener,
-			 * you must destroy the helper before the page is closed.
-			 */
-			if (len) {
-				for (i = 0; i < len; i++) {
-					listHelper[i].destroy();
-				}
-				listHelper = [];
-			}
+					
+			listHelper.forEach(function(element) {
+				element.destroy();
+			});
+			listHelper.length = 0; //clear array
 		});
 	}
 }(tau));
