@@ -21,7 +21,7 @@
 			page = e.target;
 			//console.log('pagebeforeshow; page.id=' + page.id);
 			
-			list = page.querySelectorAll(".ui-listview");
+			list = page.querySelectorAll(".ui-listview.circle-helper-snap-list");
 			if (list) {
 				len = list.length;
 				for (i = 0; i < len; i++) {
