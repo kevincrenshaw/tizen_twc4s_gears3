@@ -6,7 +6,7 @@
 			
 			modifyElements(page, 'ul.ui-listview li input[name="distance-radio"]', function(inputElement) {
 				modifyInnerHtml(inputElement.parentNode,
-						'span#text',
+						'div#text',
 						storage.settings.units.distance.mapping.getLocalizedTextForValue(inputElement.value));
 			});
 			
