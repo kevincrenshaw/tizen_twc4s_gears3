@@ -8,7 +8,6 @@ TIZEN_L10N=
 	"MAIN_MENU_ALERTS" : "Alarmy",
 	"MAIN_MENU_SETTINGS" : "Ustawienia",
 	"SETTINGS_MENU_UNITS" : "Jednostki",
-	"SETTINGS_MENU_TIMEFORMAT" : "Format czasu",
 	"SETTINGS_MENU_INFORMATION" : "Informacja",
 	"SETTINGS_MENU_UNITS_TIME" : "Format czasu",
 	"SETTINGS_MENU_UNITS_DISTANCE" : "Odległość",
