@@ -1,15 +1,7 @@
 /*global tau */
 /*jslint unparam: true */
 (function(tau) {
-	/**
-	 * page - Active page element
-	 * list - NodeList object for lists in the page
-	 * listHelper - Array for TAU snap list helper instances
-	 */
-	var page,
-		list,
-		listHelper = [],
-		i, len;
+	var visibleWidgetArr = [];
 	
 	const snapListTypeToFactoryMapping = {
 		'circle-helper-snap-list': function(element) {
@@ -37,7 +29,7 @@
 			const snapListNodeList = page.querySelectorAll(".ui-listview[class*=circle-helper-snap-list]");
 			const snapListNodeListLen = snapListNodeList.length;
 			
-			for (i=0; i<snapListNodeListLen; ++i) {
+			for (var i=0; i<snapListNodeListLen; ++i) {
 				var element = snapListNodeList[i];
 				var classList = element.classList;
 				
@@ -48,7 +40,7 @@
 						if (classRecognized) {
 							const widgetFactory = snapListTypeToFactoryMapping[snapListType];
 							const widget = widgetFactory(element);
-							listHelper.push(widget);
+							visibleWidgetArr.push(widget);
 						}
 						
 						return classRecognized;
@@ -56,7 +48,8 @@
 				
 				if (!factoryForSnapListFound) {
 					console.warn('Snap list factory not found for element with classList="' + classList + '", ' +
-							'registered factories for classes: ' + Object.keys(snapListTypeToFactoryMapping).map(function(text) {
+							'registered factories for classes: ' +
+							Object.keys(snapListTypeToFactoryMapping).map(function(text) {
 								return '"' + text + '"' }
 							).join(','));
 				}
@@ -71,10 +64,10 @@
 			page = e.target;
 			//console.log('pagebeforehide; page.id=' + page.id);
 					
-			listHelper.forEach(function(element) {
-				element.destroy();
+			visibleWidgetArr.forEach(function(widget) {
+				widget.destroy();
 			});
-			listHelper.length = 0; //clear array
+			visibleWidgetArr.length = 0; //clear array
 		});
 	}
 }(tau));

@@ -61,9 +61,7 @@ const addGenericHandlerForSettingPageWithRadioButtons = function(
 };
 
 const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue, valueToLocKeyMapping) {
-	
 	if (valueToLocKeyMapping) {
-		//Warn if default value is not in mapping
 		if (!valueToLocKeyMapping.hasOwnProperty(defaultValue)) {
 			console.warn('Default value "' + defaultValue + '" for key "' + key + '" not present in mapping');
 		}
@@ -78,7 +76,6 @@ const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue, val
 		get: rawValueGetterImpl,
 		
 		set: function(newValue) {
-			//Warn & abort if new value is not in mapping
 			if (valueToLocKeyMapping && !valueToLocKeyMapping.hasOwnProperty(newValue)) {
 				console.warn('New value "' + newValue + '" for key "' + key + '" not present in mapping');
 				return false;
