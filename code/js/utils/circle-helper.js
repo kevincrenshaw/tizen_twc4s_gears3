@@ -3,17 +3,29 @@
 (function(tau) {
 	var visibleWidgetArr = [];
 	
+	/*
+	 * Factory function takes one parameter: element.
+	 * Return value may be single widget or array of widgets. When current page is closed all returned widgets will
+	 * 	receive "destory()" member call.
+	 */
 	const snapListTypeToFactoryMapping = {
 		'circle-helper-snap-list': function(element) {
-			return tau.helper.SnapListStyle.create(element, {animate: "scale"});
+			const result = [];
+			
+			modifyElements(element, '.ui-marquee', function(marqueeElement) {
+				result.push(tau.widget.Marquee(marqueeElement, {marqueeStyle: "endToEnd", delay: "1000"}));
+			});
+			
+			result.push(tau.helper.SnapListStyle.create(element, {animate: "scale"}));
+			return result;
 		},
 		
-		'circle-helper-snap-list-marquee': function(element) {
-			return tau.helper.SnapListMarqueeStyle.create(element, {
-				marqueeDelay: 1000,
-				marqueeStyle: "endToEnd"
-			});
-		},
+//		'circle-helper-snap-list-marquee': function(element) {
+//			return tau.helper.SnapListMarqueeStyle.create(element, {
+//				marqueeDelay: 1000,
+//				marqueeStyle: "endToEnd"
+//			});
+//		},
 	};
 
 	// This logic works only on circular device.
@@ -39,8 +51,11 @@
 						
 						if (classRecognized) {
 							const widgetFactory = snapListTypeToFactoryMapping[snapListType];
+							
 							const widget = widgetFactory(element);
-							visibleWidgetArr.push(widget);
+							const widgetArr = Array.isArray(widget) ? widget : [widget]; 
+							
+							visibleWidgetArr = visibleWidgetArr.concat(widgetArr);
 						}
 						
 						return classRecognized;
