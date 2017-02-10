@@ -10,6 +10,19 @@
 		list,
 		listHelper = [],
 		i, len;
+	
+	const snapListTypeToFactoryMapping = {
+		'circle-helper-snap-list': function(element) {
+			return tau.helper.SnapListStyle.create(element, {animate: "scale"});
+		},
+		
+		'circle-helper-snap-list-marquee': function(element) {
+			return tau.helper.SnapListMarqueeStyle.create(element, {
+				marqueeDelay: 1000,
+				marqueeStyle: "endToEnd"
+			});
+		},
+	};
 
 	// This logic works only on circular device.
 	if (tau.support.shape.circle) {
@@ -21,23 +34,31 @@
 			page = e.target;
 			//console.log('pagebeforeshow; page.id=' + page.id);
 			
-			list = page.querySelectorAll(".ui-listview.circle-helper-snap-list");
-			if (list) {
-				len = list.length;
-				for (i = 0; i < len; i++) {
-					listHelper.push(tau.helper.SnapListStyle.create(list[i], {animate: "scale"}));
-				}
-			}
+			const snapListNodeList = page.querySelectorAll(".ui-listview[class*=circle-helper-snap-list]");
+			const snapListNodeListLen = snapListNodeList.length;
 			
-			var maraqueeList = page.querySelectorAll(".ui-listview.circle-helper-snap-list-marquee");
-			if (maraqueeList.length > 0) {
-				for (i=0; i<maraqueeList.length; ++i) {
-					var element = maraqueeList[i];
-					
-					listHelper.push(tau.helper.SnapListMarqueeStyle.create(element, {
-						marqueeDelay: 1000,
-						marqueeStyle: "endToEnd"
-					}));
+			for (i=0; i<snapListNodeListLen; ++i) {
+				var element = snapListNodeList[i];
+				var classList = element.classList;
+				
+				var factoryForSnapListFound =
+					Object.keys(snapListTypeToFactoryMapping).some(function(snapListType) {
+						const classRecognized = classList.contains(snapListType);
+						
+						if (classRecognized) {
+							const widgetFactory = snapListTypeToFactoryMapping[snapListType];
+							const widget = widgetFactory(element);
+							listHelper.push(widget);
+						}
+						
+						return classRecognized;
+					});
+				
+				if (!factoryForSnapListFound) {
+					console.warn('Snap list factory not found for element with classList="' + classList + '", ' +
+							'registered factories for classes: ' + Object.keys(snapListTypeToFactoryMapping).map(function(text) {
+								return '"' + text + '"' }
+							).join(','));
 				}
 			}
 		});
