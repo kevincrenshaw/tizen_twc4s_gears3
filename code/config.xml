@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://theweathercompany/TWC" version="0.0.1" viewmodes="maximized">
+    <access origin="*" subdomains="true"/>
     <tizen:application id="IEKeJFGHg3.TWC" package="IEKeJFGHg3" required_version="2.3.2"/>
     <content src="index.html"/>
     <feature name="http://tizen.org/feature/screen.size.normal"/>
+    <feature name="tizen.org/feature/network.internet"/>
+    <feature name="tizen.org/feature/network.wifi"/>
     <icon src="icon.png"/>
     <name>Storm Radar</name>
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:privilege name="http://tizen.org/privilege/package.info"/>
     <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
     <tizen:profile name="wearable"/>
