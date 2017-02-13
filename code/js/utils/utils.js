@@ -133,7 +133,7 @@ const storage = {
 				'3': 'SETTINGS_MENU_UNITS_TIME_24h',
 			}),
 			distance: createGetterAndSetterForLocalStorageImpl('settings_units_distance_key', '1', {
-				'1': 'SETTINGS_MENU_UNITS_DISTANCE_SYSTEM',
+				'1': 'SETTINGS_MENU_UNITS_DISTANCE_MILES_DEFAULT',
 				'2': 'SETTINGS_MENU_UNITS_DISTANCE_KM',
 				'3': 'SETTINGS_MENU_UNITS_DISTANCE_MEGAMETERS',
 			}),
