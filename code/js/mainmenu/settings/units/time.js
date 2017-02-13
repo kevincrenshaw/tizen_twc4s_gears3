@@ -8,7 +8,7 @@
 				modifyElements(page, 'ul.ui-listview li input[name="time-radio"]', function(inputElement) {
 					modifyInnerHtml(inputElement.parentNode,
 							'div#text',
-							storage.settings.units.time.mapping.getLocalizedTextForValue(inputElement.value));
+							storage.settings.units.time.getMappedValue(inputElement.value));
 				});
 				
 				addGenericHandlerForSettingPageWithRadioButtons(page,

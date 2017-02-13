@@ -7,7 +7,7 @@
 			modifyElements(page, 'ul.ui-listview li input[name="distance-radio"]', function(inputElement) {
 				modifyInnerHtml(inputElement.parentNode,
 						'div#text',
-						storage.settings.units.distance.mapping.getLocalizedTextForValue(inputElement.value));
+						storage.settings.units.distance.getMappedValue(inputElement.value));
 			});
 			
 			addGenericHandlerForSettingPageWithRadioButtons(page,

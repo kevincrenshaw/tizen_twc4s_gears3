@@ -10,11 +10,14 @@
 				modifyInnerHtml(page, '.ui-listview a#mapzoom span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_MAPZOOM);
 				modifyInnerHtml(page, '.ui-listview a#temperature span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE);
 				
-				const distanceUnit = storage.settings.units.distance.mapping.getCurrentValueAsLocalizedText();
+				const distanceUnit = storage.settings.units.distance.getMapped();
 				modifyInnerHtml(page, '.ui-listview a#distance span#value', distanceUnit);
 		
 				modifyInnerHtml(page, '.ui-listview a#time span#value',
-					storage.settings.units.time.mapping.getCurrentValueAsLocalizedText());
+					storage.settings.units.time.getMapped());
+				
+				modifyInnerHtml(page, '.ui-listview a#mapzoom span#value',
+					storage.settings.units.mapzoom.getMapped());
 				
 				//Just to print in log current value
 				storage.settings.units.mapzoom.get();
