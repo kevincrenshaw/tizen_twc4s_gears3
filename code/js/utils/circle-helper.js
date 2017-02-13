@@ -4,12 +4,12 @@
 	var visibleWidgetArr = [];
 	
 	/*
-	 * Factory function takes one parameter: element.
+	 * Factory function takes one parameter: list.
 	 * Return value may be single widget or array of widgets. When current page is closed all returned widgets will
 	 * 	receive "destory()" member call.
 	 */
 	const snapListTypeToFactoryMapping = {
-		'circle-helper-snap-list': function(element) {			
+		'circle-helper-snap-list': function(list) {			
 			var activeMarqueeWidget = null;
 			
 			const destroyActiveMarqueeWidgetIfNeeded = function() {
@@ -20,7 +20,7 @@
 				}
 			};
 
-			element.addEventListener('selected', function(ev) {
+			list.addEventListener('selected', function(ev) {
 				const marqueeElement = ev.target.querySelector('.ui-marquee');
 				if (marqueeElement) {
 					destroyActiveMarqueeWidgetIfNeeded();
@@ -30,11 +30,11 @@
 				}
 			});
 
-			element.addEventListener('scrollstart', function() {
+			list.addEventListener('scrollstart', function() {
 				destroyActiveMarqueeWidgetIfNeeded();
 			});
 			
-			const snapListStyleWidget = tau.helper.SnapListStyle.create(element, {animate: "scale"}); 
+			const snapListStyleWidget = tau.helper.SnapListStyle.create(list, {animate: "scale"}); 
 			
 			return {
 				destroy: function() {
@@ -44,8 +44,9 @@
 			};
 		},
 		
-//		'circle-helper-snap-list-marquee': function(element) {
-//			return tau.helper.SnapListMarqueeStyle.create(element, {
+//		Example of factory usage with different class:
+//		'circle-helper-snap-list-marquee': function(list) {
+//			return tau.helper.SnapListMarqueeStyle.create(list, {
 //				marqueeDelay: 1000,
 //				marqueeStyle: "endToEnd"
 //			});
@@ -60,7 +61,6 @@
 		 */
 		document.addEventListener("pagebeforeshow", function (e) {
 			page = e.target;
-			//console.log('pagebeforeshow; page.id=' + page.id);
 			
 			const selector = '.ui-listview[class*=circle-helper-snap-list]';
 			const snapListNodeList = page.querySelectorAll(selector);
@@ -103,7 +103,6 @@
 		 */
 		document.addEventListener("pagebeforehide", function (e) {
 			page = e.target;
-			//console.log('pagebeforehide; page.id=' + page.id);
 					
 			visibleWidgetArr.forEach(function(widget) {
 				widget.destroy();
