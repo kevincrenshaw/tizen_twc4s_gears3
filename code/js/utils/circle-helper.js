@@ -1,15 +1,57 @@
 /*global tau */
 /*jslint unparam: true */
 (function(tau) {
-	/**
-	 * page - Active page element
-	 * list - NodeList object for lists in the page
-	 * listHelper - Array for TAU snap list helper instances
+	var visibleWidgetArr = [];
+	
+	/*
+	 * Factory function takes one parameter: list.
+	 * Return value may be single widget or array of widgets. When current page is closed all returned widgets will
+	 * 	receive "destory()" member call.
 	 */
-	var page,
-		list,
-		listHelper = [],
-		i, len;
+	const snapListTypeToFactoryMapping = {
+		'circle-helper-snap-list': function(list) {			
+			var activeMarqueeWidget = null;
+			
+			const destroyActiveMarqueeWidgetIfNeeded = function() {
+				if (activeMarqueeWidget) {
+					activeMarqueeWidget.stop();
+					activeMarqueeWidget.destroy();
+					activeMarqueeWidget = null;
+				}
+			};
+
+			list.addEventListener('selected', function(ev) {
+				const marqueeElement = ev.target.querySelector('.ui-marquee');
+				if (marqueeElement) {
+					destroyActiveMarqueeWidgetIfNeeded();
+
+					activeMarqueeWidget =
+						tau.widget.Marquee(marqueeElement, {marqueeStyle: 'endToEnd', delay: '1000'});
+				}
+			});
+
+			list.addEventListener('scrollstart', function() {
+				destroyActiveMarqueeWidgetIfNeeded();
+			});
+			
+			const snapListStyleWidget = tau.helper.SnapListStyle.create(list, {animate: "scale"}); 
+			
+			return {
+				destroy: function() {
+					destroyActiveMarqueeWidgetIfNeeded();
+					snapListStyleWidget.destroy();
+				}
+			};
+		},
+		
+//		Example of factory usage with different class:
+//		'circle-helper-snap-list-marquee': function(list) {
+//			return tau.helper.SnapListMarqueeStyle.create(list, {
+//				marqueeDelay: 1000,
+//				marqueeStyle: "endToEnd"
+//			});
+//		},
+	};
 
 	// This logic works only on circular device.
 	if (tau.support.shape.circle) {
@@ -19,13 +61,38 @@
 		 */
 		document.addEventListener("pagebeforeshow", function (e) {
 			page = e.target;
-			//console.log('pagebeforeshow; page.id=' + page.id);
 			
-			list = page.querySelectorAll(".ui-listview");
-			if (list) {
-				len = list.length;
-				for (i = 0; i < len; i++) {
-					listHelper[i] = tau.helper.SnapListStyle.create(list[i], {animate: "scale"});
+			const selector = '.ui-listview[class*=circle-helper-snap-list]';
+			const snapListNodeList = page.querySelectorAll(selector);
+			const snapListNodeListLen = snapListNodeList.length;
+			
+			for (var i=0; i<snapListNodeListLen; ++i) {
+				var element = snapListNodeList[i];
+				var classList = element.classList;
+				
+				var factoryForSnapListFound =
+					Object.keys(snapListTypeToFactoryMapping).some(function(snapListType) {
+						const classRecognized = classList.contains(snapListType);
+						
+						if (classRecognized) {
+							const widgetFactory = snapListTypeToFactoryMapping[snapListType];
+							
+							const widget = widgetFactory(element); 
+							
+							if (widget) {
+								visibleWidgetArr.push(widget);
+							}
+						}
+						
+						return classRecognized;
+					});
+				
+				if (!factoryForSnapListFound) {
+					console.warn('Snap list factory not found for selector "' + selector + '" with classList="' + classList + '", ' +
+							'registered factories for classes: ' +
+							Object.keys(snapListTypeToFactoryMapping).map(function(text) {
+								return '"' + text + '"' }
+							).join(','));
 				}
 			}
 		});
@@ -36,19 +103,11 @@
 		 */
 		document.addEventListener("pagebeforehide", function (e) {
 			page = e.target;
-			//console.log('pagebeforehide; page.id=' + page.id);
-			
-			len = listHelper.length;
-			/**
-			 * Since the snap list helper attaches rotary event listener,
-			 * you must destroy the helper before the page is closed.
-			 */
-			if (len) {
-				for (i = 0; i < len; i++) {
-					listHelper[i].destroy();
-				}
-				listHelper = [];
-			}
+					
+			visibleWidgetArr.forEach(function(widget) {
+				widget.destroy();
+			});
+			visibleWidgetArr.length = 0; //clear array
 		});
 	}
 }(tau));

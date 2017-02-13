@@ -9,6 +9,17 @@ const modifyElement = function(root, selector, callback) {
 	return callback(element);
 };
 
+const modifyElements = function(root, selector, callback) {
+	const elements = root.querySelectorAll(selector);
+	
+	for (i=0; i<elements.length; ++i) {
+		if (callback(elements[i], i, elements) === true) {
+			//Stop iteration on demand
+			break;
+		}
+	}
+};
+
 const modifyInnerHtml = function(root, selector, text) {
 	return modifyElement(root, selector, function(el) {
 		el.innerHTML = text;
@@ -49,14 +60,27 @@ const addGenericHandlerForSettingPageWithRadioButtons = function(
 	});
 };
 
-const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue) {	
-	return {
-		get: function() {
-			const value = localStorage.getItem(key) || defaultValue;
-			return value;
-		},
+const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue, valueToLocKeyMapping) {
+	if (valueToLocKeyMapping) {
+		if (!valueToLocKeyMapping.hasOwnProperty(defaultValue)) {
+			console.warn('Default value "' + defaultValue + '" for key "' + key + '" not present in mapping');
+		}
+	}
+	
+	const rawValueGetterImpl = function() {
+		const value = localStorage.getItem(key) || defaultValue;
+		return value;
+	};
+	
+	const result = {
+		get: rawValueGetterImpl,
 		
 		set: function(newValue) {
+			if (valueToLocKeyMapping && !valueToLocKeyMapping.hasOwnProperty(newValue)) {
+				console.warn('New value "' + newValue + '" for key "' + key + '" not present in mapping');
+				return false;
+			} 
+			
 			const oldValue = this.get();
 			
 			if (newValue !== oldValue) {
@@ -68,16 +92,49 @@ const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue) {
 			}
 		},
 	};
+	
+	if (valueToLocKeyMapping) {
+		result.mapping = {};
+		
+		result.mapping.valueExists = function(value) {
+			return valueToLocKeyMapping.hasOwnProperty(value);
+		}
+		
+		result.mapping.getLocalizedTextForValue = function(value) {
+			if (this.valueExists(value)) {
+				const locKey = valueToLocKeyMapping[value];
+				
+				if (TIZEN_L10N.hasOwnProperty(locKey)) {
+					return TIZEN_L10N[locKey];
+				} else {
+					console.warn('Localization for key "' + locKey + '" not available');
+					return "";
+				}
+			} else {
+				console.warn('Value "' + value + '" for key "' + key + '" not present in mapping');
+				return "";
+			}
+		};
+		
+		result.mapping.getCurrentValueAsLocalizedText = function() {
+			return this.getLocalizedTextForValue(rawValueGetterImpl());
+		}
+	}
+	
+	return result;
 };
 
 const storage = {
 	settings: {
-		timeformat: createGetterAndSetterForLocalStorageImpl('settings_timeformat_key', 1),
-		
 		units: {
-			distance: createGetterAndSetterForLocalStorageImpl('settings_units_distance_key', 1),
-			mapzoom: createGetterAndSetterForLocalStorageImpl('settings_units_mapzoom_key', 1),
-			temperature: createGetterAndSetterForLocalStorageImpl('settings_units_temperature_key', 1),
+			time: createGetterAndSetterForLocalStorageImpl('settings_units_time_key', '1', {
+				'1': 'SETTINGS_MENU_UNITS_TIME_SYSTEM',
+				'2': 'SETTINGS_MENU_UNITS_TIME_12h',
+				'3': 'SETTINGS_MENU_UNITS_TIME_24h',
+			}),
+			distance: createGetterAndSetterForLocalStorageImpl('settings_units_distance_key', '1'),
+			mapzoom: createGetterAndSetterForLocalStorageImpl('settings_units_mapzoom_key', '1'),
+			temperature: createGetterAndSetterForLocalStorageImpl('settings_units_temperature_key', '1'),
 		},
 	},
 };
