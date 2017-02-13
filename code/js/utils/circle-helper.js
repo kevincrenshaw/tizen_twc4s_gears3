@@ -9,15 +9,39 @@
 	 * 	receive "destory()" member call.
 	 */
 	const snapListTypeToFactoryMapping = {
-		'circle-helper-snap-list': function(element) {
-			const result = [];
+		'circle-helper-snap-list': function(element) {			
+			var activeMarqueeWidget = null;
 			
-			modifyElements(element, '.ui-marquee', function(marqueeElement) {
-				result.push(tau.widget.Marquee(marqueeElement, {marqueeStyle: "endToEnd", delay: "1000"}));
+			const destroyActiveMarqueeWidgetIfNeeded = function() {
+				if (activeMarqueeWidget) {
+					activeMarqueeWidget.stop();
+					activeMarqueeWidget.destroy();
+					activeMarqueeWidget = null;
+				}
+			};
+
+			element.addEventListener('selected', function(ev) {
+				const marqueeElement = ev.target.querySelector('.ui-marquee');
+				if (marqueeElement) {
+					destroyActiveMarqueeWidgetIfNeeded();
+
+					activeMarqueeWidget =
+						tau.widget.Marquee(marqueeElement, {marqueeStyle: 'endToEnd', delay: '1000'});
+				}
+			});
+
+			element.addEventListener('scrollstart', function() {
+				destroyActiveMarqueeWidgetIfNeeded();
 			});
 			
-			result.push(tau.helper.SnapListStyle.create(element, {animate: "scale"}));
-			return result;
+			const snapListStyleWidget = tau.helper.SnapListStyle.create(element, {animate: "scale"}); 
+			
+			return {
+				destroy: function() {
+					destroyActiveMarqueeWidgetIfNeeded();
+					snapListStyleWidget.destroy();
+				}
+			};
 		},
 		
 //		'circle-helper-snap-list-marquee': function(element) {
@@ -38,7 +62,8 @@
 			page = e.target;
 			//console.log('pagebeforeshow; page.id=' + page.id);
 			
-			const snapListNodeList = page.querySelectorAll(".ui-listview[class*=circle-helper-snap-list]");
+			const selector = '.ui-listview[class*=circle-helper-snap-list]';
+			const snapListNodeList = page.querySelectorAll(selector);
 			const snapListNodeListLen = snapListNodeList.length;
 			
 			for (var i=0; i<snapListNodeListLen; ++i) {
@@ -52,17 +77,18 @@
 						if (classRecognized) {
 							const widgetFactory = snapListTypeToFactoryMapping[snapListType];
 							
-							const widget = widgetFactory(element);
-							const widgetArr = Array.isArray(widget) ? widget : [widget]; 
+							const widget = widgetFactory(element); 
 							
-							visibleWidgetArr = visibleWidgetArr.concat(widgetArr);
+							if (widget) {
+								visibleWidgetArr.push(widget);
+							}
 						}
 						
 						return classRecognized;
 					});
 				
 				if (!factoryForSnapListFound) {
-					console.warn('Snap list factory not found for element with classList="' + classList + '", ' +
+					console.warn('Snap list factory not found for selector "' + selector + '" with classList="' + classList + '", ' +
 							'registered factories for classes: ' +
 							Object.keys(snapListTypeToFactoryMapping).map(function(text) {
 								return '"' + text + '"' }
