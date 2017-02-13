@@ -11,7 +11,7 @@
 				modifyInnerHtml(page, '.ui-listview a#temperature span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE);
 				
 				const distanceUnit = storage.settings.units.distance.mapping.getCurrentValueAsLocalizedText();
-				modifyInnerHtml(page, '.ui-listview a#distance span#value.li-text-sub.ui-li-sub-text', distanceUnit);
+				modifyInnerHtml(page, '.ui-listview a#distance span#value', distanceUnit);
 		
 				modifyInnerHtml(page, '.ui-listview a#time span#value',
 					storage.settings.units.time.mapping.getCurrentValueAsLocalizedText());

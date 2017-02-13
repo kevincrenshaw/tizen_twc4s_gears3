@@ -134,7 +134,7 @@ const storage = {
 			}),
 			distance: createGetterAndSetterForLocalStorageImpl('settings_units_distance_key', '1', {
 				'1': 'SETTINGS_MENU_UNITS_DISTANCE_MILES_DEFAULT',
-				'2': 'SETTINGS_MENU_UNITS_DISTANCE_KM',
+				'2': 'SETTINGS_MENU_UNITS_DISTANCE_KILOMETERS',
 				'3': 'SETTINGS_MENU_UNITS_DISTANCE_MEGAMETERS',
 			}),
 			mapzoom: createGetterAndSetterForLocalStorageImpl('settings_units_mapzoom_key', '1'),
