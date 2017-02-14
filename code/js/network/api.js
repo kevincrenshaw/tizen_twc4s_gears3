@@ -2,28 +2,27 @@
 (function() {
 
 	// TODO be able to provide subscriber as a param not hardcoded in method
-	const getResourcesByURL = function(urls, subscriber) {
-
-		const fiveSecondsInMilis = 5000;
+	const getResourcesByURL = function(urls, subscriber, options) {
+		
+		 if (options === undefined) { 
+			 options = { timeout: 30000, delay: 5000};
+		 }
 		
 		var requestedStream = Rx.Observable
 			.from(urls)
-			.delay(new Date(Date.now() + fiveSecondsInMilis));
+			.delay(new Date(Date.now() + options.delay));
 
 		var response = requestedStream.flatMap(function(requestedUrl) {
-			return Rx.Observable.fromPromise($.get(requestedUrl));
+			return Rx.Observable
+				.fromPromise($.get(requestedUrl))
+				.timeout(options.timeout);
 		});
 
-		// TODO implement timeout mechanism
-
 		response.subscribe(function(item) {
-			// alert("item" + item.body);
 			console.log("API call success: " + item.body);
 		}, function(err) {
-			// alert("error " + err);
 			console.log("API call error: " + err);
 		}, function() {
-			// alert("onAPICallCompleted");
 			console.log("API call completed");
 		});
 	};
@@ -41,5 +40,5 @@
 			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg',
 			'https://completny.bad.url.com/post/1' ];
 
-	getResourcesByURL(urls, "");
+	getResourcesByURL(urls, "", { timeout: 10000, delay: 2000});
 }());
