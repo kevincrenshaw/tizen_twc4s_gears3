@@ -4,7 +4,11 @@
 	// TODO be able to provide subscriber as a param not hardcoded in method
 	const getResourcesByURL = function(urls, subscriber) {
 
-		var requestedStream = Rx.Observable.from(urls);
+		const fiveSecondsInMilis = 5000;
+		
+		var requestedStream = Rx.Observable
+			.from(urls)
+			.delay(new Date(Date.now() + fiveSecondsInMilis));
 
 		var response = requestedStream.flatMap(function(requestedUrl) {
 			return Rx.Observable.fromPromise($.get(requestedUrl));
