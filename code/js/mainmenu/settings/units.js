@@ -9,12 +9,14 @@
 				modifyInnerHtml(page, '.ui-listview a#distance span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_DISTANCE);
 				modifyInnerHtml(page, '.ui-listview a#mapzoom span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_MAPZOOM);
 				modifyInnerHtml(page, '.ui-listview a#temperature span#text', TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE);
+				
+				const distanceUnit = storage.settings.units.distance.mapping.getCurrentValueAsLocalizedText();
+				modifyInnerHtml(page, '.ui-listview a#distance span#value', distanceUnit);
 		
 				modifyInnerHtml(page, '.ui-listview a#time span#value',
 					storage.settings.units.time.mapping.getCurrentValueAsLocalizedText());
 				
 				//Just to print in log current value
-				storage.settings.units.distance.get();
 				storage.settings.units.mapzoom.get();
 				storage.settings.units.temperature.get();
 			});
