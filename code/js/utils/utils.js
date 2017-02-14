@@ -154,7 +154,6 @@ const createValueToLocalizationKeyMapping = function(mapping) {
 			return locKeyMapping.has(value) && TIZEN_L10N.hasOwnProperty(locKeyMapping.map(value))
 		},
 		
-		//TODO zmienic nazwe na 'map'
 		map: function(value) {
 			return TIZEN_L10N[locKeyMapping.map(value)]
 		},
