@@ -1,11 +1,22 @@
 /* jshint esversion: 6 */
 (function() {
 
-	const getResourcesByURL = function(urls, observer, options) {
+	const checkRequestOptions = function(options) {
+		const defaultTimeout = 30000;
+		const defaultDelay = 5000;
 		
 		 if (options === undefined) { 
-			 options = { timeout: 30000, delay: 5000};
+			 options = { timeout: defaultTimeout, delay: defaultDelay};
+		 } else {
+			 if(!options.hasOwnProperty('timeout')) { options.timeout = defaultTimeout; }
+			 if(!options.hasOwnProperty('delay')) { options.delay = defaultDelay; }
 		 }
+		 return options;
+	};
+	
+	const getResourcesByURL = function(urls, observer, options) {
+		
+		options = checkRequestOptions(options);
 		
 		var requestedStream = Rx.Observable
 			.from(urls)
