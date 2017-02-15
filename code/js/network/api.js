@@ -1,31 +1,21 @@
 /* jshint esversion: 6 */
 (function() {
-
-	const checkRequestOptions = function(options) {
-		const defaultTimeout = 30000;
-		const defaultDelay = 5000;
-		
-		 if (options === undefined) { 
-			 options = { timeout: defaultTimeout, delay: defaultDelay};
-		 } else {
-			 if(!options.hasOwnProperty('timeout')) { options.timeout = defaultTimeout; }
-			 if(!options.hasOwnProperty('delay')) { options.delay = defaultDelay; }
-		 }
-		 return options;
-	};
 	
 	const getResourcesByURL = function(urls, observer, options) {
-		
-		options = checkRequestOptions(options);
+
+		options = options || {};
+
+		const timeout = options.timeout || 30000;
+		const delay = options.delay || 5000;
 		
 		var requestedStream = Rx.Observable
 			.from(urls)
-			.delay(new Date(Date.now() + options.delay));
+			.delay(new Date(Date.now() + delay));
 
 		var response = requestedStream.flatMap(function(requestedUrl) {
 			return Rx.Observable
 				.fromPromise($.get(requestedUrl))
-				.timeout(options.timeout);
+				.timeout(timeout);
 		});
 
 		response.subscribe(observer);
@@ -43,7 +33,7 @@
 				console.log("API call success: " + JSON.stringify(response));
 			}, 
 			function(err) {
-				console.log("API call error: " + err);
+				console.log("API call error: " + err.status);
 			}, 
 			 function() {
 				console.log("API calls completed");
