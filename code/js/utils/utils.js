@@ -38,15 +38,14 @@ const setupSettingPageWithRadioButtons = function(page, title, radioButtonElemen
 	//Set page title
 	modifyInnerHtml(page, '.ui-title', title);
 	
+	const defaultValue = setting.getDefaultValue();
+	
 	//Set options label
 	modifyElements(page, 'ul.ui-listview li input[name="' + radioButtonElementName + '"]', function(inputElement) {
-		
-		const defaultValue = setting.getDefaultValue();
-		var description = setting.getMappedValue(inputElement.value);
-		
-		if (inputElement.value === defaultValue) {
-			description += ' (' + TIZEN_L10N.SETTINGS_DEFAULT + ')';
-		}
+		const localizedText = setting.getMappedValue(inputElement.value);
+		const description = inputElement.value === defaultValue
+			? [localizedText, ['(', TIZEN_L10N.SETTINGS_DEFAULT, ')'].join('')].join(' ')
+			: localizedText;
 		
 		modifyInnerHtml(inputElement.parentNode, 'div#text', description);
 	});
