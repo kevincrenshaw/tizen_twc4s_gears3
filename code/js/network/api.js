@@ -32,22 +32,15 @@
 	};
 
 	var urls = [
-			'https://jsonplaceholder.typicode.com/posts/1',
-			'https://jsonplaceholder.typicode.com/posts/2',
-			'https://jsonplaceholder.typicode.com/posts/3',
+			'http://jsonplaceholder.typicode.com/posts/1',
+			'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json',
+			'http://jsonplaceholder.typicode.com/posts/3',
 			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
-
-	var badUrls = [
-			'https://jsonplaceholder.typicode.com/posts/1',
-			'https://jsonplaceholder.typicode.com/posts/2',
-			'https://jsonplaceholder.typicode.com/posts/3',
-			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg',
-			'https://completny.bad.url.com/post/1' ];
 	
 	
 	const observer = Rx.Observer.create(
 			function(response) {
-				console.log("API call success: " + response.body);
+				console.log("API call success: " + JSON.stringify(response));
 			}, 
 			function(err) {
 				console.log("API call error: " + err);
