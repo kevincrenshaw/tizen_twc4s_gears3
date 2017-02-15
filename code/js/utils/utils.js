@@ -195,9 +195,9 @@ const createMapZoomMappingObject = function() {
  	};
  	
  	const mapZoomMapping = createValueMapping({
- 		'1' : '10',
- 		'2' : '25',
- 		'3' : '50',
+ 		'1' : '25',
+ 		'2' : '50',
+ 		'3' : '75',
  		'4' : '100'
  	});
  	
