@@ -30,20 +30,31 @@ const modifyInnerHtml = function(root, selector, text) {
 /*
  * Params:
  * 	page - page with list view
- *	getterAndSetterObj - object with at least two functions 'get' and 'set' to read/write setting value.
- *		For example: storage.settings.units.temperature
- *	clickTargetVerifier - because click event listener is added to entire list view (ul) this function is used to
- *		filter out events not targeting radio buttons. If this function returns false event is suppressed.
+ *	title - string to display in head of the page
+ *	radioButtonElementName - name (from DOM tree) that every option (radio button) has
+ *	setting - storage setting object, for example: storage.settings.units.temperature
  */
-const addGenericHandlerForSettingPageWithRadioButtons = function(
-		page,
-		getterAndSetterObj,
-		clickTargetVerifier) {
+const setupSettingPageWithRadioButtons = function(page, title, radioButtonElementName, setting) {
+	//Set page title
+	modifyInnerHtml(page, '.ui-title', title);
+	
+	//Set options label
+	modifyElements(page, 'ul.ui-listview li input[name="' + radioButtonElementName + '"]', function(inputElement) {
+		
+		const defaultValue = setting.getDefaultValue();
+		var description = setting.getMappedValue(inputElement.value);
+		
+		if (inputElement.value === defaultValue) {
+			description += ' (' + TIZEN_L10N.SETTINGS_DEFAULT + ')';
+		}
+		
+		modifyInnerHtml(inputElement.parentNode, 'div#text', description);
+	});
 	
 	//Mark correct radio button as checked
 	modifyElement(
 		page,
-		'ul.ui-listview input[value="' + getterAndSetterObj.get() + '"]',
+		'ul.ui-listview input[value="' + setting.get() + '"]',
 		function(el) { el.checked = true; }
 	);
 	
@@ -51,10 +62,10 @@ const addGenericHandlerForSettingPageWithRadioButtons = function(
 	modifyElement(page, 'ul.ui-listview', function(listView) {
 		Rx.Observable.fromEvent(listView, 'click')
 			.map(function(ev) { return ev.target; })
-			.filter(function(el) { return clickTargetVerifier(el); })
+			.filter(function(el) { return function(el) { return el.name === radioButtonElementName; }; })
 			.map(function(el) { return el.value; })
 			.subscribe(function(value) {
-				getterAndSetterObj.set(value);
+				setting.set(value);
 				history.back();
 			});
 	});
@@ -101,6 +112,10 @@ const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue, map
 			}
 
 			return "";
+		},
+		
+		getDefaultValue: function() {
+			return defaultValue;
 		},
 		
 		set: function(newValue) {
