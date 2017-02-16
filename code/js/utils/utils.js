@@ -241,12 +241,12 @@ const storage = {
 					'4',
 					createMapZoomMappingObject()),
             
-			temperature: createGetterAndSetterForLocalStorageImpl('settings_units_temperature_key', '1', 
-				createValueToLocalizationKeyMapping({
-                '1': 'SETTINGS_MENU_UNITS_TEMPERATURE_DEFAULT',
-                '2': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
-                '3': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'
-                })),
+			temperature: createGetterAndSetterForLocalStorageImpl(
+					'settings_units_temperature_key', 
+					'1',
+					createValueToLocalizationKeyMapping({
+						'1': 'SETTINGS_MENU_UNITS_TEMPERATURE_DEFAULT',
+						'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
 		},
 	},
 };
