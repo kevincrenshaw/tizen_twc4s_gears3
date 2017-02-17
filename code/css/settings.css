@@ -47,3 +47,7 @@
 ul.ui-listview li.with-radio-button-right {
 	padding-right: 5.5rem;
 }
+
+.ui-listview.ui-snap-listview li.li-has-thumb-left {
+	padding-left: 110px;
+}
