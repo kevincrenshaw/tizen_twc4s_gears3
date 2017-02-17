@@ -19,9 +19,8 @@
 				modifyInnerHtml(page, '.ui-listview a#mapzoom span#value',
 					storage.settings.units.mapzoom.getMapped());
 				
-				//Just to print in log current value
-				storage.settings.units.mapzoom.get();
-				storage.settings.units.temperature.get();
+                modifyInnerHtml(page, '.ui-listview a#temperature span#value',
+                	storage.settings.units.temperature.getMapped());
 			});
 	});
 } () );
