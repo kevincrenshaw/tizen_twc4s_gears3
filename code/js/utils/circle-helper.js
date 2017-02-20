@@ -88,6 +88,13 @@
 				var element = snapListNodeList[i];
 				var classList = element.classList;
 				
+				const marqueeTitle = page.querySelector(".ui-title");
+				if (marqueeTitle) {
+					const marqueeWidgetTitleOpt = {marqueeStyle: 'scroll', delay: '1000', timingFunction: 'ease'};
+					const marqueeWidgetTitle = tau.widget.Marquee(marqueeTitle, marqueeWidgetTitleOpt);
+					visibleWidgetArr.push(marqueeWidgetTitle);	
+				}
+				
 				var factoryForSnapListFound =
 					Object.keys(snapListTypeToFactoryMapping).some(function(snapListType) {
 						const classRecognized = classList.contains(snapListType);
