@@ -219,10 +219,10 @@ const createMapZoomMappingObject = function() {
  	};
  	
  	const mapZoomMapping = createValueMapping({
- 		'1' : '25',
- 		'2' : '50',
- 		'3' : '75',
- 		'4' : '100'
+ 		'1' : '100',
+ 		'2' : '75',
+ 		'3' : '50',
+ 		'4' : '25'
  	});
  	
 	return createValueDecoratedMappingObject(mapZoomMapping, function(value) {
@@ -248,7 +248,7 @@ const storage = {
 						'3': 'SETTINGS_MENU_UNITS_DISTANCE_MEGAMETERS'})),
 			mapzoom: createGetterAndSetterForLocalStorageImpl(
 					'settings_units_mapzoom_key',
-					'4',
+					'1',
 					createMapZoomMappingObject()),
             
 			temperature: createGetterAndSetterForLocalStorageImpl(
