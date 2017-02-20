@@ -258,6 +258,16 @@ const storage = {
 						'1': 'SETTINGS_MENU_UNITS_TEMPERATURE_SYSTEM',
 						'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
 						'3': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
+						
+			partnerapp : createGetterAndSetterForLocalStorageImpl(
+					'settings_units_partnerapp_key', 
+					'1',
+					createValueToLocalizationKeyMapping({
+						'1' : 'SETTINGS_MENU_UNITS_PARTNER_APP_STORM_DEFAULT',
+						'2' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC',
+						'3' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC_SAMSUNG',
+						'4' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC_LITE'
+					}))
 		},
 	},
 };
