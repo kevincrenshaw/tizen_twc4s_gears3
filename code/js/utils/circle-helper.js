@@ -88,10 +88,10 @@
 				var element = snapListNodeList[i];
 				var classList = element.classList;
 				
-				const marqueeTitle = page.querySelector(".ui-title");
+				var marqueeTitle = page.querySelector(".ui-title");
 				if (marqueeTitle) {
-					const marqueeWidgetTitleOpt = { marqueeStyle: 'scroll', delay: '1000'};
-					const marqueeWidgetTitle = tau.widget.Marquee(marqueeTitle, marqueeWidgetTitleOpt);
+					var marqueeWidgetTitleOpt = { marqueeStyle: 'scroll', delay: '1000'};
+					var marqueeWidgetTitle = tau.widget.Marquee(marqueeTitle, marqueeWidgetTitleOpt);
 					visibleWidgetArr.push(marqueeWidgetTitle);	
 				}
 				
