@@ -1,12 +1,22 @@
-const modifyElement = function(root, selector, callback) {
+const tryModifyElement = function(root, selector, callback) {
 	const element = root.querySelector(selector);
 	
 	if (!element) {
-		console.warn('modifyElement: no element found for selector "' + selector + '"');
 		return false;
+	} else {
+		callback(element);
+		return true;
+	}
+};
+
+const modifyElement = function(root, selector, callback) {
+	const result = tryModifyElement(root, selector, callback);
+	
+	if (result === false) {
+		console.warn('modifyElement: no element found for selector "' + selector + '"');
 	}
 	
-	return callback(element);
+	return result;
 };
 
 const modifyElements = function(root, selector, callback) {
