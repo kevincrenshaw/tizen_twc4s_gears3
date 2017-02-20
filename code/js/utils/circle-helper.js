@@ -90,7 +90,7 @@
 				
 				const marqueeTitle = page.querySelector(".ui-title");
 				if (marqueeTitle) {
-					const marqueeWidgetTitleOpt = {marqueeStyle: 'scroll', delay: '1000', timingFunction: 'ease'};
+					const marqueeWidgetTitleOpt = { marqueeStyle: 'scroll', delay: '1000'};
 					const marqueeWidgetTitle = tau.widget.Marquee(marqueeTitle, marqueeWidgetTitleOpt);
 					visibleWidgetArr.push(marqueeWidgetTitle);	
 				}
