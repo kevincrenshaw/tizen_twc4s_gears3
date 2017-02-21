@@ -40,6 +40,15 @@
 			
 			const snapListStyleWidget = tau.helper.SnapListStyle.create(list, {animate: "scale"}); 
 			
+			//Focus on checked element
+			tryModifyElement(
+				list,
+				'input:checked[value]',
+				function(el) {
+					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);					
+				}
+			);
+			
 			return {
 				destroy: function() {
 					
