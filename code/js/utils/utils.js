@@ -219,10 +219,10 @@ const createMapZoomMappingObject = function() {
  	};
  	
  	const mapZoomMapping = createValueMapping({
- 		'1' : '25',
- 		'2' : '50',
- 		'3' : '75',
- 		'4' : '100'
+ 		'1' : '100',
+ 		'2' : '75',
+ 		'3' : '50',
+ 		'4' : '25'
  	});
  	
 	return createValueDecoratedMappingObject(mapZoomMapping, function(value) {
@@ -248,7 +248,7 @@ const storage = {
 						'3': 'SETTINGS_MENU_UNITS_DISTANCE_MEGAMETERS'})),
 			mapzoom: createGetterAndSetterForLocalStorageImpl(
 					'settings_units_mapzoom_key',
-					'4',
+					'1',
 					createMapZoomMappingObject()),
             
 			temperature: createGetterAndSetterForLocalStorageImpl(
@@ -258,6 +258,16 @@ const storage = {
 						'1': 'SETTINGS_MENU_UNITS_TEMPERATURE_SYSTEM',
 						'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
 						'3': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
+						
+			partnerapp : createGetterAndSetterForLocalStorageImpl(
+					'settings_units_partnerapp_key', 
+					'1',
+					createValueToLocalizationKeyMapping({
+						'1' : 'SETTINGS_MENU_UNITS_PARTNER_APP_STORM_DEFAULT',
+						'2' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC',
+						'3' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC_SAMSUNG',
+						'4' : 'SETTINGS_MENU_UNITS_PARTNER_APP_TWC_LITE'
+					}))
 		},
 	},
 };
