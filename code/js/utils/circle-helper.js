@@ -19,8 +19,8 @@
 					activeMarqueeWidget = null;
 				}
 			};
-
-			list.addEventListener('selected', function(ev) {
+			
+			const selectedEventListener = function(ev) {
 				const marqueeElement = ev.target.querySelector('.ui-marquee');
 				if (marqueeElement) {
 					destroyActiveMarqueeWidgetIfNeeded();
@@ -28,16 +28,25 @@
 					activeMarqueeWidget =
 						tau.widget.Marquee(marqueeElement, {marqueeStyle: 'endToEnd', delay: '1000'});
 				}
-			});
-
-			list.addEventListener('scrollstart', function() {
+			};
+			
+			const scrollStartEventListener = function() {
 				destroyActiveMarqueeWidgetIfNeeded();
-			});
+			};
+
+			list.addEventListener('selected', selectedEventListener);
+
+			list.addEventListener('scrollstart', scrollStartEventListener);
 			
 			const snapListStyleWidget = tau.helper.SnapListStyle.create(list, {animate: "scale"}); 
 			
 			return {
 				destroy: function() {
+					
+					list.removeEventListener('selected', selectedEventListener);
+
+					list.removeEventListener('scrollstart', scrollStartEventListener);
+					
 					destroyActiveMarqueeWidgetIfNeeded();
 					snapListStyleWidget.destroy();
 				}
