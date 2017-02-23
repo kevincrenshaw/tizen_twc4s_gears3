@@ -296,7 +296,7 @@ const storage = {
 	        }
 	        
 	        if(increaseCounter == false && index < 0) {
-	        	index = 0;
+	        	index = this.maxIndexSize - 1;
 	        }
 	        
 	        localStorage.setItem('weather_stored_session_index', index);
