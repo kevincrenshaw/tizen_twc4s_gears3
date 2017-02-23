@@ -65,3 +65,18 @@ body {
     background-image: url("../resources/gfx/storm-icon-settings.png");
     background-size: contain;  
 }
+
+.test-content-text {
+	font-size:.5em;
+	color:#fff;
+}
+
+.test-title-text {
+	color: #fff;
+	text-align: center;
+	width: 100%;
+	left: 0;
+	top: 20%;
+	position: absolute;
+	font-size: .65em;
+}

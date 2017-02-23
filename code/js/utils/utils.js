@@ -270,4 +270,38 @@ const storage = {
 					}))
 		},
 	},
+	
+	weatherSession : {
+		
+		maxIndexSize : 10,
+		
+		getIndex : function() {
+	        return localStorage.getItem('weather_stored_session_index');
+	    },
+	    
+	    updateIndex : function() {
+	        var index = this.getIndex();
+	        if(!index) {
+	            index = 0;
+	        } else {
+	            index++;
+	        }
+	        
+	        if(index >= this.maxIndexSize) {
+	            index = 0;
+	        }
+	        localStorage.setItem('weather_stored_session_index', index);
+	    },
+	    
+	    getSession : function() {
+	        return localStorage.getItem('weather_stored_session_' + this.getIndex());
+	    },
+	    
+	    setSession : function(value) {
+	        this.updateIndex();
+	        
+	        console.log('setSession.index: ' + this.getIndex() + ' session: ' + value);
+	        localStorage.setItem('weather_stored_session_' + this.getIndex(), value);
+	    }
+	}
 };
