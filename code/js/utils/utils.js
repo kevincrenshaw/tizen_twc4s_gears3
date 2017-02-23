@@ -273,23 +273,32 @@ const storage = {
 	
 	weatherSession : {
 		
-		maxIndexSize : 10,
+		maxIndexSize : 4,
 		
 		getIndex : function() {
 	        return localStorage.getItem('weather_stored_session_index');
 	    },
 	    
-	    updateIndex : function() {
+	    updateIndex : function(increaseCounter) {
 	        var index = this.getIndex();
 	        if(!index) {
 	            index = 0;
 	        } else {
-	            index++;
+	        	if(increaseCounter) {
+	        		index++;
+	        	} else {
+	        		index--;
+	        	}
 	        }
 	        
-	        if(index >= this.maxIndexSize) {
-	            index = 0;
+	        if(increaseCounter == true && index >= this.maxIndexSize) {
+	        	index = 0;
 	        }
+	        
+	        if(increaseCounter == false && index < 0) {
+	        	index = 0;
+	        }
+	        
 	        localStorage.setItem('weather_stored_session_index', index);
 	    },
 	    
@@ -298,10 +307,16 @@ const storage = {
 	    },
 	    
 	    setSession : function(value) {
-	        this.updateIndex();
+	        this.updateIndex(true);
 	        
 	        console.log('setSession.index: ' + this.getIndex() + ' session: ' + value);
 	        localStorage.setItem('weather_stored_session_' + this.getIndex(), value);
+	    },
+	    
+	    removeLastSession : function() {
+	    	console.log('removeLastSession.index: ' + this.getIndex() + ' session: ' + this.getSession());
+	    	localStorage.removeItem('weather_stored_session_' + this.getIndex());
+	    	this.updateIndex(false);
 	    }
 	}
 };
