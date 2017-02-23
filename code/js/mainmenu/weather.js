@@ -14,6 +14,13 @@
 
 			onPageShow : function(e) {
 				modifyInnerHtml(document, 'span#fetch-indicator', 'waiting for response');
+				
+				//try to load last saved sesstion and show it on UI
+				var lastSavedSession = storage.weatherSession.getSession();
+				if(lastSavedSession) {
+					modifyInnerHtml(document, 'span#status', lastSavedSession);					
+				}
+				
 				subscription = Rx.Observable.interval(waitForMillis).subscribe(
 						function(x) {
 							//create network request listener
