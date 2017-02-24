@@ -297,9 +297,9 @@ const storage = {
 	    },
 	    
 	    addSession : function(value) {
+	    	this.increaseIndex();
 	        console.log('addSession.index: ' + this.getIndex());
 	        localStorage.setItem(weatherStorageSession + this.getIndex(), value);
-	        this.increaseIndex();
 	    },
 	    
 	    removeLastSession : function() {
