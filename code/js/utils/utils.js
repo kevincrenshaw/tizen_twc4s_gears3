@@ -229,6 +229,10 @@ const createMapZoomMappingObject = function() {
 		return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 };
 
+const weatherStorageSession = 'weather_stored_session_';
+const weatherStorageSessionIndex = 'weather_stored_session_index';
+const weatherStorageMaxSize = 4;
+
 const storage = {
 	settings: {
 		units: {
@@ -273,50 +277,35 @@ const storage = {
 	
 	weatherSession : {
 		
-		maxIndexSize : 4,
-		
+		//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
 		getIndex : function() {
-	        return localStorage.getItem('weather_stored_session_index');
+	        return parseInt(localStorage.getItem(weatherStorageSessionIndex)) || 0;
 	    },
 	    
-	    updateIndex : function(increaseCounter) {
-	        var index = this.getIndex();
-	        if(!index) {
-	            index = 0;
-	        } else {
-	        	if(increaseCounter) {
-	        		index++;
-	        	} else {
-	        		index--;
-	        	}
-	        }
-	        
-	        if(increaseCounter == true && index >= this.maxIndexSize) {
-	        	index = 0;
-	        }
-	        
-	        if(increaseCounter == false && index < 0) {
-	        	index = this.maxIndexSize - 1;
-	        }
-	        
-	        localStorage.setItem('weather_stored_session_index', index);
+	    increaseIndex : function() {
+	    	const newValue = (this.getIndex() + 1) % weatherStorageMaxSize;
+	    	localStorage.setItem(weatherStorageSessionIndex, newValue);
+	    },
+	    
+	    decreaseIndex : function() {
+	    	const newValue = (this.getIndex() + weatherStorageMaxSize - 1) % weatherStorageMaxSize;
+	    	localStorage.setItem(weatherStorageSessionIndex, newValue);
 	    },
 	    
 	    getSession : function() {
-	        return localStorage.getItem('weather_stored_session_' + this.getIndex());
+	        return localStorage.getItem(weatherStorageSession + this.getIndex());
 	    },
 	    
-	    setSession : function(value) {
-	        this.updateIndex(true);
-	        
-	        console.log('setSession.index: ' + this.getIndex() + ' session: ' + value);
-	        localStorage.setItem('weather_stored_session_' + this.getIndex(), value);
+	    addSession : function(value) {
+	        console.log('addSession.index: ' + this.getIndex());
+	        localStorage.setItem(weatherStorageSession + this.getIndex(), value);
+	        this.increaseIndex();
 	    },
 	    
 	    removeLastSession : function() {
-	    	console.log('removeLastSession.index: ' + this.getIndex() + ' session: ' + this.getSession());
-	    	localStorage.removeItem('weather_stored_session_' + this.getIndex());
-	    	this.updateIndex(false);
+	    	console.log('removeLastSession.index: ' + this.getIndex());
+	    	localStorage.removeItem(weatherStorageSession + this.getIndex());
+	    	this.decreaseIndex();
 	    }
 	}
 };

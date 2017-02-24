@@ -4,14 +4,7 @@
 	const waitForMillis = 5000; 
 	var subscription = null;
 
-	var radar = {
-			onPageHide : function(e) {
-				if (subscription) {
-					subscription.dispose();
-					subscription = null;
-				}
-			},
-
+	const radar = {
 			onPageShow : function(e) {
 				modifyInnerHtml(document, 'span#fetch-indicator', 'waiting for response');
 				
@@ -20,18 +13,18 @@
 				if(lastSavedSession) {
 					modifyInnerHtml(document, 'span#status', lastSavedSession);					
 				}
-				
+				//subscribe on periodic tasks
 				subscription = Rx.Observable.interval(waitForMillis).subscribe(
 						function(x) {
-							//create network request listener
-							var fetchObserver = Rx.Observer.create(
+							//perform request
+							getResourcesByURL(url, { timeout: 0, delay: 0}).subscribe(
 									function(response) {
 										if(subscription) {
 											console.log('response fetched and saved');
 											modifyInnerHtml(document, 'span#status', '');
 											const result = JSON.stringify(response);
 											modifyInnerHtml(document, 'span#status', result);
-											storage.weatherSession.setSession(result);
+											storage.weatherSession.addSession(result);
 										} else {
 											console.log('response fetched but no listener found - exit');
 										}
@@ -49,18 +42,25 @@
 											modifyInnerHtml(document, 'span#fetch-indicator', 'updated at: ' + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());											
 										}
 									});
-							
-							console.log('next: ' + x);
-							getResourcesByURL(url, fetchObserver, { timeout: 0, delay: 0});
 						},
 						function(err) {
-							console.log('error: ' + error);
+							console.error('error: ' + error);
 						},
 						function() {
 							console.log('completed');
 						});
 	
 				console.log('subscription: ' + JSON.stringify(subscription));
+				
+				//subscribe on page hide event
+				modifyElement(document, '#weatherPage.ui-page', function(page) {
+					Rx.Observable.fromEvent(page, 'pagebeforehide').subscribe(function() {
+						if (subscription) {
+							subscription.dispose();
+							subscription = null;
+						}
+					});
+				});
 			},
 	};
 	
@@ -71,7 +71,6 @@
 	
 	modifyElement(document, '#weatherPage.ui-page', function(page) {
 		Rx.Observable.fromEvent(page, 'pagebeforeshow').subscribe(radar.onPageShow);
-		Rx.Observable.fromEvent(page, 'pagebeforehide').subscribe(radar.onPageHide);
 	});
 } () );
 
