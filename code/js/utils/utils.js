@@ -229,6 +229,10 @@ const createMapZoomMappingObject = function() {
 		return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 };
 
+const weatherStorageSession = 'weather_stored_session_';
+const weatherStorageSessionIndex = 'weather_stored_session_index';
+const weatherStorageMaxSize = 4;
+
 const storage = {
 	settings: {
 		units: {
@@ -270,4 +274,38 @@ const storage = {
 					}))
 		},
 	},
+	
+	weatherSession : {
+		
+		//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
+		getIndex : function() {
+	        return parseInt(localStorage.getItem(weatherStorageSessionIndex)) || 0;
+	    },
+	    
+	    increaseIndex : function() {
+	    	const newValue = (this.getIndex() + 1) % weatherStorageMaxSize;
+	    	localStorage.setItem(weatherStorageSessionIndex, newValue);
+	    },
+	    
+	    decreaseIndex : function() {
+	    	const newValue = (this.getIndex() + weatherStorageMaxSize - 1) % weatherStorageMaxSize;
+	    	localStorage.setItem(weatherStorageSessionIndex, newValue);
+	    },
+	    
+	    getSession : function() {
+	        return localStorage.getItem(weatherStorageSession + this.getIndex());
+	    },
+	    
+	    addSession : function(value) {
+	    	this.increaseIndex();
+	        console.log('addSession.index: ' + this.getIndex());
+	        localStorage.setItem(weatherStorageSession + this.getIndex(), value);
+	    },
+	    
+	    removeLastSession : function() {
+	    	console.log('removeLastSession.index: ' + this.getIndex());
+	    	localStorage.removeItem(weatherStorageSession + this.getIndex());
+	    	this.decreaseIndex();
+	    }
+	}
 };

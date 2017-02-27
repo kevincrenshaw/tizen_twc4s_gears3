@@ -24,6 +24,10 @@
 				tau.changePage("html/radar.html");
 				break;
 				
+			case 'weather':
+				tau.changePage("html/weather.html");
+				break;
+				
 			default:
 				//By default show popup with localized option title
 				
