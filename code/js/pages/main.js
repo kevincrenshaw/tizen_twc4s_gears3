@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-define('pages/main', [], function() {
+define([], function() {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
 	var popupCancelBtn;

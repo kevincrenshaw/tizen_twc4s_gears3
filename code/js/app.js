@@ -2,19 +2,21 @@
 define(['require'], function(require) {
 	const pageEventDispatcher = function(e) {
 		const page = e.target;
-		const moduleName = 'pages/' + page.id;
+		const moduleName = '/js/pages/' + page.id + '.js';
 		
-		require([moduleName], function(viewModule) {
-			if (viewModule) {
-				if (viewModule.hasOwnProperty(e.type)) {
-					console.info('Calling event handler ' + moduleName + ':' + e.type);
-					viewModule[e.type](e);
+		require([moduleName], function(pageModule) {
+			if (pageModule) {
+				if (pageModule.hasOwnProperty(e.type)) {
+					console.info('Calling event handler for ' + moduleName + ':' + e.type);
+					pageModule[e.type](e);
 				} else {
 					console.debug('Module "' + moduleName + '" not accepting event: "' + e.type + '"')
 				}
 			} else {
 				console.error('Module "' + moduleName + '" not found (event: "' + e.type + '")')
 			}
+		}, function(err) {
+			console.error('Problem with loading module(s): "' + err.requireModules.join(',') + '" (reason: "' + err.requireType + '")');
 		});
 	};
 	
