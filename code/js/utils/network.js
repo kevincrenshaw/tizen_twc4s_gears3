@@ -4,7 +4,7 @@
 //			'http://jsonplaceholder.typicode.com/posts/3',
 //			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
 
-define(['jquery'], function($) {
+define(['jquery', 'rx'], function($, Rx) {
 	return {
 		getResourcesByURL: function(urls, options) {
 			options = options || {};

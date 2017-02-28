@@ -1,4 +1,4 @@
-define([], function() {
+define(['rx'], function(Rx) {
 	const tryModifyElement = function(root, selector, callback) {
 		const element = root.querySelector(selector);
 	
