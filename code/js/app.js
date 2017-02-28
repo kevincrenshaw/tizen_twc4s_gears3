@@ -109,7 +109,17 @@ define(modules, function(require, circleHelper) {
 		
 		for (var i=0; i<snapListNodeListLen; ++i) {
 			var listNode = snapListNodeList[i];
-			destroyables.add(tau.helper.SnapListStyle.create(listNode, {animate: "scale"}));
+			var snapListStyleWidget = tau.helper.SnapListStyle.create(listNode, {animate: "scale"});
+			destroyables.add(snapListStyleWidget);
+			
+			//Focus on checked element
+			tryModifyElement(
+				listNode,
+				'input:checked[value]',
+				function(el) {
+					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);					
+				}
+			);
 			
 			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
 			createMarqueeWidget(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
