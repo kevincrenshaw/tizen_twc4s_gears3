@@ -35,11 +35,12 @@ SHORT_COMMIT_HASH=$(git rev-parse --short HEAD)
 echo "\nShort version of commit has is $SHORT_COMMIT_HASH" 
 
 #Storing build number and git commit short hash
-echo "const buildInfo = {
+echo "define([], function() {
+	return {
 		jenkinsBuildNumber: '$BUILD_NUMBER',
 		commitHash: '$SHORT_COMMIT_HASH',
-	};" > `pwd`/js/data/buildInfo.js
-
+	};
+});"  > `pwd`/js/data/buildInfo.js
 
 rm twc.wgt
 

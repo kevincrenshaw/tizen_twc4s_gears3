@@ -2,6 +2,7 @@
 
 const modules = [
 	'require',
+	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
 	'pages/units',
@@ -10,6 +11,7 @@ const modules = [
 	'pages/mapzoom',
 	'pages/temperature',
 	'pages/partnerapp',
+	'pages/information',
 ];
 
 define(modules, function(require, circleHelper) {
