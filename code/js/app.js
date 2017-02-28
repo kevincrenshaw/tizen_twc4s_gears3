@@ -7,6 +7,7 @@ const modules = [
 	'pages/units',
 	'pages/time',
 	'pages/distance',
+	'pages/mapzoom',
 ];
 
 define(modules, function(require, circleHelper) {
