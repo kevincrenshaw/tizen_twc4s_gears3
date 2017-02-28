@@ -3,6 +3,7 @@
 const modules = [
 	'require',
 	'data/buildInfo',
+	'utils/network',
 	'pages/main',
 	'pages/settings',
 	'pages/units',
@@ -12,6 +13,7 @@ const modules = [
 	'pages/temperature',
 	'pages/partnerapp',
 	'pages/information',
+	'pages/radar',
 ];
 
 define(modules, function(require, circleHelper) {
