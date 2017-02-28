@@ -2,8 +2,10 @@
 
 const modules = [
 	'require',
-	'data/buildInfo',
+	'utils/utils',
+	'utils/storage',
 	'utils/network',
+	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
 	'pages/units',
@@ -17,7 +19,7 @@ const modules = [
 	'pages/weather',
 ];
 
-define(modules, function(require, circleHelper) {
+define(modules, function(require, utils) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
@@ -113,7 +115,7 @@ define(modules, function(require, circleHelper) {
 			destroyables.add(snapListStyleWidget);
 			
 			//Focus on checked element
-			tryModifyElement(
+			utils.tryModifyElement(
 				listNode,
 				'input:checked[value]',
 				function(el) {

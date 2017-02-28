@@ -1,12 +1,12 @@
-define(['utils/network'], function(network) {
+define(['utils/network', 'utils/utils', 'utils/storage'], function(network, utils, storage) {
 	const url = ['http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json'];
 	const waitForMillis = 5000; 
 	var subscription = null;
 	
 	const createLastSessionDeleter = function(root) {
 		const deleteLastSession = function() {
-			storage.weatherSession.removeLastSession();
-			modifyInnerHtml(root, 'span#status', '');
+			utils.storage.weatherSession.removeLastSession();
+			utils.modifyInnerHtml(root, 'span#status', '');
 		};
 		
 		return deleteLastSession;
@@ -22,14 +22,14 @@ define(['utils/network'], function(network) {
 		},
 		
 		onPageShow : function(page) {
-			modifyInnerHtml(page, 'span#fetch-indicator', 'waiting for response');
+			utils.modifyInnerHtml(page, 'span#fetch-indicator', 'waiting for response');
 			
 			page.querySelector('#delete-button').addEventListener("click", createLastSessionDeleter(page));
 				
 			//try to load last saved sesstion and show it on UI
 			var lastSavedSession = storage.weatherSession.getSession();
 			if(lastSavedSession) {
-				modifyInnerHtml(document, 'span#status', lastSavedSession);					
+				utils.modifyInnerHtml(document, 'span#status', lastSavedSession);					
 			}
 			//subscribe on periodic tasks
 			subscription = Rx.Observable.interval(waitForMillis).subscribe(
@@ -39,9 +39,9 @@ define(['utils/network'], function(network) {
 						function(response) {
 							if(subscription) {
 								console.log('response fetched and saved');
-								modifyInnerHtml(page, 'span#status', '');
+								utils.modifyInnerHtml(page, 'span#status', '');
 								const result = JSON.stringify(response);
-								modifyInnerHtml(page, 'span#status', result);
+								utils.modifyInnerHtml(page, 'span#status', result);
 								storage.weatherSession.addSession(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
@@ -51,13 +51,13 @@ define(['utils/network'], function(network) {
 							console.error("error: " + error.status);
 							if(subscription) {
 								const result = JSON.stringify(error.status);
-								modifyInnerHtml(page, 'span#status', result);
+								utils.modifyInnerHtml(page, 'span#status', result);
 							}
 						},
 						function() {
 							if(subscription) {
 								var timestamp = new Date();
-								modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());											
+								utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());											
 							}
 						});
 				},

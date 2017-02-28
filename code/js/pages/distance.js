@@ -1,9 +1,9 @@
-define([], function() {
+define(['utils/utils', 'utils/storage'], function(utils, storage) {
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			
-			setupSettingPageWithRadioButtons(
+			utils.setupSettingPageWithRadioButtons(
 				page,
 				TIZEN_L10N.SETTINGS_MENU_UNITS_DISTANCE,
 				'distance-radio',
