@@ -6,6 +6,7 @@ const modules = [
 	'utils/storage',
 	'utils/network',
 	'utils/back',
+	'utils/lowBatteryCheck',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
