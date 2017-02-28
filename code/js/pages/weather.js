@@ -5,7 +5,7 @@ define(['utils/network', 'utils/utils', 'utils/storage'], function(network, util
 	
 	const createLastSessionDeleter = function(root) {
 		const deleteLastSession = function() {
-			utils.storage.weatherSession.removeLastSession();
+			storage.weatherSession.removeLastSession();
 			utils.modifyInnerHtml(root, 'span#status', '');
 		};
 		
