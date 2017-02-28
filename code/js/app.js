@@ -9,6 +9,7 @@ const modules = [
 	'pages/distance',
 	'pages/mapzoom',
 	'pages/temperature',
+	'pages/partnerapp',
 ];
 
 define(modules, function(require, circleHelper) {
