@@ -1,7 +1,5 @@
 /* jshint esversion: 6 */
 define([], function() {
-	var destroyable;
-	
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;

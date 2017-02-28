@@ -5,6 +5,7 @@ const modules = [
 	'pages/main',
 	'pages/settings',
 	'pages/units',
+	'pages/time',
 ];
 
 define(modules, function(require, circleHelper) {
