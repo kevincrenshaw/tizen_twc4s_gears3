@@ -1,74 +1,126 @@
 /* jshint esversion: 6 */
-define(['require'], function(require) {
+
+const modules = [
+	'require',
+	'pages/main',
+	'pages/settings',
+	'pages/units',
+];
+
+define(modules, function(require, circleHelper) {
+	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
+	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
 		const page = ev.target;
-		const moduleName = '/js/pages/' + page.id + '.js';
+		const moduleName = 'pages/' + page.id;
 		
-		require([moduleName], function(pageModule) {
-			if (pageModule) {
-				if (pageModule.hasOwnProperty(ev.type)) {
-					console.info('Calling event handler for ' + moduleName + ':' + ev.type);
-					pageModule[ev.type](ev);
-				} else {
-					console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"')
-				}
+		pageModule = require(moduleName);
+		
+		if (pageModule) {
+			if (pageModule.hasOwnProperty(ev.type)) {
+				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
+				pageModule[ev.type](ev);
 			} else {
-				console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")')
+				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"')
 			}
-		}, function(err) {
-			console.error('Problem with loading module(s): "' + err.requireModules.join(',') + '" (reason: "' + err.requireType + '")');
-		});
+		} else {
+			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")')
+		}
 	};
 	
+	//Creates object that manages array of destroyables.
 	const createDestroyableManager = function() {
-		const destroyableObjectArr = [];
+		const destroyableArr = [];
 		
 		return {
 			add: function(destroyable) {
-//				console.log('*** add!');
-				destroyableObjectArr.push(destroyable);
+				destroyableArr.push(destroyable);
 			},
 			
 			destroy: function() {
 				//Destroy in reverse order
-				for (i=destroyableObjectArr.length-1; i>=0; --i) {
-//					console.log('*** destroy!');
-					destroyableObjectArr[i].destroy();
+				for (i=destroyableArr.length-1; i>=0; --i) {
+					destroyableArr[i].destroy();
+					destroyableArr[i] = null;
 				}
-				destroyableObjectArr.length = 0; //clear array
+				destroyableArr.length = 0; //clear array
 			}
 		};
 	};
 	
+	const createMarqueeWidgetManager = function() {
+		var activeMarqueeWidget;
+		
+		return {
+			set: function(widget) {
+				this.destroy();
+				activeMarqueeWidget = widget;
+			},
+			
+			destroy: function() {
+				if (activeMarqueeWidget) {
+					activeMarqueeWidget.stop();
+					activeMarqueeWidget.destroy();
+					activeMarqueeWidget = null;
+				}
+			}
+		};
+	};
+	
+	//Represents all destroyable object for given page (objects that need to be destroyed when leaving page)
 	const destroyables = createDestroyableManager();
 	
+	//There is only one acrive marquee widget at the moment
+	const activeMaruqeeWidget = createMarqueeWidgetManager();
+	
+	
 	const listItemSelectedEventListener = function(ev) {
-//		console.log('===> listItemSelectedEventListener');
+		const marqueeElement = ev.target.querySelector('.ui-marquee');
+		if (marqueeElement) {
+			activeMaruqeeWidget.destroy();
+
+			activeMaruqeeWidget.set(
+				tau.widget.Marquee(marqueeElement, {marqueeStyle: 'endToEnd', delay: '1000'})
+			);
+		}
 	};
 	
 	const listItemScrollStartEventListener = function(ev) {
-//		console.log('===> listItemScrollStartEventListener');
+		activeMaruqeeWidget.destroy();
 	};
 	
 	document.addEventListener('pagebeforeshow', function(ev) {
+		//Call event handler from page module (if provided)
+		dispatchEventToPage(ev);
+		
+		//Find every circle helper on current page, create widget for it and save it for later destruction
 		const selector = '.ui-listview.circle-helper-snap-list';
 		const snapListNodeList = ev.target.querySelectorAll(selector);
 		const snapListNodeListLen = snapListNodeList.length;
 		
 		for (var i=0; i<snapListNodeListLen; ++i) {
-			var list = snapListNodeList[i];
-			destroyables.add(tau.helper.SnapListStyle.create(list, {animate: "scale"}));
+			var listNode = snapListNodeList[i];
+			destroyables.add(tau.helper.SnapListStyle.create(listNode, {animate: "scale"}));
 			
-//			list.addEventListener('selected', listItemSelectedEventListener);
-//			list.addEventListener('scrollstart', listItemScrollStartEventListener);
+			listNode.addEventListener('selected', listItemSelectedEventListener);
+			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
+			
+			destroyables.add({
+				destroy: function() {					
+					listNode.removeEventListener('selected', listItemSelectedEventListener);
+					listNode.removeEventListener('scrollstart', listItemScrollStartEventListener);
+					activeMaruqeeWidget.destroy();
+				}
+			});
 		}
-		
-		dispatchEventToPage(ev);
 	});
 	
-	document.addEventListener('pagebeforehide', function(ev) {
-		dispatchEventToPage(ev);
+	document.addEventListener('pagebeforehide', function(ev) {	
+		//Cleanup destroyable objects
 		destroyables.destroy();
+		
+		//Call event handler from page module (if provided)
+		dispatchEventToPage(ev);
 	});
 	
 	tau.engine.run();

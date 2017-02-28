@@ -75,8 +75,8 @@ define([], function() {
 	};
 	
 	return {
-		pagebeforeshow: function(e) {
-			const page = document.getElementById("main");
+		pagebeforeshow: function(ev) {
+			const page = ev.target;
 			if (!page) {
 				console.warn('setupMainMenu: root element "main" not found"');
 				return;
@@ -120,7 +120,7 @@ define([], function() {
 			}
 		},
 		
-		pagebeforehide: function(e) {
+		pagebeforehide: function(ev) {
 			if (selector) {
 				selector.removeEventListener('click', selectorClickHandler, false);
 			}
