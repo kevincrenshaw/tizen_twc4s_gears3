@@ -14,6 +14,7 @@ const modules = [
 	'pages/partnerapp',
 	'pages/information',
 	'pages/radar',
+	'pages/weather',
 ];
 
 define(modules, function(require, circleHelper) {
