@@ -1,5 +1,4 @@
-(function() {
-	
+define([], function() {
 	Rx.Observable.fromEvent(window, 'tizenhwkey')
 	.filter(function(event) {
 		return event.keyName === "back";
@@ -19,4 +18,4 @@
 			window.history.back();
 		}
 	});
-}());
+});

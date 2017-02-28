@@ -5,6 +5,7 @@ const modules = [
 	'utils/utils',
 	'utils/storage',
 	'utils/network',
+	'utils/back',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
