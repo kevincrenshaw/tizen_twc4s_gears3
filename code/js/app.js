@@ -8,6 +8,7 @@ const modules = [
 	'pages/time',
 	'pages/distance',
 	'pages/mapzoom',
+	'pages/temperature',
 ];
 
 define(modules, function(require, circleHelper) {
