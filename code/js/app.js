@@ -63,7 +63,7 @@ define(modules, function(require, circleHelper) {
 					activeMarqueeWidget.destroy();
 					activeMarqueeWidget = null;
 				}
-			}
+			},
 		};
 	};
 	
@@ -73,16 +73,15 @@ define(modules, function(require, circleHelper) {
 	//There is only one acrive marquee widget at the moment
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
 	
+	const createMarqueeWidget = function(element) {
+		if (element) {
+			activeMaruqeeWidget.destroy();
+			activeMaruqeeWidget.set(tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'}));
+		}
+	};
 	
 	const listItemSelectedEventListener = function(ev) {
-		const marqueeElement = ev.target.querySelector('.ui-marquee');
-		if (marqueeElement) {
-			activeMaruqeeWidget.destroy();
-
-			activeMaruqeeWidget.set(
-				tau.widget.Marquee(marqueeElement, {marqueeStyle: 'endToEnd', delay: '1000'})
-			);
-		}
+		createMarqueeWidget(ev.target.querySelector('.ui-marquee'));
 	};
 	
 	const listItemScrollStartEventListener = function(ev) {
@@ -102,6 +101,9 @@ define(modules, function(require, circleHelper) {
 			var listNode = snapListNodeList[i];
 			destroyables.add(tau.helper.SnapListStyle.create(listNode, {animate: "scale"}));
 			
+			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
+			createMarqueeWidget(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
+						
 			listNode.addEventListener('selected', listItemSelectedEventListener);
 			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
 			
