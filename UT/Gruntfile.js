@@ -10,7 +10,7 @@ module.exports = function(grunt) {
 
 		qunit_junit: {
 			options: {
-				dest: '.'
+				dest: 'report'
 			},
 		},
 
@@ -18,7 +18,7 @@ module.exports = function(grunt) {
 			all: ['../code/js/'],
 			options: {
 				reporter: 'checkstyle',
-				reporterOutput: 'report-jshint-checkstyle.xml'
+				reporterOutput: 'report/jshint-checkstyle.xml'
 			}
 		},
 	});
