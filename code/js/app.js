@@ -94,16 +94,21 @@ define(modules, function(require, utils) {
 	
 	//There is only one acrive marquee widget at the moment
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
+
+	const createMarqueWidget = function(element) {
+		return tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'});
+	};
 	
-	const createMarqueeWidget = function(element) {
+	const createMarqueeWidgetForListElement = function(element) {
 		if (element) {
 			activeMaruqeeWidget.destroy();
-			activeMaruqeeWidget.set(tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'}));
+			activeMaruqeeWidget.set(createMarqueWidget(element));
 		}
 	};
 	
 	const listItemSelectedEventListener = function(ev) {
-		createMarqueeWidget(ev.target.querySelector('.ui-marquee'));
+		const page = ev.target;
+		createMarqueeWidgetForListElement(page.querySelector('.ui-marquee'));
 	};
 	
 	const listItemScrollStartEventListener = function(ev) {
@@ -111,12 +116,19 @@ define(modules, function(require, utils) {
 	};
 	
 	document.addEventListener('pagebeforeshow', function(ev) {
+		const page = ev.target;
+		
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
 		
+		const title = page.querySelector(".ui-title");
+		if (title) {
+			destroyables.add(createMarqueWidget(title));
+		}
+		
 		//Find every circle helper on current page, create widget for it and save it for later destruction
 		const selector = '.ui-listview.circle-helper-snap-list';
-		const snapListNodeList = ev.target.querySelectorAll(selector);
+		const snapListNodeList = page.querySelectorAll(selector);
 		const snapListNodeListLen = snapListNodeList.length;
 		
 		for (var i=0; i<snapListNodeListLen; ++i) {
@@ -134,7 +146,7 @@ define(modules, function(require, utils) {
 			);
 			
 			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
-			createMarqueeWidget(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
+			createMarqueeWidgetForListElement(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
 						
 			listNode.addEventListener('selected', listItemSelectedEventListener);
 			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
