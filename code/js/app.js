@@ -1,140 +1,173 @@
 /* jshint esversion: 6 */
-( function () {
-	
-	const setupMainMenu = function(root) {
-		const selectorClickHandler = function() {		
-			if (!selector) {
-				console.warn('setupMainMenu::selectorClickHandler: no selector element');
-				return;
-			}
-			
-			const activeItem = selector.querySelector('.ui-item-active');
-			if (!activeItem) {
-				console.warn('setupMainMenu::selectorClickHandler: no selector ".ui-item-active" element');
-				return;
-			}
-			
-			console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
-			switch(activeItem.id) {
-			case 'settings':
-				tau.changePage("html/settings.html");
-				break;
-				
-			case 'radar':
-				tau.changePage("html/radar.html");
-				break;
-				
-			case 'weather':
-				tau.changePage("html/weather.html");
-				break;
-				
-			default:
-				//By default show popup with localized option title
-				
-				const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
-				if (!dataTitleAttribute) {
-					console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
-					return;
-				}
-				
-				const activeItemDataTitleValue = dataTitleAttribute.value;
-				if (!activeItemDataTitleValue) {
-					console.warn('setupMainMenu::selectorClickHandler: missing activeItemDataTitleValue');
-					return;
-				}
-				
-				console.log('setupMainMenu::selectorClickHandler: default item handler, activeItem={id="' + activeItem.id + '", data-title="' + activeItemDataTitleValue +  '"}');
-				
-				if (!popupHeader) {
-					console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
-					return;
-				}
-				
-				popupHeader.innerHTML = activeItemDataTitleValue;
-				tau.openPopup(popup);
-			}
-		};
+
+requirejs.config({
+	baseUrl: 'js',
+	paths: {
+		jquery: '../lib/jquery/jquery-1.11.1.min',
+		rx: '../lib/rx.lite'
+	},
+});
+
+const modules = [
+	'require',
+	'utils/utils',
+	'utils/storage',
+	'utils/network',
+	'utils/back',
+	'utils/lowBatteryCheck',
+	'data/buildInfo',
+	'pages/main',
+	'pages/settings',
+	'pages/units',
+	'pages/time',
+	'pages/distance',
+	'pages/mapzoom',
+	'pages/temperature',
+	'pages/partnerapp',
+	'pages/information',
+	'pages/radar',
+	'pages/weather',
+];
+
+define(modules, function(require, utils) {
+	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
+	//Modules need to be loaded ealier.
+	const dispatchEventToPage = function(ev) {
+		const page = ev.target;
+		const moduleName = 'pages/' + page.id;
 		
-		const page = root.getElementById("main");
-		if (!page) {
-			console.warn('setupMainMenu: root element "main" not found"');
-			return;
+		pageModule = require(moduleName);
+		
+		if (pageModule) {
+			if (pageModule.hasOwnProperty(ev.type)) {
+				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
+				pageModule[ev.type](ev);
+			} else {
+				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"')
+			}
+		} else {
+			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")')
 		}
-		
-		const selector = page.querySelector('#selector');
-		if (!selector) {
-			console.warn('setupMainMenu: page element "#selector" not found"');
-			return;
-		}
-		
-		const setDataTitleAttributeValue = function(root, selector, value) {
-			const element = root.querySelector(selector);
-			
-			if (!element) {
-				console.warn('setupMainMenu::setDataTitleAttributeValue: no element for selector "' + selector + '"');
-				return false;
-			}
-			
-			element.setAttribute('data-title', value);
-			return true;
-		};
-		
-		setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
-		setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
-		setDataTitleAttributeValue(selector, '#compass',  TIZEN_L10N.MAIN_MENU_COMPASS);
-		setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
-		setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
-		
-		const popup = page.querySelector('#selector-value-popup');
-		if (!popup) {
-			console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
-			return;
-		}
-		
-		const popupCancelBtn = popup.querySelector('#cancel');
-		if (!popupCancelBtn) {
-			console.warn('setupMainMenu: popup element "#cancel" not found"');
-			return;
-		}
-		
-		const popupCancelButtonClickHandler = function() {
-			tau.closePopup();
-		};
-		
-		popupCancelBtn.addEventListener('click', popupCancelButtonClickHandler);
-		
-		const popupHeader = popup.querySelector('#header');
-		if (!popupHeader) {
-			console.warn('setupMainMenu: popup element "#header" not found"');
-			return;
-		}
-		
-		//Remember widget object to destory it on leaving page (if not bezel may stop working)
-		var selectorWidget;
-		
-		page.addEventListener('pagebeforeshow', function() {
-			selectorWidget = tau.widget.Selector(selector);
-			
-			if (selector) {
-				selector.addEventListener('click', selectorClickHandler, false);
-			}
-		});
-		
-		page.addEventListener('pagebeforehide', function() {
-			if (selector) {
-				selector.removeEventListener('click', selectorClickHandler, false);
-			}
-			
-			if (selectorWidget) {
-				selectorWidget.destroy();
-				selectorWidget = null;
-			}
-			
-			if (popupCancelBtn) {
-				popupCancelBtn.removeEventListener(popupCancelButtonClickHandler);
-			}
-		});
 	};
 	
-	setupMainMenu(document);
-} () );
+	//Creates object that manages array of destroyables.
+	const createDestroyableManager = function() {
+		const destroyableArr = [];
+		
+		return {
+			add: function(destroyable) {
+				destroyableArr.push(destroyable);
+			},
+			
+			destroy: function() {
+				//Destroy in reverse order
+				for (i=destroyableArr.length-1; i>=0; --i) {
+					destroyableArr[i].destroy();
+					destroyableArr[i] = null;
+				}
+				destroyableArr.length = 0; //clear array
+			}
+		};
+	};
+	
+	const createMarqueeWidgetManager = function() {
+		var activeMarqueeWidget;
+		
+		return {
+			set: function(widget) {
+				this.destroy();
+				activeMarqueeWidget = widget;
+			},
+			
+			destroy: function() {
+				if (activeMarqueeWidget) {
+					activeMarqueeWidget.stop();
+					activeMarqueeWidget.destroy();
+					activeMarqueeWidget = null;
+				}
+			},
+		};
+	};
+	
+	//Represents all destroyable object for given page (objects that need to be destroyed when leaving page)
+	const destroyables = createDestroyableManager();
+	
+	//There is only one acrive marquee widget at the moment
+	const activeMaruqeeWidget = createMarqueeWidgetManager();
+
+	const createMarqueWidget = function(element) {
+		return tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'});
+	};
+	
+	const createMarqueeWidgetForListElement = function(element) {
+		if (element) {
+			activeMaruqeeWidget.destroy();
+			activeMaruqeeWidget.set(createMarqueWidget(element));
+		}
+	};
+	
+	const listItemSelectedEventListener = function(ev) {
+		const page = ev.target;
+		createMarqueeWidgetForListElement(page.querySelector('.ui-marquee'));
+	};
+	
+	const listItemScrollStartEventListener = function(ev) {
+		activeMaruqeeWidget.destroy();
+	};
+	
+	document.addEventListener('pagebeforeshow', function(ev) {
+		const page = ev.target;
+		
+		//Call event handler from page module (if provided)
+		dispatchEventToPage(ev);
+		
+		const title = page.querySelector(".ui-title");
+		if (title) {
+			destroyables.add(createMarqueWidget(title));
+		}
+		
+		//Find every circle helper on current page, create widget for it and save it for later destruction
+		const selector = '.ui-listview.circle-helper-snap-list';
+		const snapListNodeList = page.querySelectorAll(selector);
+		const snapListNodeListLen = snapListNodeList.length;
+		
+		for (var i=0; i<snapListNodeListLen; ++i) {
+			var listNode = snapListNodeList[i];
+			var snapListStyleWidget = tau.helper.SnapListStyle.create(listNode, {animate: "scale"});
+			destroyables.add(snapListStyleWidget);
+			
+			//Focus on checked element
+			utils.tryModifyElement(
+				listNode,
+				'input:checked[value]',
+				function(el) {
+					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);					
+				}
+			);
+			
+			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
+			createMarqueeWidgetForListElement(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
+						
+			listNode.addEventListener('selected', listItemSelectedEventListener);
+			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
+			
+			destroyables.add({
+				destroy: function() {					
+					listNode.removeEventListener('selected', listItemSelectedEventListener);
+					listNode.removeEventListener('scrollstart', listItemScrollStartEventListener);
+					activeMaruqeeWidget.destroy();
+				}
+			});
+		}
+	});
+	
+	document.addEventListener('pagebeforehide', function(ev) {	
+		//Cleanup destroyable objects
+		destroyables.destroy();
+		
+		//Call event handler from page module (if provided)
+		dispatchEventToPage(ev);
+	});
+	
+	tau.engine.run();
+});
