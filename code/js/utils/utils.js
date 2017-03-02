@@ -81,9 +81,25 @@ define(['rx'], function(Rx) {
 		});
 	};
 	
+	const getPrecisionForLOD = function(lod) {
+		switch(lod) {
+			case 1: case 2: case 3: case 4:		return 0;
+			case 5: case 6: case 7:				return 1;
+			case 8: case 9: case 10: case 11:	return 2;
+			case 12: case 13: case 14:			return 3;
+		}
+	};
+
+	const getAllowedPrecisionAccordingToLOD = function(value, lod) {
+		const precision = getPrecisionForLOD(lod);
+		const tmp = Math.pow(10, precision);
+		return (Math.round(value * tmp) / tmp).toFixed(precision);
+	};
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyInnerHtml: modifyInnerHtml,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
+		getAllowedPrecisionAccordingToLOD: getAllowedPrecisionAccordingToLOD,
 	};
 });
