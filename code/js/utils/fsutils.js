@@ -16,9 +16,7 @@ define([], function() {
 				if(!checkFileExtension) {
 					var fname = getFileNameWithoutExtension(files[i].name);
 					var fnameToSearch = getFileNameWithoutExtension(fileToSearch);
-					
-					console.log('searching [' + i +'] fname:' + fname + ' === ' + fnameToSearch);
-					
+
 					if(fname === fnameToSearch) {
 						console.log('found entry: ' + files[i].toURI());
 						callback(files[i]);
@@ -191,12 +189,9 @@ define([], function() {
 		//resolve src directory
 		tizen.filesystem.resolve(srcDirectoryName, 
 			function(srcDir) {
-				console.log('src dir ' + srcDir.toURI() + ' resolved');
 				//resolve dst directory
 				tizen.filesystem.resolve(dstDirectoryName,
 					function(dstDir) {
-						console.log('dst dir ' + dstDir.toURI() + ' resolved');
-						//
 						srcDir.moveTo(
 							srcDir.fullPath + '/' + srcFileName, 
 							dstDir.fullPath + '/' + dstFileName,

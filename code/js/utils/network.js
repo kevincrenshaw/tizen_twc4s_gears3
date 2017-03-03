@@ -29,11 +29,6 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	
 	const downloadImageFile = function(url, destFileNameWithoutExtension, callback) {
 		var downloadListener = {
-			onprogress: function(id, receivedSize, totalSize) {
-				var percentage = Math.round(receivedSize / totalSize * 100) + '%';
-				console.log('on progress id: ' + id + ' received: ' + percentage);
-			},
-			
 			oncompleted: function(id) {
 				console.log('on completed task: ' + id);
 				callback(fileName);
@@ -47,7 +42,6 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		
 		//get file extension
 		var extension = fsutils.getFileExtension(url);
-		console.log('get extension from url: ' + url + '  ext: ' + extension);
 		
 		var fileName = null;
 		if(extension.length > 0) {
