@@ -85,46 +85,6 @@ define([], function() {
 	};
 
 	/**
-	 * write data to a file
-	 * Params:
-	 * directoryFile - current directory (as file object) where new file will be stored
-	 * fileName name of file where we need to store data
-	 * data - data to store
-	 * 
-	 * Returns:
-	 * file object if data was written successfuly otherwise null
-	 * */
-	const writeDataToFile = function(directoryFile, fileName, data, callback) {
-		hasSuchFile(directoryFile.fullPath, fileName, true, function(result) {
-			if(result) {
-				try {
-					console.log('file: ' + fileName + ' is old and need to be replaced by new one ');
-					console.log('from dir: ' + directoryFile.toURI());
-					directoryFile.deleteFile( directoryFile.fullPath + '/' + fileName);
-				} catch(ex) {
-					console.error('cant remove file: ' + ex.message);
-					callback(null);
-				}
-			}
-			
-			var file = directoryFile.createFile(fileName);
-			file.openStream('w',
-				function(fileStream) {
-					fileStream.write(data);
-					fileStream.close();
-					console.log('data has been written to file: ' + file.toURI());
-					callback(file);
-				},
-				function(error) {
-					console.error('cant write data to a file, error: ' + error.message);
-					callback(null);
-				},
-				"UTF-8"
-			);
-		});
-	};
-
-	/**
 	 * remove file
 	 * Params:
 	 * imageFileName - name of file to remove, without extension
@@ -161,6 +121,16 @@ define([], function() {
 		});
 	};
 
+	/**
+	 * move file
+	 * 
+	 * Params:
+	 * srcDirectoryName - directory name which contains source file
+	 * dstDirectoryName - directory where file should be
+	 * srcFileName - source file name (original)
+	 * dstFileName - new file name
+	 * callback - if move operation was successfull callback will get file URI, otherwise null 
+	 * */
 	const moveFile = function(srcDirectoryName, dstDirectoryName, srcFileName, dstFileName, callback) {
 		onMoveSuccess = function() {
 			tizen.filesystem.resolve(dstDirectoryName + '/' + dstFileName, 
