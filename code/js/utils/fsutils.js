@@ -217,5 +217,7 @@ define([], function() {
 		createFileIfNotExists: createFileIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
+		//for QUnit
+		getFileNameWithoutExtension: getFileNameWithoutExtension,
 	};
 });
