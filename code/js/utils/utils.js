@@ -32,13 +32,6 @@ define(['rx'], function(Rx) {
 			}
 		}
 	};
-			return true;
-		} else {
-			console.error('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
-		}
-	});
-};
-
 	
 	const modifyInnerHtml = function(root, selector, text) {
 		return modifyElement(root, selector, function(el) {
@@ -48,16 +41,16 @@ define(['rx'], function(Rx) {
 	};
 	
 	const modifyInnerSrc = function(root, selector, data) {
-	return modifyElement(root, selector, function(el) {
-		if('src' in el) {
-			el.src = data;
-			return true;
-		} else {
-			console.error('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
-		}
-	});
-};
-
+		return modifyElement(root, selector, function(el) {
+			if('src' in el) {
+				el.src = data;
+				return true;
+			} else {
+				console.error('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
+			}
+		});
+	};
+	
 	/*
 	 * Params:
 	 * 	page - page with list view
@@ -103,6 +96,7 @@ define(['rx'], function(Rx) {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
 		modifyInnerHtml: modifyInnerHtml,
+		modifyInnerSrc: modifyInnerSrc,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 	};
 });

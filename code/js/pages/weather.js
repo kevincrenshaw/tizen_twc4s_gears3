@@ -14,7 +14,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 		return deleteLastSession;
 	};
 	
-	const radar = {
+	const weather = {
 		onPageHide : function(page) {
 			page.querySelector('#delete-button').removeEventListener("click", createLastSessionDeleter(page));
 			if (subscription) {
@@ -76,12 +76,12 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
-			radar.onPageShow(page);
+			weather.onPageShow(page);
 		},
 		
 		pagebeforehide: function(ev) {
 			const page = ev.target;
-			radar.onPageHide(page);
+			weather.onPageHide(page);
 		},
 	};
 });

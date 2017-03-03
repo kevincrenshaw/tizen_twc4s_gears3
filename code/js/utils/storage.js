@@ -150,9 +150,18 @@ define([], function() {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
 	
+	//weather section
 	const weatherStorageSession = 'weather_stored_session_';
 	const weatherStorageSessionIndex = 'weather_stored_session_index';
 	const weatherStorageMaxSize = 4;
+	
+	//radar section
+	const radarStorageSession = 'radar_stored_session_';
+	const radarStorageSessionIndex = 'radar_stored_session_index';
+	const radarStorageMaxSize = 4;
+	const rootDirName = 'wgt-private';
+	const radarDataDirName = 'radar-data';
+	const radarFilePrefix = 'radar-data-';
 	
 	const storage = {
 		settings: {
@@ -227,6 +236,52 @@ define([], function() {
 		    	localStorage.removeItem(weatherStorageSession + this.getIndex());
 		    	this.decreaseIndex();
 		    }
+		},
+		
+		radarSession : {
+			
+			//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
+			getIndex : function() {
+		        return parseInt(localStorage.getItem(radarStorageSessionIndex)) || 0;
+		    },
+		    
+		    increaseIndex : function() {
+		    	const newValue = (this.getIndex() + 1) % radarStorageMaxSize;
+		    	localStorage.setItem(radarStorageSessionIndex, newValue);
+		    },
+		    
+		    decreaseIndex : function() {
+		    	const newValue = (this.getIndex() + radarStorageMaxSize - 1) % radarStorageMaxSize;
+		    	localStorage.setItem(radarStorageSessionIndex, newValue);
+		    },
+		    
+		    getSession : function(callback) {
+		    	const imageFileName = radarFilePrefix + this.getIndex();
+				const rootDirectoryName = rootDirName + '/' + radarDataDirName;
+				
+				fsutils.hasSuchFile(rootDirectoryName, imageFileName, false, callback);
+		    },
+			
+			addSession : function(downloadedFileName, callback) {
+		    	this.increaseIndex();
+		        console.log('addSession.index: ' + this.getIndex());
+		        const newFileName = radarFilePrefix + this.getIndex() + '.' + fsutils.getFileExtension(downloadedFileName);
+
+		        //create data radar directory if its not exist
+		        var radarDataDir = fsutils.createFileIfNotExists(rootDirName, radarDataDirName, true, function(result) {
+		        	//if all are ready move file from downloads directory to data radar one
+		        	fsutils.moveFile('downloads', rootDirName + '/' + radarDataDirName, downloadedFileName, newFileName, callback);
+		        });
+			},
+			
+			removeLastSession : function() {
+				console.log('removeLastSession.index: ' + this.getIndex());
+				const imageFileName = radarFilePrefix + this.getIndex();
+				const rootDirectoryName = rootDirName + '/' + radarDataDirName;
+				fsutils.removeFile(rootDirectoryName, imageFileName);
+
+				this.decreaseIndex();
+			}
 		}
 	};
 	

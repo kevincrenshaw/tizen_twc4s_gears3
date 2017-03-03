@@ -102,4 +102,3 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 			navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
 		},
 	};
-});

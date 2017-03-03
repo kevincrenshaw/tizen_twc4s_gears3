@@ -6,25 +6,63 @@
 //			'http://jsonplaceholder.typicode.com/posts/3',
 //			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
 
-define(['jquery', 'rx'], function($, Rx) {
-	return {
-		getResourcesByURL: function(urls, options) {
-			options = options || {};
+define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
+	
+	const getResourcesByURL = function(urls, options) {
+		options = options || {};
 
-			const timeout = options.timeout || 30000;
-			const delay = options.delay || 5000;
+		const timeout = options.timeout || 30000;
+		const delay = options.delay || 0;
+		
+		var requestedStream = Rx.Observable
+			.from(urls)
+			.delay(new Date(Date.now() + delay));
+
+		var response = requestedStream.flatMap(function(requestedUrl) {
+			return Rx.Observable
+				.fromPromise($.get(requestedUrl))
+				.timeout(timeout);
+		});
+
+		return response;
+	};
+	
+	const downloadImageFile = function(url, destFileNameWithoutExtension, callback) {
+		var downloadListener = {
+			onprogress: function(id, receivedSize, totalSize) {
+				var percentage = Math.round(receivedSize / totalSize * 100) + '%';
+				console.log('on progress id: ' + id + ' received: ' + percentage);
+			},
 			
-			var requestedStream = Rx.Observable
-				.from(urls)
-				.delay(new Date(Date.now() + delay));
+			oncompleted: function(id) {
+				console.log('on completed task: ' + id);
+				callback(fileName);
+			},
+			
+			onfailed : function(id, error) {
+				console.error('task was failed id: ' + id + ' message: ' + error.message);
+				callback(null);
+			}
+		};
+		
+		//get file extension
+		var extension = fsutils.getFileExtension(url);
+		console.log('get extension from url: ' + url + '  ext: ' + extension);
+		
+		var fileName = null;
+		if(extension.length > 0) {
+			fileName = destFileNameWithoutExtension + '.' + extension;
+		} else {
+			fileName = destFileNameWithoutExtension;
+		}
+		console.log('file will be saved as: ' + fileName);
+		
+		var request = new tizen.DownloadRequest(url, 'downloads', fileName);
+		var id = tizen.download.start(request, downloadListener);
+	};
 
-			var response = requestedStream.flatMap(function(requestedUrl) {
-				return Rx.Observable
-					.fromPromise($.get(requestedUrl))
-					.timeout(timeout);
-			});
-
-			return response;
-		},
+	return {
+		getResourcesByURL: getResourcesByURL,
+		downloadImageFile: downloadImageFile, 
 	};
 });

@@ -1,4 +1,5 @@
 define([], function() {
+	
 	/**
 	 * Search file in a directory
 	 * 
@@ -244,13 +245,5 @@ define([], function() {
 			result = result.substring(posOfSlash + 1);
 		}
 		return result;
-	};
-	
-	return {
-		hasSuchFile: hasSuchFile,
-		getFileExtension: getFileExtension,
-		createFileIfNotExists: createFileIfNotExists,
-		moveFile: moveFile,
-		removeFile: removeFile,
-	};
+	}
 });
