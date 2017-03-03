@@ -90,14 +90,32 @@ define(['rx'], function(Rx) {
 		}
 	};
 
+	const transform = function(value, translationBeforeScale, scale, translationAfterScale) {
+		return Math.round(((value + translationBeforeScale) * scale) + translationAfterScale) / scale;
+	}
+
+	const calculatePrecision = function(value) {
+		return transform(value, -0.25, 2.0, 0.5);
+	};
+
 	const getAllowedPrecisionAccordingToLOD = function(value, lod) {
 		const precision = getPrecisionForLOD(lod);
-		const tmp = Math.pow(10, precision);
-		return (Math.round(value * tmp) / tmp).toFixed(precision);
+		
+		if (precision === undefined) {
+			return;
+		}
+
+		if (precision === 0) {
+			return Math.round(value).toFixed(precision);
+		} else {
+			const scale = Math.pow(10, precision - 1);
+			return (calculatePrecision(value * scale) / scale).toFixed(precision);
+		}
 	};
 
 	return {
 		tryModifyElement: tryModifyElement,
+		modifyElement: modifyElement,
 		modifyInnerHtml: modifyInnerHtml,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 		getAllowedPrecisionAccordingToLOD: getAllowedPrecisionAccordingToLOD,
