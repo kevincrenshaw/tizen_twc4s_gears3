@@ -64,10 +64,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 						});
 				},
 				function(err) {
-					console.error('error: ' + error);
-				},
-				function() {
-					console.log('completed');
+					console.error('error: ' + error.status);
 				});
 			console.log('subscription: ' + JSON.stringify(subscription));
 		}

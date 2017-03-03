@@ -42,7 +42,6 @@ define([], function() {
 				dir.listFiles(onSucess, onError);
 			},
 			function(err) {
-				console.error('cant resolve path: ' + rootDirectory);
 				callback(null);
 			}
 		);
