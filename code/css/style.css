@@ -81,6 +81,11 @@ body {
 	font-size: .65em;
 }
 
+.test-image-preview {
+	width: 250px;
+	height: 140px;
+}
+
 #radar.ui-page {
 	position: relative;
 }
