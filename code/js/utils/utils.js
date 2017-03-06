@@ -40,13 +40,14 @@ define(['rx'], function(Rx) {
 		});
 	};
 	
-	const modifyInnerSrc = function(root, selector, data) {
+	const modifySrc = function(root, selector, data) {
 		return modifyElement(root, selector, function(el) {
 			if('src' in el) {
 				el.src = data;
 				return true;
 			} else {
-				console.error('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
+				console.warn('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
+				return false;
 			}
 		});
 	};
@@ -96,7 +97,7 @@ define(['rx'], function(Rx) {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
 		modifyInnerHtml: modifyInnerHtml,
-		modifyInnerSrc: modifyInnerSrc,
+		modifySrc: modifySrc,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 	};
 });

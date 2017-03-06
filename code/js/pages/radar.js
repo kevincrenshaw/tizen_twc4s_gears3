@@ -64,7 +64,6 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 						console.warn('element with selector ' + textWrapperSelector + ' not found');
 					}
 				},
-			},
 
 			map: {
 				set: function(uri) {
@@ -74,8 +73,6 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 						console.warn('element with selector ' + mapSelector + ' not found');
 					}
 				}
-			},
-		};
 	};
 	
 	return {

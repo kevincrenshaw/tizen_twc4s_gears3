@@ -1,39 +1,60 @@
 define([], function() {
+	
 	/**
-	 * Search file in a directory
+	 * file names comparator. compare only file names without extension
+	 * Params:
+	 * 		lFileName - file name to compare
+	 * 		rFileName - file name to compare
+	 * Returns:
+	 * 		true if names are equal, false otherwise
+	 * */
+	const comparatorFileNamesWithoutExtension = function(lFileName, rFileName) {
+		lFileName = getFileNameFromPath(lFileName);
+		lFileName = getPureFileName(lFileName);
+		
+		rFileName = getFileNameFromPath(rFileName);
+		rFileName = getPureFileName(rFileName);
+		
+		return lFileName === rFileName;
+	};
+	
+	/**
+	 * file names comparator. compare full file names (with extension)
+	 * Params:
+	 * 		lFileName - file name to compare
+	 * 		rFileName - file name to compare
+	 * Returns:
+	 * 		true if names are equal, false otherwise
+	 * */
+	const comparatorFileNames = function(lFileName, rFileName) {
+		return lFileName === rFileName;
+	};
+	
+	/**
+	 * Search file in a current directory, subdirectories are ignored 
 	 * 
 	 * Params:
-	 * rootDirectory - name of directory where we have to find a file
-	 * fileToSearch - name of file which need to find
+	 * 		rootDirectory - name of directory where we have to find a file
+	 * 		fileToSearch - name of file which need to find
+	 * 		comparator - function-comparator of file names, returns true if filenames are equal, 
+	 * 						possible values are: comparatorFileNames, comparatorFileNamesWithoutExtension
+	 * 		callback(file) - used to return found file, otherwise null
 	 * Returns:
-	 * null if file wasn't found, otherwise File object
+	 * 		nothing
 	 * */
-	const hasSuchFile = function(rootDirectory, fileToSearch, checkFileExtension, callback) {
+	const hasSuchFile = function(rootDirectory, fileToSearch, comparator, callback) {
 		
 		function onSucess(files) {
-			console.log('searching file: ' + fileToSearch);
 			for (var i = 0; i < files.length; i++) {
-				if(!checkFileExtension) {
-					var fname = getFileNameWithoutExtension(files[i].name);
-					var fnameToSearch = getFileNameWithoutExtension(fileToSearch);
-
-					if(fname === fnameToSearch) {
-						console.log('found entry: ' + files[i].toURI());
-						callback(files[i]);
-						return;
-					}
-				} else {
-					if(files[i].name === fileToSearch) {
-						callback(files[i]);
-						return;
-					}
+				if(comparator(files[i].name, fileToSearch)) {
+					callback(files[i]);
+					return;
 				}
 			}
 			callback(null);
 		};
 		
 		function onError(error) {
-			console.error('cant list files');
 			callback(null);
 		};
 		
@@ -51,17 +72,17 @@ define([], function() {
 	 * create file in specified directory
 	 * 
 	 * Params: 
-	 * rootDir - root directory where new file will be placed
-	 * filename - name on a new file
-	 * isDirectory - if true new directory will be created otherwise file 
+	 * 		rootDir - root directory where new file will be placed
+	 * 		filename - name of a new file
+	 * 		isDirectory - if true new directory will be created otherwise file 
+	 * 		callback(file) - uses to return newly created file/folder, if error happend during file creation returns null
 	 * 
 	 * Returns:
-	 * created file (if it wasn't exist) or old one 
+	 * 		created file (if it wasn't exist) or old one 
 	 * */
 	const createFileIfNotExists = function(rootDir, fileName, isDirectory, callback) {
-		hasSuchFile(rootDir, fileName, true, function(result) {
+		hasSuchFile(rootDir, fileName, comparatorFileNames, function(result) {
 			if(!result) {
-				console.log('no such file, creating a new one');
 				tizen.filesystem.resolve(rootDir, function(dir) {
 					try {
 						if(isDirectory == true) {
@@ -72,12 +93,10 @@ define([], function() {
 							return;
 						}
 					} catch(ex) {
-						console.error('cant create file: ' + fileName + ' in dir: ' + rootDir + ' message: ' + ex.message);
 						callback(null);
 					}
 				});
 			} else {
-				console.log('this file already exists, return it');
 				callback(result);
 			}
 		});
@@ -86,20 +105,17 @@ define([], function() {
 	/**
 	 * remove file
 	 * Params:
-	 * imageFileName - name of file to remove, without extension
+	 * 		rootDirectoryName - name of directory which contains file to delete
+	 * 		imageFileName - name of file to remove, without extension
+	 * Returns:
+	 * 		nothing
 	 * */
 	const removeFile = function(rootDirectoryName, imageFileName) {
 		tizen.filesystem.resolve(rootDirectoryName, function(dir) {
 			function onSuccess(files) {
 				for (var i = 0; i < files.length; i++) {
-					console.log('removeFile:: filename: ' + files[i].name);
-					var fname = files[i].name;
-					const pos = fname.lastIndexOf('.');
-					if(pos > -1) {
-						fname = fname.substring(0, pos);
-					}
 					
-					if(fname === imageFileName) {
+					if(comparatorFileNamesWithoutExtension(files[i].name, imageFileName)) {
 						dir.deleteFile(files[i].fullPath,
 							function() {
 								console.log('file: ' + imageFileName + ' deleted');
@@ -113,7 +129,7 @@ define([], function() {
 			};
 			
 			function onError(error) {
-				console.log('cant list files in directory: ' + dir.toURI());
+				console.error('cant list files in directory: ' + dir.toURI());
 			}
 			
 			dir.listFiles(onSuccess, onError);
@@ -121,58 +137,48 @@ define([], function() {
 	};
 
 	/**
-	 * move file
+	 * move file from one to another directory
 	 * 
 	 * Params:
-	 * srcDirectoryName - directory name which contains source file
-	 * dstDirectoryName - directory where file should be
-	 * srcFileName - source file name (original)
-	 * dstFileName - new file name
-	 * callback - if move operation was successfull callback will get file URI, otherwise null 
+	 * 		srcFilePath - full src file path
+	 * 		dstDirectoryName - full dst file path
+	 * 		callback(fileURI) - if move operation was successfull callback will get file URI, otherwise null 
 	 * */
-	const moveFile = function(srcDirectoryName, dstDirectoryName, srcFileName, dstFileName, callback) {
+	const moveFile = function(srcFilePath, dstFilePath, callback) {
 		onMoveSuccess = function() {
-			tizen.filesystem.resolve(dstDirectoryName + '/' + dstFileName, 
+			tizen.filesystem.resolve(dstFilePath, 
 				function(file) {
-					console.log('file has been moved, uri: ' + file.toURI());
 					callback(file.toURI());			
 				},
 				function(error) {
-					console.error('error on resolving path: ' + dstDirectoryName + '/' + fileName);
 					callback(null);
 				}
 			);
 		};
 		
-		onMoveError = function(error) {
-			console.error('on error: ' + error.message);
-			callback(null);
-		};
-		
-		//resolving error handler
-		onResolvingPathError = function(error) {
-			console.error('on resolving path error: ' + error.message);
+		onError = function(error) {
 			callback(null);
 		};
 		
 		//resolve src directory
-		tizen.filesystem.resolve(srcDirectoryName, 
+		console.log('src: ' + getDirectoryNameFromPath(srcFilePath));
+		tizen.filesystem.resolve(getDirectoryNameFromPath(srcFilePath), 
 			function(srcDir) {
 				//resolve dst directory
-				tizen.filesystem.resolve(dstDirectoryName,
+				console.log('dst: ' + getDirectoryNameFromPath(dstFilePath));
+				tizen.filesystem.resolve(getDirectoryNameFromPath(dstFilePath),
 					function(dstDir) {
-						srcDir.moveTo(
-							srcDir.fullPath + '/' + srcFileName, 
-							dstDir.fullPath + '/' + dstFileName,
+					console.log('move from: ' + srcFilePath + ' to ' + dstFilePath);
+						srcDir.moveTo(srcFilePath, dstFilePath,
 							true, //override files
 							onMoveSuccess,
-							onMoveError
+							onError
 							);
 					},
-					onResolvingPathError
+					onError
 					);
 			},
-			onResolvingPathError
+			onError
 		);
 	};
 
@@ -186,26 +192,78 @@ define([], function() {
 	 * string - extension or empty one 
 	 * */
 	const getFileExtension = function(filePath) {
-		return filePath.substr(filePath.lastIndexOf('.') + 1);
-	};
-
-	/**
-	 * returns just filename without full path and extension
-	 * 
-	 * */
-	const getFileNameWithoutExtension = function(filePath) {
-
-		var result = filePath;
-		//trim extension
-		const pos = filePath.lastIndexOf('.');
-		if(pos > -1) {
-			result = filePath.substring(0, pos);
+		const pointPos = filePath.lastIndexOf('.');
+		if(pointPos > -1 && pointPos < filePath.length - 1) {
+			return filePath.substr(pointPos + 1);
 		}
-
+		return '';
+	};
+	
+	/**
+	 * returns just file name without extension
+	 * Params:
+	 * 		fileName file name with extension
+	 * Returns:
+	 * 		pure (without extension) file name
+	 * */
+	const getPureFileName = function(fileName) {
+		var result = fileName;
+		const pos = result.lastIndexOf('.');
+		if(pos > -1) {
+			result = result.substring(0, pos);
+		}
+		return result;
+	};
+	
+	/**
+	 * extract filename with extension from full path
+	 * Params:
+	 * 		filePath - full file path
+	 * Returns:
+	 * 		filename with extension;
+	 * */
+	const getFileNameFromPath = function(filePath) {
+		var result = filePath;
 		//trim directories
-		const posOfSlash = filePath.lastIndexOf('/');
+		const posOfSlash = result.lastIndexOf('/');
 		if(posOfSlash > -1) {
 			result = result.substring(posOfSlash + 1);
+		}
+		return result;
+	};
+	
+	/**
+	 * extract directory name from file full path
+	 * Params:
+	 * 		filePath - full path to a file
+	 * Returns:
+	 * 		name of directory[ies] if it was detected or empty string
+	 * */
+	const getDirectoryNameFromPath = function(filePath) {
+		
+		var result = ''; 
+		
+		const posOfSlash = filePath.lastIndexOf('/');
+		if(posOfSlash > -1) {
+			result = filePath.substring(0, posOfSlash);
+		}
+		return result;
+	};
+	
+	/**
+	 * join all folders to one full path. doesnt check if this path is real
+	 * Params: 
+	 * 		...arguments - variable count of folders + file
+	 * Returns:
+	 * 		full file path. 
+	 * */
+	const createFullPath = function() {
+		var result = '';
+		for(var i =0; i < arguments.length; i++) {
+			result += arguments[i];
+			if(i < arguments.length - 1) {
+				result += '/';
+			}
 		}
 		return result;
 	};
@@ -216,7 +274,8 @@ define([], function() {
 		createFileIfNotExists: createFileIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
-		//for QUnit
-		getFileNameWithoutExtension: getFileNameWithoutExtension,
+		comparatorFileNamesWithoutExtension: comparatorFileNamesWithoutExtension,
+		comparatorFileNames: comparatorFileNames,
+		createFullPath: createFullPath,
 	};
 });

@@ -163,6 +163,93 @@ define([], function() {
 	const radarDataDirName = 'radar-data';
 	const radarFilePrefix = 'radar-data-';
 	
+	const getWeatherSession = function(index) {
+		console.log('getWeatherSession:: ' + index);
+        return localStorage.getItem(weatherStorageSession + index);
+    };
+    
+    const getRadartSession = function(index, callback) {
+    	const imageFileName = radarFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, radarDataDirName);
+		
+		fsutils.hasSuchFile(rootDirectoryName, imageFileName, fsutils.comparatorFileNamesWithoutExtension, callback);
+    };
+
+    const addWeatherSession = function(index, value) {
+        localStorage.setItem(weatherStorageSession + index, value);
+    };
+    
+    const addRadarSession = function(index, downloadedFileName, callback) {
+    	const newFileName = radarFilePrefix + index + '.' + fsutils.getFileExtension(downloadedFileName);
+    	//create data radar directory if its not exist
+    	var radarDataDir = fsutils.createFileIfNotExists(rootDirName, radarDataDirName, true, function(result) {
+        	//if all are ready move file from downloads directory to data radar one
+        	var srcPath = fsutils.createFullPath('downloads', downloadedFileName);
+        	var dstPath = fsutils.createFullPath(rootDirName, radarDataDirName, newFileName);
+        	fsutils.moveFile(srcPath, dstPath, callback);
+        });
+    };
+   
+    const removeLastWeatherSession = function(index) {
+    	localStorage.removeItem(weatherStorageSession + index);
+    };
+    
+    const removeLastRadarSession = function(index) {
+		const imageFileName = radarFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, radarDataDirName);
+		fsutils.removeFile(rootDirectoryName, imageFileName);
+	};
+
+	const createSessionObject = function(key, maxSize, getSessionCallback, addSessionCallback, removeLastSessionCallback) {
+		
+		const sessionStorageKey = key;
+		const maxStorageSize = maxSize;
+		
+		const getIndex = function() {
+			return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
+		};
+		
+		const increaseIndex = function() {
+			const newValue = (getIndex() + 1) % maxStorageSize;
+			localStorage.setItem(sessionStorageKey, newValue);
+    	};
+    	
+    	const decreaseIndex = function() {
+	    	const newValue = (getIndex() + maxStorageSize - 1) % maxStorageSize;
+	    	localStorage.setItem(sessionStorageKey, newValue);
+	    };
+	    
+	    const getSession = function(callback) {
+	    	console.log('get session, index: ' +  getIndex());
+	    	return getSessionCallback(getIndex(), callback);
+	    };
+	    
+	    const addSessionToLocalStorage = function(value) {
+	    	increaseIndex();
+	    	console.log('addSession.index: ' + getIndex());
+	    	addSessionCallback(getIndex(), value);
+	    };
+	    
+	    const addSessionToFile = function(downloadedFileName, callback) {
+	    	increaseIndex();
+	    	console.log('addSession.index: ' + getIndex());
+	    	addSessionCallback(getIndex(), downloadedFileName, callback);
+	    };
+
+	    const removeLastSession = function() {
+	    	console.log('removeLastSession.index: ' + getIndex());
+	    	removeLastSessionCallback(getIndex());
+	    	decreaseIndex();
+	    };
+
+		return {
+			getSession: getSession,
+			addSessionToLocalStorage: addSessionToLocalStorage,
+			addSessionToFile: addSessionToFile,
+			removeLastSession: removeLastSession,
+		};
+	};
+	
 	const storage = {
 		settings: {
 			units: {
@@ -204,85 +291,8 @@ define([], function() {
 						}))
 			},
 		},
-	
-		weatherSession : {
-			//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
-			getIndex : function() {
-		        return parseInt(localStorage.getItem(weatherStorageSessionIndex)) || 0;
-		    },
-		    
-		    increaseIndex : function() {
-		    	const newValue = (this.getIndex() + 1) % weatherStorageMaxSize;
-		    	localStorage.setItem(weatherStorageSessionIndex, newValue);
-		    },
-		    
-		    decreaseIndex : function() {
-		    	const newValue = (this.getIndex() + weatherStorageMaxSize - 1) % weatherStorageMaxSize;
-		    	localStorage.setItem(weatherStorageSessionIndex, newValue);
-		    },
-		    
-		    getSession : function() {
-		        return localStorage.getItem(weatherStorageSession + this.getIndex());
-		    },
-		    
-		    addSession : function(value) {
-		    	this.increaseIndex();
-		        console.log('addSession.index: ' + this.getIndex());
-		        localStorage.setItem(weatherStorageSession + this.getIndex(), value);
-		    },
-		    
-		    removeLastSession : function() {
-		    	console.log('removeLastSession.index: ' + this.getIndex());
-		    	localStorage.removeItem(weatherStorageSession + this.getIndex());
-		    	this.decreaseIndex();
-		    }
-		},
-		
-		radarSession : {
-			
-			//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
-			getIndex : function() {
-		        return parseInt(localStorage.getItem(radarStorageSessionIndex)) || 0;
-		    },
-		    
-		    increaseIndex : function() {
-		    	const newValue = (this.getIndex() + 1) % radarStorageMaxSize;
-		    	localStorage.setItem(radarStorageSessionIndex, newValue);
-		    },
-		    
-		    decreaseIndex : function() {
-		    	const newValue = (this.getIndex() + radarStorageMaxSize - 1) % radarStorageMaxSize;
-		    	localStorage.setItem(radarStorageSessionIndex, newValue);
-		    },
-		    
-		    getSession : function(callback) {
-		    	const imageFileName = radarFilePrefix + this.getIndex();
-				const rootDirectoryName = rootDirName + '/' + radarDataDirName;
-				
-				fsutils.hasSuchFile(rootDirectoryName, imageFileName, false, callback);
-		    },
-			
-			addSession : function(downloadedFileName, callback) {
-		    	this.increaseIndex();
-		        console.log('addSession.index: ' + this.getIndex());
-		        const newFileName = radarFilePrefix + this.getIndex() + '.' + fsutils.getFileExtension(downloadedFileName);
-
-		        //create data radar directory if its not exist
-		        var radarDataDir = fsutils.createFileIfNotExists(rootDirName, radarDataDirName, true, function(result) {
-		        	//if all are ready move file from downloads directory to data radar one
-		        	fsutils.moveFile('downloads', rootDirName + '/' + radarDataDirName, downloadedFileName, newFileName, callback);
-		        });
-			},
-			
-			removeLastSession : function() {
-				console.log('removeLastSession.index: ' + this.getIndex());
-				const imageFileName = radarFilePrefix + this.getIndex();
-				const rootDirectoryName = rootDirName + '/' + radarDataDirName;
-				fsutils.removeFile(rootDirectoryName, imageFileName);
-
-				this.decreaseIndex();
-			}
-		}
+		weatherSession : createSessionObject(weatherStorageSessionIndex, weatherStorageMaxSize, getWeatherSession, addWeatherSession, removeLastWeatherSession),
+		radarSession : createSessionObject(radarStorageSessionIndex, radarStorageMaxSize, getRadartSession, addRadarSession, removeLastRadarSession),
 	};
 	
 	return storage;

@@ -5,18 +5,9 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 	const waitForMillis = 5000; 
 	var subscription = null;
 	
-	const createLastSessionDeleter = function(root) {
-		const deleteLastSession = function() {
-			storage.weatherSession.removeLastSession();
-			utils.modifyInnerHtml(root, 'span#status', '');
-		};
-		
-		return deleteLastSession;
-	};
-	
 	const weather = {
 		onPageHide : function(page) {
-			page.querySelector('#delete-button').removeEventListener("click", createLastSessionDeleter(page));
+			page.querySelector('#delete-button').removeEventListener("click", this.createLastSessionDeleter(page));
 			if (subscription) {
 				subscription.dispose();
 	            subscription = null;
@@ -26,7 +17,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 		onPageShow : function(page) {
 			utils.modifyInnerHtml(page, 'span#fetch-indicator', 'waiting for response');
 			
-			page.querySelector('#delete-button').addEventListener("click", createLastSessionDeleter(page));
+			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));
 				
 			//try to load last saved sesstion and show it on UI
 			var lastSavedSession = storage.weatherSession.getSession();
@@ -44,7 +35,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 								utils.modifyInnerHtml(page, 'span#status', '');
 								const result = JSON.stringify(response);
 								utils.modifyInnerHtml(page, 'span#status', result);
-								storage.weatherSession.addSession(result);
+								storage.weatherSession.addSessionToLocalStorage(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -67,6 +58,15 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 					console.error('error: ' + error.status);
 				});
 			console.log('subscription: ' + JSON.stringify(subscription));
+		},
+		
+		createLastSessionDeleter : function(root) {
+			const deleteLastSession = function() {
+				storage.weatherSession.removeLastSession();
+				utils.modifyInnerHtml(root, 'span#status', '');
+			};
+			
+			return deleteLastSession;
 		}
 	};
 	
