@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['rx'], function(Rx) {
 	const tryModifyElement = function(root, selector, callback) {
 		const element = root.querySelector(selector);
@@ -54,9 +56,7 @@ define(['rx'], function(Rx) {
 		//Set options label
 		modifyElements(page, 'ul.ui-listview li input[name="' + radioButtonElementName + '"]', function(inputElement) {
 			const localizedText = setting.getMappedValue(inputElement.value);
-			const description = inputElement.value === defaultValue
-				? [localizedText, ['(', TIZEN_L10N.SETTINGS_DEFAULT, ')'].join('')].join(' ')
-				: localizedText;
+			const description = inputElement.value === defaultValue ? [localizedText, ['(', TIZEN_L10N.SETTINGS_DEFAULT, ')'].join('')].join(' ') : localizedText;
 			
 			modifyInnerHtml(inputElement.parentNode, 'div#text', description);
 		});

@@ -43,10 +43,10 @@ define(modules, function(require, utils) {
 				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
 				pageModule[ev.type](ev);
 			} else {
-				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"')
+				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"');
 			}
 		} else {
-			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")')
+			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 		}
 	};
 	

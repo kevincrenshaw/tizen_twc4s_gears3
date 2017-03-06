@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['rx'], function(Rx) {
 	Rx.Observable.fromEvent(window, 'tizenhwkey')
 	.filter(function(event) {

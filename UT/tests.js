@@ -78,22 +78,6 @@ define(['utils/map'], function(map) {
 		assert.equal(map.getAllowedPrecisionAccordingToLod(-4.137, 14).toString(), '-4.135');
 	});
 
-	//distance: 1=miles, 2=kilometers, 3=megameters
-	//mapzoom: 1=100, 2=75, 3=50, 4=25
-
-	// 25 km	= 25 km			[lod: 14]
-	// 25 mil	= 40,225 km		[lod: 13]
-	// 50 km	= 50 km			[lod: 12]
-	// 75 km	= 75 km			[lod: 11]
-	// 50 mil	= 80,45 km		[lod: 10]
-	// 100 km	= 100 km		[lod: 9]
-	// 75 mil	= 120,675 km	[lod: 8]
-	// 100 mil	= 160,9 km		[lod: 7]
-	// 25 Mm	= 25000 km		[lod: 6]
-	// 50 Mm	= 50000 km		[lod: 5]
-	// 75 Mm	= 75000 km		[lod: 4]
-	// 100 Mm	= 100000 km		[lod: 3]
-
 	QUnit.test('25 kilometers', function(assert) {
 		const mapZoom100 = 1;
 		const mapZoom75 = 2;

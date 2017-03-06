@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['utils/storage', 'utils/map'], function(storage, map) {
 	const createUri = function(base, params) {
 		params = params || {};
@@ -7,9 +9,7 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 			paramsArr.push([key, params[key]].join('='));
 		});
 		
-		return base + (paramsArr.length > 0
-			? '?' + paramsArr.join('&')
-			: '');
+		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
 	};
 	
 	const displayMapForLocation = function(ui, latitude, longitude) {						
@@ -59,7 +59,7 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 
 				setVisibility: function(flag) {
 					if (textWrapperElement) {
-						textWrapperElement.style['visibility'] = flag ? 'visible' : 'hidden';
+						textWrapperElement.style.visibility = flag ? 'visible' : 'hidden';
 					} else {
 						console.warn('element with selector ' + textWrapperSelector + ' not found');
 					}

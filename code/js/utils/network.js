@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 //	var urls = [
 //			'http://jsonplaceholder.typicode.com/posts/1',
 //			'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json',

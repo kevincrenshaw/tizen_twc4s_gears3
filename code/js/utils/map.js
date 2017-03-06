@@ -1,28 +1,23 @@
-define([], function() {
-//	distance:
-//		miles		=	1,609 km	(1)
-//		kilometers	=	1 km		(2)
-//		megameters	=	1000 km		(3)
-//
-//	map zoom:
-//		100	(1)
-//		75	(2)
-//		50	(3)
-//		25	(4)
-//
-//	25 km		= 25 km			[lod: 1]
-//	25 miles	= 40,225 km		[lod: 2]
-//	50 km		= 50 km			[lod: 3]
-//	75 km		= 75 km			[lod: 4]
-//	50 mil		= 80,45 km		[lod: 5]
-//	100 km		= 100 km		[lod: 6]
-//	75 miles	= 120,675 km	[lod: 7]
-//	100 miles	= 160,9 km		[lod: 8]
-//	25 Mm		= 25000 km		[lod: 9]
-//	50 Mm		= 50000 km		[lod: 10]
-//	75 Mm		= 75000 km		[lod: 11]
-//	100 Mm		= 100000 km		[lod: 12]
+/* jshint esversion: 6 */
 
+define([], function() {
+	
+//	distance: 1=miles, 2=kilometers, 3=megameters
+//	mapzoom: 1=100, 2=75, 3=50, 4=25
+//
+//	25 km		= 25 km			[lod=14]
+//	25 miles	= 40,225 km		[lod=13]
+//	50 km		= 50 km			[lod=12]
+//	75 km		= 75 km			[lod=11]
+//	50 miles	= 80,45 km		[lod=10]
+//	100 km		= 100 km		[lod=9]
+//	75 miles	= 120,675 km	[lod=8]
+//	100 miles	= 160,9 km		[lod=7]
+//	25 Mm		= 25000 km		[lod=6]
+//	50 Mm		= 50000 km		[lod=5]
+//	75 Mm		= 75000 km		[lod=4]
+//	100 Mm		= 100000 km		[lod=3]
+	
 	const getMapLod = function(mapZoom, distance) {		
 		switch(mapZoom) {
 			case 1:	//100
