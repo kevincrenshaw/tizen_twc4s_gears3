@@ -1,32 +1,40 @@
-define(['utils/utils'], function(utils) {
-	
-	//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
-	const errorCodeToTextMapping = {
-		1: 'PERMISSION_DENIED',
-		2: 'POSITION_UNAVAILABLE',
-		3: 'TIMEOUT',
+define(['utils/storage', 'utils/map'], function(storage, map) {
+	const createUri = function(base, params) {
+		params = params || {};
+		const paramsArr = [];
+		
+		Object.keys(params).forEach(function(key) {
+			paramsArr.push([key, params[key]].join('='));
+		});
+		
+		return base + (paramsArr.length > 0
+			? '?' + paramsArr.join('&')
+			: '');
 	};
 	
-	//var attemptCounter = 1;
-	
-	const displayMapForLocation = function(ui, latitude, longitude) {
-		ui.text.setVisibility(false);
+	const displayMapForLocation = function(ui, latitude, longitude) {						
+		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
+		const distance = parseInt(storage.settings.units.distance.get());
+		const lod = map.getMapLod(mapZoom, distance);
+		const lodLatitude = map.getAllowedPrecisionAccordingToLod(latitude, lod);
+		const lodLongitude = map.getAllowedPrecisionAccordingToLod(longitude, lod);
 		
-		const width = 400;
-		const height = 400;
-		const product = 'satrad';
-		const apiKey = 'ce21274b08780261ce553b0b9166a9ae';
+		console.log('mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude);
+		console.log('lod=' + lod + ', lodLatitude=' + lodLatitude + ', lodLatitude=' + lodLatitude);
 		
-		const lod = 5;
-		const lat = utils.getAllowedPrecisionAccordingToLOD(latitude, lod);
-		const lon = utils.getAllowedPrecisionAccordingToLOD(longitude, lod);
-		
-		//ui.map.set('https://api.weather.com/v2/maps/dynamic?geocode=51.105,17.020&h=400&w=400&lod=14&product=satrad&apiKey=ce21274b08780261ce553b0b9166a9ae')
-		//const link = 'https://api.weather.com/v2/maps/dynamic?geocode='+lat+','+lon+'&w='+width+'&h='+height+'&lod='+lod+'&product='+product+'&apiKey=' + apiKey;
-		
-		const link = 'https://api.weather.com/v2/maps/dynamic?geocode=51.5,17.0&w=400&h=400&lod=5&product=satrad&apiKey=ce21274b08780261ce553b0b9166a9ae';
+		const params = {
+			geocode: [lodLatitude, lodLongitude].join(','),
+			w: 400,
+			h: 400,
+			lod: lod,
+			product: 'satrad',
+			apiKey: 'ce21274b08780261ce553b0b9166a9ae',
+		};
+
+		const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
 		console.log(link);
 		
+		ui.text.setVisibility(false);
 		ui.map.set(link);
 	};
 	
@@ -76,40 +84,22 @@ define(['utils/utils'], function(utils) {
 			const ui = createUiManager(page);
 			
 			const success = function(pos) {
-				
-				var desc = '';
-				
-				desc += 'lat=' + pos.coords.latitude + ', ';
-				desc += 'lon=' + pos.coords.longitude + ', ';
-				desc += 'alt=' + pos.coords.altitude + ', ';
-				desc += 'acc=' + pos.coords.accuracy + ', ';
-				desc += 'altacc=' + pos.coords.altitudeAccuracy + ', ';
-				desc += 'head=' + pos.coords.heading + ', ';
-				desc += 'speed=' + pos.coords.speed + '';
-				
-				//utils.modifyInnerHtml(page, '#text', 'success<br>' + desc);
 				displayMapForLocation(ui, pos.coords.latitude, pos.coords.longitude);
 			};
 			
 			const error = function(err) {
-				var desc = 'unknown';
+				//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
+				//1: 'PERMISSION_DENIED',
+				//2: 'POSITION_UNAVAILABLE',
+				//3: 'TIMEOUT',
 				
-				if (errorCodeToTextMapping.hasOwnProperty(err.code)) {
-					desc = errorCodeToTextMapping[err.code]; 
-				}
-				
-				//ui.text.set('error: code=' + err.code + '<br>(' + desc + ')<br>[' + attemptCounter + ']');
 				ui.text.set('error: code=' + err.code);
 				ui.text.setVisibility(true);
-				//attemptCounter++;
 			};
-			
 			
 			ui.text.set('checking location...');
 			ui.text.setVisibility(true);
-			//navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
-			
-			displayMapForLocation(ui, 51.1030809, 17.0208901);
+			navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
 		},
 	};
 });

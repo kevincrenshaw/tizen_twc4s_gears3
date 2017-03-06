@@ -80,44 +80,11 @@ define(['rx'], function(Rx) {
 				});
 		});
 	};
-	
-	const getPrecisionForLOD = function(lod) {
-		switch(lod) {
-			case 1: case 2: case 3: case 4:		return 0;
-			case 5: case 6: case 7:				return 1;
-			case 8: case 9: case 10: case 11:	return 2;
-			case 12: case 13: case 14:			return 3;
-		}
-	};
-
-	const transform = function(value, translationBeforeScale, scale, translationAfterScale) {
-		return Math.round(((value + translationBeforeScale) * scale) + translationAfterScale) / scale;
-	}
-
-	const calculatePrecision = function(value) {
-		return transform(value, -0.25, 2.0, 0.5);
-	};
-
-	const getAllowedPrecisionAccordingToLOD = function(value, lod) {
-		const precision = getPrecisionForLOD(lod);
-		
-		if (precision === undefined) {
-			return;
-		}
-
-		if (precision === 0) {
-			return Math.round(value).toFixed(precision);
-		} else {
-			const scale = Math.pow(10, precision - 1);
-			return (calculatePrecision(value * scale) / scale).toFixed(precision);
-		}
-	};
 
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
 		modifyInnerHtml: modifyInnerHtml,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
-		getAllowedPrecisionAccordingToLOD: getAllowedPrecisionAccordingToLOD,
 	};
 });
