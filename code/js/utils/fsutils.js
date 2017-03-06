@@ -1,5 +1,7 @@
 define([], function() {
 	
+	const separator = '/';
+	
 	/**
 	 * file names comparator. compare only file names without extension
 	 * Params:
@@ -141,7 +143,7 @@ define([], function() {
 	 * 
 	 * Params:
 	 * 		srcFilePath - full src file path
-	 * 		dstDirectoryName - full dst file path
+	 * 		dstFilePath - full dst file path
 	 * 		callback(fileURI) - if move operation was successfull callback will get file URI, otherwise null 
 	 * */
 	const moveFile = function(srcFilePath, dstFilePath, callback) {
@@ -161,14 +163,11 @@ define([], function() {
 		};
 		
 		//resolve src directory
-		console.log('src: ' + getDirectoryNameFromPath(srcFilePath));
 		tizen.filesystem.resolve(getDirectoryNameFromPath(srcFilePath), 
 			function(srcDir) {
 				//resolve dst directory
-				console.log('dst: ' + getDirectoryNameFromPath(dstFilePath));
 				tizen.filesystem.resolve(getDirectoryNameFromPath(dstFilePath),
 					function(dstDir) {
-					console.log('move from: ' + srcFilePath + ' to ' + dstFilePath);
 						srcDir.moveTo(srcFilePath, dstFilePath,
 							true, //override files
 							onMoveSuccess,
@@ -186,10 +185,10 @@ define([], function() {
 	 * get file extension from filename or url
 	 * 
 	 * Params:
-	 * fileName - file path or url
+	 * 		fileName - file path or url
 	 * 
 	 * Returns:
-	 * string - extension or empty one 
+	 * 		string - extension or empty one 
 	 * */
 	const getFileExtension = function(filePath) {
 		const pointPos = filePath.lastIndexOf('.');
@@ -225,7 +224,7 @@ define([], function() {
 	const getFileNameFromPath = function(filePath) {
 		var result = filePath;
 		//trim directories
-		const posOfSlash = result.lastIndexOf('/');
+		const posOfSlash = result.lastIndexOf(separator);
 		if(posOfSlash > -1) {
 			result = result.substring(posOfSlash + 1);
 		}
@@ -243,7 +242,7 @@ define([], function() {
 		
 		var result = ''; 
 		
-		const posOfSlash = filePath.lastIndexOf('/');
+		const posOfSlash = filePath.lastIndexOf(separator);
 		if(posOfSlash > -1) {
 			result = filePath.substring(0, posOfSlash);
 		}
@@ -259,10 +258,10 @@ define([], function() {
 	 * */
 	const createFullPath = function() {
 		var result = '';
-		for(var i =0; i < arguments.length; i++) {
+		for(var i = 0; i < arguments.length; i++) {
 			result += arguments[i];
 			if(i < arguments.length - 1) {
-				result += '/';
+				result += separator;
 			}
 		}
 		return result;
