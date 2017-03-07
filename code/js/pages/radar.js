@@ -61,10 +61,28 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 		const textSelector = '#text';
 		const textWrapperSelector = '#textWrapper';
 		const mapSelector = '#map';
+		const headerSelector = '#header';
+		const temperatureSelector = '#temperature';
 		
 		const textElement = root.querySelector(textSelector);
 		const textWrapperElement = root.querySelector(textWrapperSelector);
 		const mapElement = root.querySelector(mapSelector);
+		const headerElement = root.querySelector(headerSelector);
+		const temperatureElement = root.querySelector(temperatureSelector);
+		
+		const setVisibilityImpl = function(element, elementSelector) {
+			return function(isVisible) {
+				if (element) {
+					element.style.visibility = isVisible ? 'visible' : 'hidden';
+				} else {
+					if (elementSelector) {
+						console.warn('visibility: element "' + elementSelector + '" not found');
+					} else {
+						console.warn('visibility: element not found');
+					}
+				}
+			}
+		};
 		
 		return {
 			text: {
@@ -76,13 +94,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 					}
 				},
 
-				setVisibility: function(flag) {
-					if (textWrapperElement) {
-						textWrapperElement.style.visibility = flag ? 'visible' : 'hidden';
-					} else {
-						console.warn('element with selector ' + textWrapperSelector + ' not found');
-					}
-				},
+				setVisibility: setVisibilityImpl(textWrapperElement, textWrapperSelector),
 			},
 
 			map: {
@@ -93,6 +105,17 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 						console.warn('element with selector ' + mapSelector + ' not found');
 					}
 				}
+			},
+			
+			header: {
+				setVisibility: setVisibilityImpl(headerElement, headerSelector),
+				setTemperature: function(value) {
+					if (temperatureElement) {
+						temperatureElement.innerHTML = value;
+					} else {
+						console.warn('element with selector ' + temperatureSelector + ' not found');						
+					}
+				},
 			},
 		};
 	};

@@ -103,3 +103,12 @@ body {
 	background-color: black;
 	text-color: white;
 }
+
+#radar.ui-page #header {
+	position: absolute;
+	width: 100%;
+	text-align: center;
+	padding: 20px;
+	background-color: rgba(0, 0, 0, 0.5);
+	visibility:hidden;
+}
