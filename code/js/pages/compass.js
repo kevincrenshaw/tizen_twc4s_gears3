@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network, utils, storage, Rx) {
 	
 	const url = 'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg';

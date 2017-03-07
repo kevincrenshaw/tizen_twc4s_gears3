@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define([], function() {
 	
 	const separator = '/';
@@ -54,11 +56,11 @@ define([], function() {
 				}
 			}
 			callback(null);
-		};
+		}
 		
 		function onError(error) {
 			callback(null);
-		};
+		}
 		
 		tizen.filesystem.resolve(rootDirectory, 
 			function(dir) {
@@ -87,7 +89,7 @@ define([], function() {
 			if(!result) {
 				tizen.filesystem.resolve(rootDir, function(dir) {
 					try {
-						if(isDirectory == true) {
+						if(isDirectory === true) {
 							callback(dir.createDirectory(fileName));
 							return;
 						} else {
@@ -115,23 +117,26 @@ define([], function() {
 	const removeFile = function(rootDirectoryName, imageFileName) {
 		tizen.filesystem.resolve(rootDirectoryName, function(dir) {
 			function onSuccess(files) {
+				
+				const onDeleteSuccess = function() {
+					console.log('file: ' + imageFileName + ' deleted');
+					return;
+				};
+				
+				const onDeleteError = function(error) {
+					console.error('cant delete file: ' + imageFileName + 'error: ' + error.message);
+				};
+				
 				for (var i = 0; i < files.length; i++) {
 					
 					if(comparatorFileNamesWithoutExtension(files[i].name, imageFileName)) {
-						dir.deleteFile(files[i].fullPath,
-							function() {
-								console.log('file: ' + imageFileName + ' deleted');
-								return;
-							},
-							function(error) {
-								console.error('cant delete file: ' + imageFileName);
-							});
+						dir.deleteFile(files[i].fullPath, onDeleteSuccess, onDeleteError);
 					}
 				}
-			};
+			}
 			
 			function onError(error) {
-				console.error('cant list files in directory: ' + dir.toURI());
+				console.error('cant list files in directory: ' + dir.toURI() + ' error: ' + error.message);
 			}
 			
 			dir.listFiles(onSuccess, onError);
