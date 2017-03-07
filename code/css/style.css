@@ -80,3 +80,21 @@ body {
 	position: absolute;
 	font-size: .65em;
 }
+
+#radar.ui-page {
+	position: relative;
+}
+
+#radar.ui-page #map {
+	width: 100%;
+	height: 100%
+}
+
+#radar.ui-page #textWrapper {
+	position: absolute;
+	top: 150px;
+	text-align: center;
+	width: 100%;
+	background-color: black;
+	text-color: white;
+}
