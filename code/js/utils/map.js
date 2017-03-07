@@ -18,6 +18,9 @@ define([], function() {
 //	75 Mm		= 75000 km		[lod=4]
 //	100 Mm		= 100000 km		[lod=3]
 	
+	//Converts given mapZoom (storage.settings.units.mapzoom.get()) and distance (storage.settings.units.distance.get())
+	//to LOD (level of detail)
+	//See https://docs.google.com/document/d/1vYWjJt7NlWmRnvTYtTBt66HamAeVSknU8xPihGqMPSM/edit# for details.
 	const getMapLod = function(mapZoom, distance) {		
 		switch(mapZoom) {
 			case 1:	//100
@@ -57,6 +60,8 @@ define([], function() {
 		}
 	};
 	
+	//Lod to precision conversion function.
+	//See https://docs.google.com/document/d/1vYWjJt7NlWmRnvTYtTBt66HamAeVSknU8xPihGqMPSM/edit# for details.
 	const getPrecisionForLod = function(lod) {
 		switch(lod) {
 			case 1: case 2: case 3: case 4:		return 0;
@@ -66,14 +71,36 @@ define([], function() {
 		}
 	};
 
-	const transform = function(value, translationBeforeScale, scale, translationAfterScale) {
-		return Math.round(((value + translationBeforeScale) * scale) + translationAfterScale) / scale;
+	//Takes unary function as parameter and returns another unary function that transforms input and ouput by
+	//given factors.
+	//
+	//Parameters:
+	//	func - unary function to be transformed
+	//	translationBeforeScaleX - translation of input
+	//	scaleX - scale factor of input (applied after translation by translationBeforeScaleX)
+	//	translationAfterScaleX - 2nd translation of input, applied after scaling by factor scaleX
+	//	scaleY - scale factor for result returned by func
+	//
+	//Result:
+	//	Unary function that applies all transformation to input, passes translated input to func, and then scales
+	//	result and returns it
+	const transformFunction = function(func, translationBeforeScaleX, scaleX, translationAfterScaleX, scaleY) {
+		const transformedFunction = function(x) {
+			const transformedX = ((x + translationBeforeScaleX) * scaleX) + translationAfterScaleX;
+			return func(transformedX) * scaleY;
+		}
+
+		return transformedFunction;
 	};
 
-	const calculatePrecision = function(value) {
-		return transform(value, -0.25, 2.0, 0.5);
-	};
+	//Function for rounding floating points (with precision 1, level of detail 5-7) as described in
+	//"Dynamic Maps - v2.0" by The Weather Company
+	//	https://docs.google.com/document/d/1vYWjJt7NlWmRnvTYtTBt66HamAeVSknU8xPihGqMPSM/edit#
+	const transformedRound = transformFunction(Math.round, -0.25, 2.0, 0.5, 0.5);
 
+	//Converts value according to lod (level of detail) as described in 
+	//https://docs.google.com/document/d/1vYWjJt7NlWmRnvTYtTBt66HamAeVSknU8xPihGqMPSM/edit#
+	//Used to round latitude and longitude.
 	const getAllowedPrecisionAccordingToLod = function(value, lod) {
 		const precision = getPrecisionForLod(lod);
 		
@@ -85,7 +112,7 @@ define([], function() {
 			return Math.round(value).toFixed(precision);
 		} else {
 			const scale = Math.pow(10, precision - 1);
-			return (calculatePrecision(value * scale) / scale).toFixed(precision);
+			return (transformedRound(value * scale) / scale).toFixed(precision);
 		}
 	};
 
