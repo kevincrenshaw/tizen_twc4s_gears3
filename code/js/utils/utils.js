@@ -44,9 +44,8 @@ define(['rx'], function(Rx) {
 		return modifyElement(root, selector, function(el) {
 			if('src' in el) {
 				el.src = data;
-				return true;
 			} else {
-				return false;
+				console.warn('element: ' + JSON.stringify(el) + ' doesnt have field src');
 			}
 		});
 	};
