@@ -104,11 +104,6 @@ define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
     
 	QUnit.module('fsutils');
 
-	QUnit.test("getFileNameWithoutExtension function", function(assert) {
-		var name = fsutils.getFileNameWithoutExtension('https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg');
-        assert.equal(name, 'tumblr_mnh0n9pHJW1st5lhmo1_1280');
-    });
-	
 	QUnit.test("getFileExtension function", function(assert) {
 		var extension = fsutils.getFileExtension('https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg');
         assert.equal(extension, 'jpg');
