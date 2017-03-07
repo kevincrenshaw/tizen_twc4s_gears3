@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define([], function() {
+define(['utils/fsutils'], function(fsutils) {
 	/*
 	 * Parameters:
 	 *	key
