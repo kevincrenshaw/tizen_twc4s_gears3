@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network, utils, storage, Rx) {
 	const url = ['http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json'];
 	const waitForMillis = 5000; 

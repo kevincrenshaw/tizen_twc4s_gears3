@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define(['utils/utils', 'utils/storage'], function(utils, storage) {
 	return {
 		pagebeforeshow: function(ev) {

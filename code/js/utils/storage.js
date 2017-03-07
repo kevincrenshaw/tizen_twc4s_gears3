@@ -1,3 +1,5 @@
+/* jshint esversion: 6 */
+
 define([], function() {
 	/*
 	 * Parameters:
@@ -94,11 +96,11 @@ define([], function() {
 	
 		return {
 			has: function(value) {
-				return locKeyMapping.has(value) && TIZEN_L10N.hasOwnProperty(locKeyMapping.map(value))
+				return locKeyMapping.has(value) && TIZEN_L10N.hasOwnProperty(locKeyMapping.map(value));
 			},
 			
 			map: function(value) {
-				return TIZEN_L10N[locKeyMapping.map(value)]
+				return TIZEN_L10N[locKeyMapping.map(value)];
 			},
 		};
 	};
