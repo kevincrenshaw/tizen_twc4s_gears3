@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(storage, map, network, utils) {
+define(['utils/storage', 'utils/map', 'utils/network', 'utils/const', 'utils/utils', 'rx'], function(storage, map, network, consts, utils, Rx) {
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -12,26 +12,28 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
 	};
 	
-	const displayMapForLocation = function(ui, latitude, longitude) {						
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());
-		const lod = map.getMapLod(mapZoom, distance);
-		const lodLatitude = map.getAllowedPrecisionAccordingToLod(latitude, lod);
-		const lodLongitude = map.getAllowedPrecisionAccordingToLod(longitude, lod);
-
-		console.log('mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude);
-		console.log('lod=' + lod + ', lodLatitude=' + lodLatitude + ', lodLatitude=' + lodLatitude);
-			
+	const getMapImgUri = function(latitude, longitude, lod, options) {
+		options = options || {};
+		
+		const latByLod = map.getAllowedPrecisionAccordingToLod(latitude, lod);
+		const longByLod = map.getAllowedPrecisionAccordingToLod(longitude, lod);
+		
+		console.log('lod={value=' + lod + ', lat=' + latByLod + ', long=' + longByLod + '}');
+		
 		const params = {
-			geocode: [lodLatitude, lodLongitude].join(','),
-			w: 400,
-			h: 400,
+			geocode: [latByLod, longByLod].join(','),
+			w: options.width || 400,
+			h: options.height || 400,
 			lod: lod,
-			product: 'satrad',
-			apiKey: 'ce21274b08780261ce553b0b9166a9ae',
+			product: options.product || 'satrad',
+			apiKey: consts.apiKey,
 		};
 
-		const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
+		return createUri('https://api.weather.com/v2/maps/dynamic', params);
+	};
+
+/*
+const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
 		console.log(link);
 
 		//generate new file name
@@ -54,7 +56,75 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			function(error) {
 				console.error('cant download file, error: ' + error);
 			}
-		);
+		});
+*/	
+
+	const getCurrentConditionsJsonUri = function(latitude, longitude) {
+		const options = {
+			language: 'en-US',
+			units: 'm', //'e' for imperial
+			apiKey: consts.apiKey,
+		};
+		
+		return createUri('https://api.weather.com/v1/geocode/' + latitude + '/' + longitude + '/observations/current.json', options);
+	};
+	
+	const createTemperatureTextAccordingToSettings = function(tempValueInCelsius) {
+		const temperatureSetting = parseInt(storage.settings.units.temperature.get());
+		const separator = '';
+		
+		if (temperatureSetting == consts.settings.units.temperature.SYSTEM) {
+			console.warn('temperature system setting not supported yet, falling back to Celsius')
+			temperatureSetting = consts.settings.units.temperature.CELSIUS;
+		}
+		
+		switch (temperatureSetting) {
+		case consts.settings.units.temperature.SYSTEM:
+			console.warn('temperature system setting not supported yet, falling back to Celsius');
+			//break missing intentionally
+		case consts.settings.units.temperature.CELSIUS:
+			return [tempValueInCelsius, TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS].join(separator);
+			
+		case consts.settings.units.temperature.FAHRENHEIT:
+			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)),
+			        TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT].join(separator);
+			
+		default:
+			console.warn('temperature setting value = ' + temperatureSetting);
+		}
+	};
+	
+	const displayMapForLocation = function(ui, latitude, longitude) {						
+		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
+		const distance = parseInt(storage.settings.units.distance.get());
+		const lod = map.getMapLod(mapZoom, distance);
+		
+		ui.text.setVisibility(false);
+		console.log('mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
+		
+		const mapImgUri = getMapImgUri(latitude, longitude, lod);
+		const currentConditionsJsonUri = getCurrentConditionsJsonUri(latitude, longitude);
+		
+		console.log('mapImgUri = ' + mapImgUri);
+		console.log('currentConditionsJsonUri = ' + currentConditionsJsonUri);
+		
+		const mapImageObservable =
+			ui.map.set(mapImgUri);
+		
+		const currentConditionsJsonObservable = 
+			network.getResourcesByURL([currentConditionsJsonUri]);
+		
+		Rx.Observable.zip([mapImageObservable, currentConditionsJsonObservable]).subscribe(function(result) {
+			const currentConditionsJson = result[1];
+			const tempInCelsius = currentConditionsJson.observation.metric.temp;			
+			const tempText = createTemperatureTextAccordingToSettings(tempInCelsius);
+			
+			ui.header.setTemperature(tempText);
+			ui.map.setVisibility(true);
+			ui.header.setVisibility(true);
+		}, function(err) {
+			console.log('error: ' + JSON.stringify(err));
+		});
 	};
 	
 	const createUiManager = function(root) {
@@ -98,12 +168,26 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			},
 
 			map: {
+				setVisibility: setVisibilityImpl(mapElement, mapSelector),
+				
 				set: function(uri) {
-					if (mapElement) {
-						mapElement.src = uri;
-					} else {
-						console.warn('element with selector ' + mapSelector + ' not found');
-					}
+					return Rx.Observable.create(function(observer) {
+						if (mapElement) {
+							mapElement.onload = function() {
+								observer.onNext(uri);
+								observer.onCompleted();
+							};
+							
+							mapElement.onError = function(err) {
+								observer.onError(err);
+							};
+							
+							mapElement.src = uri;
+						} else {
+							//TODO change error type
+							observer.onError('element missing');
+						}
+					});
 				}
 			},
 			
