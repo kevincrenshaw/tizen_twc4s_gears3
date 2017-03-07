@@ -46,7 +46,6 @@ define(['rx'], function(Rx) {
 				el.src = data;
 				return true;
 			} else {
-				console.warn('element: ' + JSON.stringigfy(el) + ' doesnt have field src');
 				return false;
 			}
 		});

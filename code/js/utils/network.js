@@ -30,12 +30,10 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	const downloadImageFile = function(url, destFileNameWithoutExtension, callback) {
 		var downloadListener = {
 			oncompleted: function(id) {
-				console.log('on completed task: ' + id);
 				callback(fileName);
 			},
 			
 			onfailed : function(id, error) {
-				console.error('task was failed id: ' + id + ' message: ' + error.message);
 				callback(null);
 			}
 		};
@@ -51,8 +49,8 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		}
 		console.log('file will be saved as: ' + fileName);
 		
-		var request = new tizen.DownloadRequest(url, 'downloads', fileName);
-		var id = tizen.download.start(request, downloadListener);
+		const request = new tizen.DownloadRequest(url, 'downloads', fileName);
+		tizen.download.start(request, downloadListener);
 	};
 
 	return {

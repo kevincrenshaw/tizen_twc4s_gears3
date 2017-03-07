@@ -257,14 +257,12 @@ define([], function() {
 	 * 		full file path. 
 	 * */
 	const createFullPath = function() {
-		var result = '';
+		var array = [];
 		for(var i = 0; i < arguments.length; i++) {
-			result += arguments[i];
-			if(i < arguments.length - 1) {
-				result += separator;
-			}
+			array.push(arguments[i]);
 		}
-		return result;
+		
+		return array.join(separator);
 	};
 	
 	return {

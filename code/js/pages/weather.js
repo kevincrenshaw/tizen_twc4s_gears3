@@ -20,7 +20,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));
 				
 			//try to load last saved sesstion and show it on UI
-			var lastSavedSession = storage.weatherSession.getSession();
+			var lastSavedSession = storage.jsonSession.getSession();
 			if(lastSavedSession) {
 				utils.modifyInnerHtml(document, 'span#status', lastSavedSession);					
 			}
@@ -35,7 +35,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 								utils.modifyInnerHtml(page, 'span#status', '');
 								const result = JSON.stringify(response);
 								utils.modifyInnerHtml(page, 'span#status', result);
-								storage.weatherSession.addSessionToLocalStorage(result);
+								storage.jsonSession.addSessionToLocalStorage(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -62,7 +62,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.weatherSession.removeLastSession();
+				storage.jsonSession.removeLastSession();
 				utils.modifyInnerHtml(root, 'span#status', '');
 			};
 			

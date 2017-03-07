@@ -150,72 +150,69 @@ define([], function() {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
 	
-	//weather section
-	const weatherStorageSession = 'weather_stored_session_';
-	const weatherStorageSessionIndex = 'weather_stored_session_index';
-	const weatherStorageMaxSize = 4;
+	//json section
+	const jsonStorageSession = 'json_stored_session_';
+	const jsonStorageSessionIndex = 'json_stored_session_index';
+	const jsonStorageMaxSize = 4;
 	
-	//radar section
-	const radarStorageSession = 'radar_stored_session_';
-	const radarStorageSessionIndex = 'radar_stored_session_index';
-	const radarStorageMaxSize = 4;
+	//file section
+	const fileStorageSession = 'file_stored_session_';
+	const fileStorageSessionIndex = 'file_stored_session_index';
+	const fileStorageMaxSize = 4;
 	const rootDirName = 'wgt-private';
-	const radarDataDirName = 'radar-data';
-	const radarFilePrefix = 'radar-data-';
+	const fileDataDirName = 'file-data';
+	const fileFilePrefix = 'file-data-';
 	
-	const getWeatherSession = function(index) {
-		console.log('getWeatherSession:: ' + index);
-        return localStorage.getItem(weatherStorageSession + index);
+	const getJsonSession = function(index) {
+		console.log('getJsonSession:: ' + index);
+        return localStorage.getItem(jsonStorageSession + index);
     };
     
-    const getRadartSession = function(index, callback) {
-    	const imageFileName = radarFilePrefix + index;
-		const rootDirectoryName = fsutils.createFullPath(rootDirName, radarDataDirName);
+    const getFiletSession = function(index, callback) {
+    	const imageFileName = fileFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
 		
 		fsutils.hasSuchFile(rootDirectoryName, imageFileName, fsutils.comparatorFileNamesWithoutExtension, callback);
     };
 
-    const addWeatherSession = function(index, value) {
-        localStorage.setItem(weatherStorageSession + index, value);
+    const addJsonSession = function(index, value) {
+        localStorage.setItem(jsonStorageSession + index, value);
     };
     
-    const addRadarSession = function(index, downloadedFileName, callback) {
-    	const newFileName = radarFilePrefix + index + '.' + fsutils.getFileExtension(downloadedFileName);
-    	//create data radar directory if its not exist
-    	var radarDataDir = fsutils.createFileIfNotExists(rootDirName, radarDataDirName, true, function(result) {
-        	//if all are ready move file from downloads directory to data radar one
+    const addFileSession = function(index, downloadedFileName, callback) {
+    	const newFileName = fileFilePrefix + index + '.' + fsutils.getFileExtension(downloadedFileName);
+    	//create data file directory if its not exist
+    	var fileDataDir = fsutils.createFileIfNotExists(rootDirName, fileDataDirName, true, function(result) {
+        	//if all are ready move file from downloads directory to data file
         	var srcPath = fsutils.createFullPath('downloads', downloadedFileName);
-        	var dstPath = fsutils.createFullPath(rootDirName, radarDataDirName, newFileName);
+        	var dstPath = fsutils.createFullPath(rootDirName, fileDataDirName, newFileName);
         	fsutils.moveFile(srcPath, dstPath, callback);
         });
     };
    
-    const removeLastWeatherSession = function(index) {
-    	localStorage.removeItem(weatherStorageSession + index);
+    const removeLastJsonSession = function(index) {
+    	localStorage.removeItem(jsonStorageSession + index);
     };
     
-    const removeLastRadarSession = function(index) {
-		const imageFileName = radarFilePrefix + index;
-		const rootDirectoryName = fsutils.createFullPath(rootDirName, radarDataDirName);
+    const removeLastFileSession = function(index) {
+		const imageFileName = fileFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
 		fsutils.removeFile(rootDirectoryName, imageFileName);
 	};
 
-	const createSessionObject = function(key, maxSize, getSessionCallback, addSessionCallback, removeLastSessionCallback) {
-		
-		const sessionStorageKey = key;
-		const maxStorageSize = maxSize;
+	const createSessionObject = function(sessionStorageKey, maxSize, getSessionCallback, addSessionCallback, removeLastSessionCallback) {
 		
 		const getIndex = function() {
 			return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
 		};
 		
 		const increaseIndex = function() {
-			const newValue = (getIndex() + 1) % maxStorageSize;
+			const newValue = (getIndex() + 1) % maxSize;
 			localStorage.setItem(sessionStorageKey, newValue);
     	};
     	
     	const decreaseIndex = function() {
-	    	const newValue = (getIndex() + maxStorageSize - 1) % maxStorageSize;
+	    	const newValue = (getIndex() + maxSize - 1) % maxSize;
 	    	localStorage.setItem(sessionStorageKey, newValue);
 	    };
 	    
@@ -291,8 +288,8 @@ define([], function() {
 						}))
 			},
 		},
-		weatherSession : createSessionObject(weatherStorageSessionIndex, weatherStorageMaxSize, getWeatherSession, addWeatherSession, removeLastWeatherSession),
-		radarSession : createSessionObject(radarStorageSessionIndex, radarStorageMaxSize, getRadartSession, addRadarSession, removeLastRadarSession),
+		jsonSession : createSessionObject(jsonStorageSessionIndex, jsonStorageMaxSize, getJsonSession, addJsonSession, removeLastJsonSession),
+		fileSession : createSessionObject(fileStorageSessionIndex, fileStorageMaxSize, getFiletSession, addFileSession, removeLastFileSession),
 	};
 	
 	return storage;
