@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/map'], function(storage, map) {
+define(['utils/storage', 'utils/map', 'utils/network'], function(storage, map, network) {
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -18,10 +18,10 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 		const lod = map.getMapLod(mapZoom, distance);
 		const lodLatitude = map.getAllowedPrecisionAccordingToLod(latitude, lod);
 		const lodLongitude = map.getAllowedPrecisionAccordingToLod(longitude, lod);
-		
+
 		console.log('mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude);
 		console.log('lod=' + lod + ', lodLatitude=' + lodLatitude + ', lodLatitude=' + lodLatitude);
-		
+			
 		const params = {
 			geocode: [lodLatitude, lodLongitude].join(','),
 			w: 400,
@@ -33,9 +33,17 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 
 		const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
 		console.log(link);
-		
-		ui.text.setVisibility(false);
-		ui.map.set(link);
+
+		network.downloadImageFile(link, '__temp_data_file.tmp', function(downloadedFileName) {
+			if(downloadedFileName) {
+				storage.fileSession.addSessionToFile(downloadedFileName, function(newFileURI) {
+					ui.text.setVisibility(false);
+					ui.map.set(newFileURI);
+				});
+			} else {
+				console.error('cant download file');
+			}
+		});
 	};
 	
 	const createUiManager = function(root) {
@@ -94,12 +102,21 @@ define(['utils/storage', 'utils/map'], function(storage, map) {
 				//3: 'TIMEOUT',
 				
 				ui.text.set('error: code=' + err.code);
+				console.error('error: ' + err.message);
 				ui.text.setVisibility(true);
 			};
 			
-			ui.text.set('checking location...');
-			ui.text.setVisibility(true);
-			navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
+			//get last saved session
+			storage.fileSession.getSession(function(file) {
+				if(file) {
+					console.log('last session: ' + file.toURI())
+					ui.map.set(file.toURI());
+				} else {
+					ui.text.set('checking location...');
+					ui.text.setVisibility(true);
+				}
+				navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
+			});
 		},
 	};
 });

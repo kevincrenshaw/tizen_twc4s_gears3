@@ -3,6 +3,7 @@
 define([], function() {
 	
 	const separator = '/';
+	const maxLengthOfExtension = 4;
 	
 	/**
 	 * file names comparator. compare only file names without extension
@@ -197,7 +198,8 @@ define([], function() {
 	 * */
 	const getFileExtension = function(filePath) {
 		const pointPos = filePath.lastIndexOf('.');
-		if(pointPos > -1 && pointPos < filePath.length - 1) {
+		var extension = '';
+		if(pointPos > -1 && pointPos < filePath.length - 1 && pointPos + maxLengthOfExtension >= filePath.length - 1) {
 			return filePath.substr(pointPos + 1);
 		}
 		return '';

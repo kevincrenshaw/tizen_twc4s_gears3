@@ -108,4 +108,9 @@ define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
 		var extension = fsutils.getFileExtension('https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg');
         assert.equal(extension, 'jpg');
 	});
+	
+	QUnit.test("getFileExtension function - map url", function(assert) {
+		var extension = fsutils.getFileExtension('https://api.weather.com/v2/maps/dynamic?geocode=51.0,6.5&w=400&h=400&lod=7&product=satrad&apiKey=ce00000b00000000ce000b0b0000a0ae');
+        assert.equal(extension, '');
+	});
 });
