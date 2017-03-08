@@ -153,12 +153,12 @@ define(['utils/fsutils'], function(fsutils) {
 	//json section
 	const jsonStorageSession = 'json_stored_session_';
 	const jsonStorageSessionIndex = 'json_stored_session_index';
-	const jsonStorageMaxSize = 4;
+	const jsonStorageMaxSize = 1;
 	
 	//file section
 	const fileStorageSession = 'file_stored_session_';
 	const fileStorageSessionIndex = 'file_stored_session_index';
-	const fileStorageMaxSize = 4;
+	const fileStorageMaxSize = 1;
 	const rootDirName = 'wgt-private';
 	const fileDataDirName = 'file-data';
 	const fileFilePrefix = 'file-data-';
