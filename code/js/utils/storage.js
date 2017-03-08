@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define([], function() {
+define(['utils/fsutils'], function(fsutils) {
 	/*
 	 * Parameters:
 	 *	key
@@ -150,9 +150,102 @@ define([], function() {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
 	
-	const weatherStorageSession = 'weather_stored_session_';
-	const weatherStorageSessionIndex = 'weather_stored_session_index';
-	const weatherStorageMaxSize = 4;
+	//json section
+	const jsonStorageSession = 'json_stored_session_';
+	const jsonStorageSessionIndex = 'json_stored_session_index';
+	const jsonStorageMaxSize = 4;
+	
+	//file section
+	const fileStorageSession = 'file_stored_session_';
+	const fileStorageSessionIndex = 'file_stored_session_index';
+	const fileStorageMaxSize = 4;
+	const rootDirName = 'wgt-private';
+	const fileDataDirName = 'file-data';
+	const fileFilePrefix = 'file-data-';
+	
+	const getJsonSession = function(index) {
+		console.log('getJsonSession:: ' + index);
+        return localStorage.getItem(jsonStorageSession + index);
+    };
+    
+    const getFiletSession = function(index, callback) {
+    	const imageFileName = fileFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
+		
+		fsutils.hasSuchFile(rootDirectoryName, imageFileName, fsutils.comparatorFileNamesWithoutExtension, callback);
+    };
+
+    const addJsonSession = function(index, value) {
+        localStorage.setItem(jsonStorageSession + index, value);
+    };
+    
+    const addFileSession = function(index, downloadedFileName, callback) {
+    	const newFileName = fileFilePrefix + index + '.' + fsutils.getFileExtension(downloadedFileName);
+    	//create data file directory if its not exist
+    	var fileDataDir = fsutils.createFileIfNotExists(rootDirName, fileDataDirName, true, function(result) {
+        	//if all are ready move file from downloads directory to data file
+        	var srcPath = fsutils.createFullPath('downloads', downloadedFileName);
+        	var dstPath = fsutils.createFullPath(rootDirName, fileDataDirName, newFileName);
+        	fsutils.moveFile(srcPath, dstPath, callback);
+        });
+    };
+   
+    const removeLastJsonSession = function(index) {
+    	localStorage.removeItem(jsonStorageSession + index);
+    };
+    
+    const removeLastFileSession = function(index) {
+		const imageFileName = fileFilePrefix + index;
+		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
+		fsutils.removeFile(rootDirectoryName, imageFileName);
+	};
+
+	const createSessionObject = function(sessionStorageKey, maxSize, getSessionCallback, addSessionCallback, removeLastSessionCallback) {
+		
+		const getIndex = function() {
+			return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
+		};
+		
+		const increaseIndex = function() {
+			const newValue = (getIndex() + 1) % maxSize;
+			localStorage.setItem(sessionStorageKey, newValue);
+    	};
+    	
+    	const decreaseIndex = function() {
+	    	const newValue = (getIndex() + maxSize - 1) % maxSize;
+	    	localStorage.setItem(sessionStorageKey, newValue);
+	    };
+	    
+	    const getSession = function(callback) {
+	    	console.log('get session, index: ' +  getIndex());
+	    	return getSessionCallback(getIndex(), callback);
+	    };
+	    
+	    const addSessionToLocalStorage = function(value) {
+	    	increaseIndex();
+	    	console.log('addSession.index: ' + getIndex());
+	    	addSessionCallback(getIndex(), value);
+	    };
+	    
+	    const addSessionToFile = function(downloadedFileName, callback) {
+	    	increaseIndex();
+	    	console.log('addSession.index: ' + getIndex());
+	    	addSessionCallback(getIndex(), downloadedFileName, callback);
+	    };
+
+	    const removeLastSession = function() {
+	    	console.log('removeLastSession.index: ' + getIndex());
+	    	removeLastSessionCallback(getIndex());
+	    	decreaseIndex();
+	    };
+
+		return {
+			getSession: getSession,
+			addSessionToLocalStorage: addSessionToLocalStorage,
+			addSessionToFile: addSessionToFile,
+			removeLastSession: removeLastSession,
+		};
+	};
 	
 	const storage = {
 		settings: {
@@ -195,39 +288,8 @@ define([], function() {
 						}))
 			},
 		},
-	
-		weatherSession : {
-			//TODO add dynamic generated getter & setters for index and hide localStorage's operation in it
-			getIndex : function() {
-		        return parseInt(localStorage.getItem(weatherStorageSessionIndex)) || 0;
-		    },
-		    
-		    increaseIndex : function() {
-		    	const newValue = (this.getIndex() + 1) % weatherStorageMaxSize;
-		    	localStorage.setItem(weatherStorageSessionIndex, newValue);
-		    },
-		    
-		    decreaseIndex : function() {
-		    	const newValue = (this.getIndex() + weatherStorageMaxSize - 1) % weatherStorageMaxSize;
-		    	localStorage.setItem(weatherStorageSessionIndex, newValue);
-		    },
-		    
-		    getSession : function() {
-		        return localStorage.getItem(weatherStorageSession + this.getIndex());
-		    },
-		    
-		    addSession : function(value) {
-		    	this.increaseIndex();
-		        console.log('addSession.index: ' + this.getIndex());
-		        localStorage.setItem(weatherStorageSession + this.getIndex(), value);
-		    },
-		    
-		    removeLastSession : function() {
-		    	console.log('removeLastSession.index: ' + this.getIndex());
-		    	localStorage.removeItem(weatherStorageSession + this.getIndex());
-		    	this.decreaseIndex();
-		    }
-		}
+		jsonSession : createSessionObject(jsonStorageSessionIndex, jsonStorageMaxSize, getJsonSession, addJsonSession, removeLastJsonSession),
+		fileSession : createSessionObject(fileStorageSessionIndex, fileStorageMaxSize, getFiletSession, addFileSession, removeLastFileSession),
 	};
 	
 	return storage;

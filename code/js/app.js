@@ -27,6 +27,7 @@ const modules = [
 	'pages/information',
 	'pages/radar',
 	'pages/weather',
+	'pages/compass'
 ];
 
 define(modules, function(require, utils) {

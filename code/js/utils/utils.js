@@ -40,6 +40,16 @@ define(['rx'], function(Rx) {
 		});
 	};
 	
+	const modifySrc = function(root, selector, data) {
+		return modifyElement(root, selector, function(el) {
+			if('src' in el) {
+				el.src = data;
+			} else {
+				console.warn('element: ' + JSON.stringify(el) + ' doesnt have field src');
+			}
+		});
+	};
+	
 	/*
 	 * Params:
 	 * 	page - page with list view
@@ -85,6 +95,7 @@ define(['rx'], function(Rx) {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
 		modifyInnerHtml: modifyInnerHtml,
+		modifySrc: modifySrc,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 	};
 });

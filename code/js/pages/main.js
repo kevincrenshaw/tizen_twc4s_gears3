@@ -32,6 +32,10 @@ define([], function() {
 			tau.changePage("html/weather.html");
 			break;
 			
+		case 'compass':
+			tau.changePage("html/compass.html");
+			break;
+			
 		default:
 			//By default show popup with localized option title
 			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
