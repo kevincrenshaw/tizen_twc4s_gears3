@@ -20,7 +20,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));			
 				
 			//get last saved session
-			storage.fileSession.getSession(function(file) {
+			storage.file.get(function(file) {
 				if(file) {
 					console.log('loaded saved session: ' + file.toURI());
 					utils.modifySrc(document, 'img#status', file.toURI());
@@ -38,12 +38,19 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 					network.downloadImageFile(url, fileName,
 						function(downloadedFileName) {
 							if(subscription) {
-								storage.fileSession.addSession(downloadedFileName, function(newFileURI) {
-									utils.modifySrc(page, 'img#status', newFileURI);
-									var timestamp = new Date();
-									utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + 
-											timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());
-								});								
+								const handler = {
+									onSuccess : function(fileURI) {
+										utils.modifySrc(page, 'img#status', fileURI);
+										var timestamp = new Date();
+										utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + 
+												timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());
+									},
+									onError : function(error) {
+										utils.modifySrc(page, 'img#status', 'cant apply image, error: ' + error.message);
+									}
+								};
+								
+								storage.file.add(downloadedFileName, handler);								
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -61,7 +68,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.fileSession.removeSession();
+				storage.file.remove();
 				utils.modifySrc(root, 'img#status', null);
 			};
 			return deleteLastSession;

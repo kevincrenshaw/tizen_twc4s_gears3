@@ -167,7 +167,7 @@ define(['utils/fsutils'], function(fsutils) {
 	/**
 	 * increase and save index value
 	 * */
-	const increaseIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
+	const increaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
 		const newValue = (oldIndexVal + 1) % maxIndexVal;
 		setIndex(sessionStorageKey, newValue);
 		return newValue;
@@ -176,7 +176,7 @@ define(['utils/fsutils'], function(fsutils) {
 	/**
 	 * decrease and save index value
 	 * */
-	const decreaseIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
+	const decreaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
     	const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
     	setIndex(sessionStorageKey, newValue);
     	return newValue;
@@ -187,32 +187,28 @@ define(['utils/fsutils'], function(fsutils) {
 		const LSIndex = key + '_ls_index';
 		const LSValue = key + '_ls_value_';
 
-		const getSession = function() {
+		const get = function() {
 			const index = getIndex(LSIndex);
 			return localStorage.getItem(LSValue + index);
 		};
 		
-		const addSession = function(value) {
+		const add = function(value) {
 			const index = getIndex(LSIndex);
-			const newIndex = increaseIndex(LSIndex, index, maxSize);
-			console.log('LS addSession, index: ' + newIndex);
-			//save data
+			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
 			localStorage.setItem(LSValue + newIndex, value);
 		};
 		
-		const removeSession = function() {
+		const remove = function() {
 			const index = getIndex(LSIndex);
 			localStorage.removeItem(LSValue + index);
-			console.log('LS removeSession, index: ' + index);
-			const newIndex = decreaseIndex(LSIndex, index, maxSize);
-			console.log('LS removeSession, newIndex: ' + newIndex);
+			decreaseAndStoreIndex(LSIndex, index, maxSize);
 		};
 		
 		return {
-			getSession: getSession,
-			addSession: addSession,
-			removeSession: removeSession,
-		}
+			get: get,
+			add: add,
+			remove: remove,
+		};
 	};
 	
 	const createFileStorage = function(key, maxSize) {
@@ -223,48 +219,110 @@ define(['utils/fsutils'], function(fsutils) {
 		const FSIndex = key + '_fs_index';
 		const FSFileName = key + '_fs_filename_';
 		
-		const getSession = function(callback) {
+		const get = function(callback) {
 			const index = getIndex(FSIndex);
 			const savedFileName = localStorage.getItem(FSFileName + index);
-			
-			const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
-			fsutils.hasSuchFile(rootDirectoryName, savedFileName, fsutils.comparatorFileNamesWithoutExtension, callback);
+			if(savedFileName) {
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				fsutils.hasSuchFile(pathName, 
+						function(file) {
+							callback(file);
+						}, function(error) {
+							callback(null);
+						});
+			} else {
+				callback(null);
+			}
 		};
-		
-		const addSession = function(filePath, callback) {
+
+		const add = function(filePath, handler) {
+			
+			handler = handler || {};
+			const onSuccess = handler.onSuccess || function(fileURI) {
+				console.log('file: ' + fileURI + ' was added to a storage');
+			};
+			
+			const onError = handler.onError || function(error) {
+				console.warn('file wasnt added to a storage, error' + error.message);
+			};
 			
 			const index = getIndex(FSIndex);
-			const newIndex = increaseIndex(FSIndex, index, maxSize);
-			//extract filename form file path
-			const fileName = fsutils.getFileNameFromPath(filePath);
-			localStorage.setItem(FSFileName + newIndex, fileName);
-
-			//create data file directory if its not exist
-	    	var fileDataDir = fsutils.createFileIfNotExists(rootDirName, fileDataDirName, true, function(result) {
-	    		//if all are ready move file from src directory to private data storage
-	    		var dstPath = fsutils.createFullPath(rootDirName, fileDataDirName, fileName);
-	    		fsutils.moveFile(filePath, dstPath, callback);
-	    	});
+			const newIndex = increaseAndStoreIndex(FSIndex, index, maxSize);
+			
+			const proceed = function() {
+				//extract filename form file path
+				const fileName = fsutils.getFileNameFromPath(filePath);
+				localStorage.setItem(FSFileName + newIndex, fileName);
+				//create data file directory if its not exist
+		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
+		    		function(result) {
+		    			//if all are ready move file from src directory to private data storage
+		    			var dstPath = fsutils.createFullPath(result.fullPath, fileName);
+		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
+		    		},
+		    		function(error) {
+		    			onError(error);
+		    		}
+		    	);
+			};
+			
+			//at first we have to remove old file saved by current + 1 position
+			removeAtIndex(newIndex,
+				function() {
+					proceed();
+				},
+				function(error) {
+					//so nothing to delete, so just proceed
+					proceed();
+				}
+			);
 		};
 		
-		const removeSession = function() {
+		/**
+		 * remove file at given index
+		 * Params:
+		 * 		index - used to obtain filename
+		 * 		onSuccess() - called when file was deleted
+		 * 		onError(error) - if deleting completed with fail 
+		 * */
+		const removeAtIndex = function(index, onSuccess, onError) {
+			//get name of saved file at index
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			if(savedFileName) {
+				//create full path to a file
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				console.log('removed file: ' + pathName + ' at index: ' + index);
+				fsutils.removeFile(pathName, onSuccess, onError);
+			} else {
+				onSuccess();
+			}
+		};
+		
+		const remove = function() {
 			const index = getIndex(FSIndex);
 			//get name of last saved file
 			const savedFileName = localStorage.getItem(FSFileName + index);
 			//remove a name of file from localStorage
 			localStorage.removeItem(FSFileName + index);
 			
-			const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
+			const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 			//remove file
-			fsutils.removeFile(rootDirectoryName, savedFileName);
-			const newIndex = decreaseIndex(FSIndex, index, maxSize);
+			fsutils.removeFile(pathName,
+				function() {
+					console.log('file: ' + pathName + ' was deleted');
+				},
+				function(error) {
+					console.warn('file: ' + pathName + ' wasnt deleted, error: ' + error.message);
+				}
+			);
+			decreaseAndStoreIndex(FSIndex, index, maxSize);
 		};
 		
 		return {
-			getSession: getSession,
-			addSession: addSession,
-			removeSession: removeSession,
-		}
+			get: get,
+			add: add,
+			remove: remove,
+		};
 	};
 	
 	const storage = {
@@ -308,8 +366,8 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		jsonSession : createLocalStorage('json', 4),
-		fileSession : createFileStorage('file', 4),
+		json : createLocalStorage('json', 4),
+		file : createFileStorage('file', 4),
 	};
 	
 	return storage;

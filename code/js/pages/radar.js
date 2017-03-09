@@ -39,10 +39,17 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 		
 		network.downloadImageFile(link, fileName,
 			function(downloadedFileName) {
-				storage.fileSession.addSession(downloadedFileName, function(newFileURI) {
-					ui.text.setVisibility(false);
-					ui.map.set(newFileURI);
-				});
+				const handler = {
+					onSuccess : function(fileURI) {
+						ui.text.setVisibility(false);
+						ui.map.set(fileURI);
+					},
+					onError : function(error) {
+						console.error('cant apply file, error: ' + error.message);
+					}
+				};
+
+				storage.file.add(downloadedFileName, handler);
 			},
 			function(error) {
 				console.error('cant download file, error: ' + error);
@@ -111,9 +118,9 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			};
 			
 			//get last saved session
-			storage.fileSession.getSession(function(file) {
+			storage.file.get(function(file) {
 				if(file) {
-					console.log('last session: ' + file.toURI())
+					console.log('last session: ' + file.toURI());
 					ui.map.set(file.toURI());
 				} else {
 					ui.text.set('checking location...');
