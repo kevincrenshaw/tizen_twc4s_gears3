@@ -67,7 +67,7 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 			
 		case consts.settings.units.temperature.FAHRENHEIT:
 			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)),
-			        TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT].join(separator);
+				TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT].join(separator);
 			
 		default:
 			console.warn('temperature setting value = ' + temperatureSetting);
@@ -152,18 +152,6 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 		};
 		
 		return {
-			text: {
-				set: function(text) {
-					if (textElement) {
-						textElement.innerHTML = text;
-					} else {
-						console.warn('element with selector ' + textSelector + ' not found');
-					}
-				},
-
-				setVisibility: setVisibilityImpl(textWrapperElement, textWrapperSelector),
-			},
-
 			map: {
 				setVisibility: setVisibilityImpl(mapElement, mapSelector),
 				

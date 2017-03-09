@@ -96,15 +96,6 @@ body {
 	visibility:hidden;
 }
 
-#radar.ui-page #textWrapper {
-	position: absolute;
-	top: 150px;
-	text-align: center;
-	width: 100%;
-	background-color: black;
-	text-color: white;
-}
-
 #radar.ui-page #header {
 	position: absolute;
 	top: 0%;
