@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/map', 'utils/network'], function(storage, map, network) {
+define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(storage, map, network, utils) {
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -34,16 +34,20 @@ define(['utils/storage', 'utils/map', 'utils/network'], function(storage, map, n
 		const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
 		console.log(link);
 
-		network.downloadImageFile(link, '__temp_data_file.tmp', function(downloadedFileName) {
-			if(downloadedFileName) {
-				storage.fileSession.addSessionToFile(downloadedFileName, function(newFileURI) {
+		//generate new file name
+		const fileName = new Date().getTime() + '-' + utils.guid() + '.tmp';
+		
+		network.downloadImageFile(link, fileName,
+			function(downloadedFileName) {
+				storage.fileSession.addSession(downloadedFileName, function(newFileURI) {
 					ui.text.setVisibility(false);
 					ui.map.set(newFileURI);
 				});
-			} else {
-				console.error('cant download file');
+			},
+			function(error) {
+				console.error('cant download file, error: ' + error);
 			}
-		});
+		);
 	};
 	
 	const createUiManager = function(root) {

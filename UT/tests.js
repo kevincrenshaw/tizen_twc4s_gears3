@@ -1,4 +1,4 @@
-define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
+define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, utils) {
 	QUnit.module('map');
 
 	QUnit.test('LOD 1-4 (precision 0)', function(assert) {
@@ -112,5 +112,14 @@ define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
 	QUnit.test("getFileExtension function - map url", function(assert) {
 		var extension = fsutils.getFileExtension('https://api.weather.com/v2/maps/dynamic?geocode=51.0,6.5&w=400&h=400&lod=7&product=satrad&apiKey=ce00000b00000000ce000b0b0000a0ae');
         assert.equal(extension, '');
+	});
+	
+	QUnit.module('utils');
+	
+	QUnit.test("guid ", function(assert) {
+		var time = new Date().getTime();
+		var string1 = time + '-' + utils.guid();
+		var string2 = time + '-' + utils.guid();
+		assert.ok(string1 !== string2);
 	});
 });

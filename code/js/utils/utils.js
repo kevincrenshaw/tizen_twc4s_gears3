@@ -50,6 +50,23 @@ define(['rx'], function(Rx) {
 		});
 	};
 	
+	/**
+	 * generate pseudo unique uuid like:
+	 * 26397a55-5d66-745f-ead9-0dd1eb5e22b5
+	 * Returns:
+	 * 		pseudo uid string
+	 * */
+	const guid = function() {
+		const s4 = function() {
+			return Math.floor((1 + Math.random()) * 0x10000)
+		    .toString(16)
+		    .substring(1);
+		};
+		
+		return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+	    s4() + '-' + s4() + s4() + s4();
+	};
+
 	/*
 	 * Params:
 	 * 	page - page with list view
@@ -97,5 +114,6 @@ define(['rx'], function(Rx) {
 		modifyInnerHtml: modifyInnerHtml,
 		modifySrc: modifySrc,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
+		guid: guid,
 	};
 });

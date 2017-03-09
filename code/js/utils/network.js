@@ -27,27 +27,26 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		return response;
 	};
 	
-	const downloadImageFile = function(url, destFileNameWithoutExtension, callback) {
+	/**
+	 * download file by given url
+	 * Params:
+	 * 		url - resource url
+	 * 		fileName - new file name of saved resource
+	 * 		onSuccess(filePath) - will be called if resource is downloaded. send full path to a downloaded file
+	 * 		onError(error) - called if download finished with error
+	 * Returns
+	 * 		nothing
+	 * */
+	const downloadImageFile = function(url, fileName, onSuccess, onError) {
 		var downloadListener = {
-			oncompleted: function(id) {
-				callback(fileName);
+			oncompleted: function(id, fullPath) {
+				onSuccess(fullPath);
 			},
 			
 			onfailed : function(id, error) {
-				callback(null);
+				onError(error);
 			}
 		};
-		
-		//get file extension
-		var extension = fsutils.getFileExtension(url);
-		
-		var fileName = null;
-		if(extension.length > 0) {
-			fileName = destFileNameWithoutExtension + '.' + extension;
-		} else {
-			fileName = destFileNameWithoutExtension;
-		}
-		console.log('file will be saved as: ' + fileName);
 		
 		const request = new tizen.DownloadRequest(url, 'downloads', fileName);
 		tizen.download.start(request, downloadListener);

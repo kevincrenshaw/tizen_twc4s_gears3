@@ -35,7 +35,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 								utils.modifyInnerHtml(page, 'span#status', '');
 								const result = JSON.stringify(response);
 								utils.modifyInnerHtml(page, 'span#status', result);
-								storage.jsonSession.addSessionToLocalStorage(result);
+								storage.jsonSession.addSession(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -62,7 +62,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.jsonSession.removeLastSession();
+				storage.jsonSession.removeSession();
 				utils.modifyInnerHtml(root, 'span#status', '');
 			};
 			

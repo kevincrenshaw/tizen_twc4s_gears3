@@ -28,14 +28,17 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 					console.log('no saved session, waiting for a new one');
 				}
 			});
-
+			
 			//subscribe on periodic tasks
 			subscription = Rx.Observable.interval(waitForMillis).subscribe(
 				function(x) {
-					network.downloadImageFile(url, '__temp_data_file', function(downloadedFileName) {
-						if(downloadedFileName) {
+					//generate new file name
+					const fileName = new Date().getTime() + '-' + utils.guid() + '.tmp';
+					
+					network.downloadImageFile(url, fileName,
+						function(downloadedFileName) {
 							if(subscription) {
-								storage.fileSession.addSessionToFile(downloadedFileName, function(newFileURI) {
+								storage.fileSession.addSession(downloadedFileName, function(newFileURI) {
 									utils.modifySrc(page, 'img#status', newFileURI);
 									var timestamp = new Date();
 									utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + 
@@ -44,10 +47,10 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
-						} else {
-							console.error('cant download file');
-						}
-					});
+						}, 
+						function(error) {
+							console.error('cant download file, error: ' + error);
+						});
 				},
 					
 				function(error) {
@@ -58,7 +61,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.fileSession.removeLastSession();
+				storage.fileSession.removeSession();
 				utils.modifySrc(root, 'img#status', null);
 			};
 			return deleteLastSession;

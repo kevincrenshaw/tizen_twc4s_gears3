@@ -281,5 +281,6 @@ define([], function() {
 		comparatorFileNamesWithoutExtension: comparatorFileNamesWithoutExtension,
 		comparatorFileNames: comparatorFileNames,
 		createFullPath: createFullPath,
+		getFileNameFromPath: getFileNameFromPath,
 	};
 });
