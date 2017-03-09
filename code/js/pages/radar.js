@@ -6,11 +6,10 @@ const radarModules = [
 	'utils/network',
 	'utils/const',
 	'utils/utils',
-	'utils/fsutils',
 	'rx'
 ];
 
-define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
+define(radarModules, function(storage, map, network, consts, utils, rx) {
 	var subscription;
 	
 	const createUri = function(base, params) {
@@ -79,7 +78,7 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 	};
 	
 	const storeFileRx = function(filePath) {
-		return Rx.Observable.create(function(observer) {
+		return rx.Observable.create(function(observer) {
 			storage.file.add(filePath, function(newFilePath) {
 				if (newFilePath !== null) {
 					observer.onNext(newFilePath);
@@ -92,7 +91,7 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 	};
 	
 	const getFileFromStoreRx = function() {
-		return Rx.Observable.create(function(observer) {
+		return rx.Observable.create(function(observer) {
 			storage.file.get(function(file) {
 				if (file) {
 					observer.onNext(file);
@@ -106,7 +105,7 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 	};
 	
 	const getCurrentPositionRx = function(timeout) {
-		return Rx.Observable.create(function(observer) {
+		return rx.Observable.create(function(observer) {
 			const onSuccess = function(pos) {
 				observer.onNext(pos);
 				observer.onCompleted();
@@ -242,8 +241,11 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 				const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
 				console.log('currentConditionsUri: ' + currentConditionsUri);
 				
-				const mapStoreObs = network.downloadFileRx(mapImgUri, 'current_map.jpg')
-					.map(fs.getFileNameFromPath)
+				const epoch = (new Date).getTime();
+				const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
+				console.log('uniqueFileName: ' + uniqueFileName);
+				
+				const mapStoreObs = network.downloadFileRx(mapImgUri, uniqueFileName)
 					.flatMap(storeFileRx);
 				
 				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri]).map(function(data) {
@@ -251,14 +253,15 @@ define(radarModules, function(storage, map, network, consts, utils, fs, Rx) {
 					return data;
 				});
 				
-				Rx.Observable.zip([mapStoreObs, weatherStoreObs]).subscribe(function(data) {
+				rx.Observable.zip([mapStoreObs, weatherStoreObs]).subscribe(function(data) {
 					const mapFilePath = data[0];
 					const weather = data[1];
 					
 					console.log('Map and weather data downloaded successfully');
 					displayData(mapFilePath, weather);
 				}, function(err) {
-					console.error('Data zip error: ' + JSON.stringify(err));
+					//It may happen download will fail, just warning
+					console.warn('Download/store problem: ' + JSON.stringify(err));
 				});
 			};
 			
