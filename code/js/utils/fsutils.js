@@ -3,7 +3,6 @@
 define([], function() {
 	
 	const separator = '/';
-	const maxLengthOfExtension = 4;
 	
 	/**
 	 * file names comparator. compare only file names without extension
@@ -186,24 +185,6 @@ define([], function() {
 			onError
 		);
 	};
-
-	/**
-	 * get file extension from filename or url
-	 * 
-	 * Params:
-	 * 		fileName - file path or url
-	 * 
-	 * Returns:
-	 * 		string - extension or empty one 
-	 * */
-	const getFileExtension = function(filePath) {
-		const pointPos = filePath.lastIndexOf('.');
-		var extension = '';
-		if(pointPos > -1 && pointPos < filePath.length - 1 && pointPos + maxLengthOfExtension >= filePath.length - 1) {
-			return filePath.substr(pointPos + 1);
-		}
-		return '';
-	};
 	
 	/**
 	 * returns just file name without extension
@@ -274,7 +255,6 @@ define([], function() {
 	
 	return {
 		hasSuchFile: hasSuchFile,
-		getFileExtension: getFileExtension,
 		createFileIfNotExists: createFileIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
