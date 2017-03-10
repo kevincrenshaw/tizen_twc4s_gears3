@@ -11,7 +11,7 @@ const radarModules = [
 ];
 
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
-	var subscription;
+	var currentPositionSubscription;
 	
     //every 1 second update interval
     const updateInterval = 1000;
@@ -180,6 +180,14 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			};
 		};
 		
+		const onClickImpl = function(wrappedElement) {
+			return function(handler) {
+				wrappedElement.apply(function(el) {
+					el.onclick = handler;
+				});
+			};
+		};
+		
 		return {
 			map: {
 				visible: visibilityImpl(element.map),
@@ -194,6 +202,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				},
 				refresh: {
 					enable: enableImpl(element.header.refresh),
+					onClick: onClickImpl(element.header.refresh),
 				},
 				time: {
 					text: setInnerHtml(element.header.time.value),
@@ -255,6 +264,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
 				ui.header.temperature.unit(unitText);
+				ui.header.refresh.enable(true);
 				ui.map.visible(true);
 				ui.header.visible(true);
 			};
@@ -274,28 +284,28 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			const tryGetNewData = function() {
 				console.log('getting current position...');
 				
-				if (!subscription) {
-					ui.header.refresh.enable(false);
-					
-					const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
-						return [pos.coords.latitude, pos.coords.longitude];
-					});
-					
-					subscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
-						const mapFilePath = data[0];
-						const weather = data[1];
-						
-						console.log('Map and weather data downloaded successfully');
-						displayData(mapFilePath, weather);
-					}, function(err) {
-						//It may happen download will fail, just warning
-						console.warn('Download/store problem: ' + JSON.stringify(err));
-						ui.header.refresh.enable(true);
-					});
-
-				} else {
-					console.warn('currentPositionSubscription for current location already exists');
+				if (currentPositionSubscription) {
+					currentPositionSubscription.dispose();
+					currentPositionSubscription = null;
 				}
+				
+				ui.header.refresh.enable(false);
+				
+				const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+					return [pos.coords.latitude, pos.coords.longitude];
+				});
+				
+				currentPositionSubscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
+					const mapFilePath = data[0];
+					const weather = data[1];
+					
+					console.log('Map and weather data downloaded successfully');
+					displayData(mapFilePath, weather);
+				}, function(err) {
+					//It may happen download will fail, just warning
+					console.warn('Download/store problem: ' + JSON.stringify(err));
+					ui.header.refresh.enable(true);
+				});
 			};
 			
 			//Called when geolocation has current positon
@@ -335,7 +345,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				ui.header.refresh.enable(true);
 			}, tryGetNewData);
 			
-			ui.header.refresh.onClickHandler(tryGetNewData);
+			ui.header.refresh.onClick(tryGetNewData);
 		},
 	};
 });
