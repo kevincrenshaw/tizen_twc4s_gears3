@@ -40,7 +40,8 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 			apiKey: consts.API_KEY,
 		};
 
-		return createUri('https://api.weather.com/v2/maps/dynamic', params);
+		const uriBase = ['https://api.weather.com', 'v2', 'maps', 'dynamic'].join('/');
+		return createUri(uriBase, params);
 	};
 
 	const getCurrentConditionsUri = function(latitude, longitude) {
@@ -50,26 +51,34 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 			apiKey: consts.API_KEY,
 		};
 		
-		return createUri('https://api.weather.com/v1/geocode/' + latitude + '/' + longitude + '/observations/current.json', options);
+		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
+		return createUri(uriBase, options);
 	};
 	
-	const createTemperatureTextAccordingToSettings = function(tempValueInCelsius) {
-		const temperatureSetting = parseInt(storage.settings.units.temperature.get());
-		const separator = '';
-		
-		switch (temperatureSetting) {
+	/*
+	 * Converts temperature into textual representation.
+	 * Parameters:
+	 *		tempValueInCelsius - current temperature in Celsius
+	 *		currentTemperatureUnitSetting - current temperature unit setting, for instance value returned by:
+	 *			storage.settings.units.temperature.get()
+	 *
+	 * Result:
+	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
+	 * 		textual representation of temperature unit.
+	 */
+	const getTemperatureAndUnitAsText = function(tempValueInCelsius, currentTemperatureUnitSetting) {
+		switch (parseInt(currentTemperatureUnitSetting)) {
 		case consts.settings.units.temperature.SYSTEM:
 			console.warn('temperature system setting not supported yet, falling back to Celsius');
 			//break missing intentionally
 		case consts.settings.units.temperature.CELSIUS:
-			return [tempValueInCelsius, TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS].join(separator);
+			return [tempValueInCelsius, 'C'];
 			
 		case consts.settings.units.temperature.FAHRENHEIT:
-			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)),
-				TIZEN_L10N.SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT].join(separator);
+			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)), 'F'];
 			
 		default:
-			console.warn('temperature setting value = ' + temperatureSetting);
+			console.warn('unexpected temperature setting value "' + temperatureSetting + '"');
 		}
 	};
 	
@@ -120,54 +129,68 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 		});
 	};
 	
-	const createUiManager = function(root) {
-		const textSelector = '#text';
-		const textWrapperSelector = '#textWrapper';
-		const mapSelector = '#map';
-		const headerSelector = '#header';
-		const temperatureSelector = '#temperature';
+	//TODO move to utils/ui
+	const queryWrappedElement = function(root, selector) {
+		const element = root.querySelector(selector);
 		
-		const textElement = root.querySelector(textSelector);
-		const textWrapperElement = root.querySelector(textWrapperSelector);
-		const mapElement = root.querySelector(mapSelector);
-		const headerElement = root.querySelector(headerSelector);
-		const temperatureElement = root.querySelector(temperatureSelector);
-		
-		const setVisibilityImpl = function(element, elementSelector) {
-			return function(isVisible) {
+		return {
+			apply: function(func) {
 				if (element) {
-					element.style.visibility = isVisible ? 'visible' : 'hidden';
+					return func(element);
 				} else {
-					if (elementSelector) {
-						console.warn('visibility: element "' + elementSelector + '" not found');
-					} else {
-						console.warn('visibility: element not found');
-					}
+					console.warn('element "' + selector + '" not found');
 				}
+			},
+		};
+	};
+	
+	const createUiManager = function(root) {
+		const element = {
+			map: queryWrappedElement(root, '#map'),
+			header: {
+				container: queryWrappedElement(root, '#header'),
+				temperature: {
+					value: queryWrappedElement(root, '#temperatureBox #value'),
+					unit: queryWrappedElement(root, '#temperatureBox #unit'),
+				},
+			},
+		};
+		
+		const visibilityImpl = function(wrappedElement) {
+			return function(isVisible) {
+				wrappedElement.apply(function(el) {
+					el.style.visibility = isVisible ? 'visible' : 'hidden';
+				});
 			}
+		};
+		
+		const setSrcImpl = function(wrappedElement) {
+			return function(uri) {
+				wrappedElement.apply(function(el) {
+					el.src = uri;
+				});
+			};
+		};
+		
+		const setInnerHtml = function(wrappedElement) {
+			return function(text) {
+				wrappedElement.apply(function(el) {
+					el.innerHTML = text;
+				});
+			};
 		};
 		
 		return {
 			map: {
-				setVisibility: setVisibilityImpl(mapElement, mapSelector),
-				
-				set: function(uri) {
-					if (mapElement) {
-						mapElement.src = uri;
-					} else {
-						console.warn('element with selector ' + mapSelector + ' not found');
-					}
-				},
+				visible: visibilityImpl(element.map),
+				src: setSrcImpl(element.map),
 			},
 			
 			header: {
-				setVisibility: setVisibilityImpl(headerElement, headerSelector),
-				setTemperature: function(value) {
-					if (temperatureElement) {
-						temperatureElement.innerHTML = value;
-					} else {
-						console.warn('element with selector ' + temperatureSelector + ' not found');						
-					}
+				visible: visibilityImpl(element.header.container),
+				temperature: {
+					text: setInnerHtml(element.header.temperature.value),
+					unit: setInnerHtml(element.header.temperature.unit),
 				},
 			},
 		};
@@ -185,14 +208,23 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 			const page = ev.target;
 			const ui = createUiManager(page);
 			
+			ui.map.visible(false);
+			ui.header.visible(false);
+			
 			const displayData = function(mapFilePath, weather) {
 				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);			
-				const tempText = createTemperatureTextAccordingToSettings(tempInCelsius);
+				const tempTextualRepr = getTemperatureAndUnitAsText(
+					tempInCelsius,
+					storage.settings.units.temperature.get());
 				
-				ui.map.set(mapFilePath)
-				ui.header.setTemperature(tempText);
-				ui.map.setVisibility(true);
-				ui.header.setVisibility(true);
+				const tempText = [tempTextualRepr[0], '°'].join('');
+				const unitText = tempTextualRepr[1];
+				
+				ui.map.src(mapFilePath)
+				ui.header.temperature.text(tempText);
+				ui.header.temperature.unit(unitText);
+				ui.map.visible(true);
+				ui.header.visible(true);
 			};
 			
 			const displayCachedData = function(mapFile) {
