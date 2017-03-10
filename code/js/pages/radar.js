@@ -77,20 +77,18 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 		return weather.observation.metric.temp;
 	};
 	
-	const storeFileRx = function(filePath) {
+	const storageFileAddRx = function(filePath) {
 		return rx.Observable.create(function(observer) {
-			storage.file.add(filePath, function(newFilePath) {
-				if (newFilePath !== null) {
-					observer.onNext(newFilePath);
-					observer.onCompleted();
-				} else {
-					observer.onError(); //no error msg?
-				}
-			});
+			const onSuccess = function(fileUri) {
+		 		observer.onNext(fileUri);
+		 		observer.onCompleted();
+			};
+
+			storage.file.add(filePath, { onSuccess:onSuccess, onError:observer.onError });
 		});
 	};
 	
-	const getFileFromStoreRx = function() {
+	const storageFileGetRx = function() {
 		return rx.Observable.create(function(observer) {
 			storage.file.get(function(file) {
 				if (file) {
@@ -246,7 +244,7 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				console.log('uniqueFileName: ' + uniqueFileName);
 				
 				const mapStoreObs = network.downloadFileRx(mapImgUri, uniqueFileName)
-					.flatMap(storeFileRx);
+					.flatMap(storageFileAddRx);
 				
 				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri]).map(function(data) {
 					storage.json.add(JSON.stringify(data));
@@ -265,8 +263,8 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				});
 			};
 			
-			getFileFromStoreRx().subscribe(displayCachedData, function(err) {
-				console.error('getFileFromStoreRx: ' + JSON.stringify(err));
+			storageFileGetRx().subscribe(displayCachedData, function(err) {
+				console.error('storageFileGetRx: ' + JSON.stringify(err));
 			}, tryGetNewData);
 		},
 	};
