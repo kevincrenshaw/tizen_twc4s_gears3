@@ -71,7 +71,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		switch (parseInt(currentTemperatureUnitSetting)) {
 		case consts.settings.units.temperature.SYSTEM:
 			console.warn('temperature system setting not supported yet, falling back to Celsius');
-			//break missing intentionally
+			/* falls through */
 		case consts.settings.units.temperature.CELSIUS:
 			return [tempValueInCelsius, 'C'];
 			
@@ -143,7 +143,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				wrappedElement.apply(function(el) {
 					el.style.visibility = isVisible ? 'visible' : 'hidden';
 				});
-			}
+			};
 		};
 		
 		const setSrcImpl = function(wrappedElement) {
@@ -202,7 +202,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
 				
-				ui.map.src(mapFilePath)
+				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
 				ui.header.temperature.unit(unitText);
 				ui.map.visible(true);
@@ -225,7 +225,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				console.log('getting current position...');
 				
 				if (!subscription) {
-					const baseObs = subscription = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+					const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 						return [pos.coords.latitude, pos.coords.longitude];
 					});
 					
@@ -262,7 +262,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
 				console.log('currentConditionsUri: ' + currentConditionsUri);
 				
-				const epoch = (new Date).getTime();
+				const epoch = (new Date()).getTime();
 				const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
 				console.log('uniqueFileName: ' + uniqueFileName);
 				
