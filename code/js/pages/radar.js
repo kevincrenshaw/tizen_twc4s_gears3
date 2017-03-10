@@ -144,6 +144,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					value: dom.queryWrappedElement(root, '#timeBox #value'),
 					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
 				},
+				refresh: dom.queryWrappedElement(root, '#refreshBtn'),
 			},
 		};
 		
@@ -163,10 +164,18 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			};
 		};
 		
-		const setInnerHtml = function(wrappedElement) {
+		const setInnerHtmlImpl = function(wrappedElement) {
 			return function(text) {
 				wrappedElement.apply(function(el) {
 					el.innerHTML = text;
+				});
+			};
+		};
+		
+		const enableImpl = function(wrappedElement) {
+			return function(isEnabled) {
+				wrappedElement.apply(function(el) {
+					el.disabled = isEnabled ? false : true;
 				});
 			};
 		};
@@ -180,8 +189,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			header: {
 				visible: visibilityImpl(element.header.container),
 				temperature: {
-					text: setInnerHtml(element.header.temperature.value),
-					unit: setInnerHtml(element.header.temperature.unit),
+					text: setInnerHtmlImpl(element.header.temperature.value),
+					unit: setInnerHtmlImpl(element.header.temperature.unit),
+				},
+				refresh: {
+					enable: enableImpl(element.header.refresh),
 				},
 				time: {
 					text: setInnerHtml(element.header.time.value),
@@ -207,9 +219,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	
 	return {
 		pagebeforehide: function(ev) {
-			if (subscription) {
-				subscription.dispose();
-				subscription = null;
+			if (currentPositionSubscription) {
+				currentPositionSubscription.dispose();
+				currentPositionSubscription = null;
 			}
 			
 			if(intervalUpdaterId) {
@@ -224,6 +236,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			ui.map.visible(false);
 			ui.header.visible(false);
+			ui.header.refresh.enable(false);
 			
 			const displayData = function(mapFilePath, weather) {
 				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);			
@@ -262,6 +275,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				console.log('getting current position...');
 				
 				if (!subscription) {
+					ui.header.refresh.enable(false);
+					
 					const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 						return [pos.coords.latitude, pos.coords.longitude];
 					});
@@ -275,10 +290,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					}, function(err) {
 						//It may happen download will fail, just warning
 						console.warn('Download/store problem: ' + JSON.stringify(err));
+						ui.header.refresh.enable(true);
 					});
 
 				} else {
-					console.warn('Subscription for current location already exists');
+					console.warn('currentPositionSubscription for current location already exists');
 				}
 			};
 			
@@ -316,7 +332,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			storageFileGetRx().subscribe(displayCachedData, function(err) {
 				console.error('storageFileGetRx: ' + JSON.stringify(err));
+				ui.header.refresh.enable(true);
 			}, tryGetNewData);
+			
+			ui.header.refresh.onClickHandler(tryGetNewData);
 		},
 	};
 });

@@ -39,9 +39,9 @@ define([], function() {
 					function(error) {
 						try {
 							onSuccess(rootDir.createDirectory(dirName));
-						} catch(error) {
-							onError(error);
-						}
+						} catch(err) {
+							onError(err);
+						};
 					});
 			},
 			onError
