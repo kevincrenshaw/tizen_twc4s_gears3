@@ -90,15 +90,14 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 	
 	const storageFileGetRx = function() {
 		return rx.Observable.create(function(observer) {
-			storage.file.get(function(file) {
-				if (file) {
+			if (storage.file.empty()) {
+				observer.onCompleted();
+			} else {
+				storage.file.get(function(file) {
 					observer.onNext(file);
 					observer.onCompleted();
-				} else {
-					//No file in storage (not an error)
-					observer.onCompleted();
-				}
-			});
+				}, observer.onError)
+			};
 		});
 	};
 	
