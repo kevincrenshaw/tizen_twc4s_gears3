@@ -20,14 +20,15 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));			
 				
 			//get last saved session
-			storage.file.get(function(file) {
-				if(file) {
+			storage.file.get(
+				function(file) {
 					console.log('loaded saved session: ' + file.toURI());
 					utils.modifySrc(document, 'img#status', file.toURI());
-				} else {
+				},
+				function(error) {
 					console.log('no saved session, waiting for a new one');
 				}
-			});
+			);
 			
 			//subscribe on periodic tasks
 			subscription = Rx.Observable.interval(waitForMillis).subscribe(

@@ -15,13 +15,7 @@ define([], function() {
 	 * 		nothing
 	 * */
 	const hasSuchFile = function(filePath, onSuccess, onError) {
-		tizen.filesystem.resolve(filePath,
-			function(file) {
-				onSuccess(file);
-			},
-			function(error) {
-				onError(error);
-			});
+		tizen.filesystem.resolve(filePath, onSuccess, onError);
 	};
 
 	/**
@@ -41,17 +35,12 @@ define([], function() {
 		const fullPath = createFullPath(rootDirPath, dirName);
 		hasSuchFile(rootDirPath, 
 			function(rootDir) {
-				hasSuchFile(fullPath, 
-					function(file) {
-						onSuccess(file);
-					},
+				hasSuchFile(fullPath,onSuccess,
 					function(error) {
-						rootDir.createDirectory(dirName, onSuccess, onError);
+						rootDir.createDirectory(dirName);
 					});
 			},
-			function(error) {
-				onError(error);
-			}
+			onError
 		);
 	};
 
@@ -74,14 +63,10 @@ define([], function() {
 					function(file) {
 						dir.deleteFile(file.fullPath, onSuccess, onError);
 					},
-					function(error) {
-						onError(error);
-					}
+					onError
 				);
 			},
-			function(error) {
-				onError(error);
-			}
+			onError
 		);
 	};
 
@@ -98,11 +83,9 @@ define([], function() {
 		const onMoveSuccess = function() {
 			tizen.filesystem.resolve(dstFilePath, 
 				function(file) {
-					onSuccess(file.toURI());			
+					onSuccess(file.toURI());
 				},
-				function(error) {
-					onError(error);
-				}
+				onError
 			);
 		};
 		
@@ -111,7 +94,7 @@ define([], function() {
 			function(srcDir) {
 				hasSuchFile(getDirectoryNameFromPath(dstFilePath),
 					function(dstDir) {
-						srcDir.moveTo(srcFilePath, dstFilePath, true, onMoveSuccess,onError);
+						srcDir.moveTo(srcFilePath, dstFilePath, true, onMoveSuccess, onError);
 					},
 					onError
 				);

@@ -151,21 +151,39 @@ define(['utils/fsutils'], function(fsutils) {
 	};
 
 	/**
-	 * get saved session storage key
+	 * get saved index by key in a localStorage
+	 * Params:
+	 * 		sessionStorageKey - key for getting index data from locale storage
+	 * 
+	 * Returns:
+	 * 		index stored by sessionStorageKey, or 0
 	 * */
 	const getIndex = function(sessionStorageKey) {
 		return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
 	};
 	
 	/**
-	 * set saved session storage key
+	 * set and save index by key in a localStorage
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		index - index value to save
+	 * 
+	 * Returns:
+	 * 		nothing
 	 * */
 	const setIndex = function(sessionStorageKey, index) {
-		return localStorage.setItem(sessionStorageKey, index);
+		localStorage.setItem(sessionStorageKey, index);
 	};
 	
 	/**
 	 * increase and save index value
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		oldIndexVal - old index value
+	 * 		maxIndexVal - max for an index value
+	 * 
+	 * Returns:
+	 * 		new index value (increased)
 	 * */
 	const increaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
 		const newValue = (oldIndexVal + 1) % maxIndexVal;
@@ -175,6 +193,13 @@ define(['utils/fsutils'], function(fsutils) {
 	
 	/**
 	 * decrease and save index value
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		oldIndexVal - old index value
+	 * 		maxIndexVal - max for an index value
+	 * 
+	 * Returns:
+	 * new index value (decreased)
 	 * */
 	const decreaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
     	const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
@@ -219,19 +244,23 @@ define(['utils/fsutils'], function(fsutils) {
 		const FSIndex = key + '_fs_index';
 		const FSFileName = key + '_fs_filename_';
 		
-		const get = function(callback) {
+		
+		/**
+		 * add file to FS storage
+		 * Params:
+		 * 		onSuccess(file) will be called if file was added successfully
+		 * 		onError(error) will be called if something went wrong
+		 * Returns:
+		 * 		nothing
+		 * */
+		const get = function(onSuccess, onError) {
 			const index = getIndex(FSIndex);
 			const savedFileName = localStorage.getItem(FSFileName + index);
 			if(savedFileName) {
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
-				fsutils.hasSuchFile(pathName, 
-						function(file) {
-							callback(file);
-						}, function(error) {
-							callback(null);
-						});
+				fsutils.hasSuchFile(pathName, onSuccess, onError);
 			} else {
-				callback(null);
+				onError('cant get resolve file: ' + savedFileName);
 			}
 		};
 
@@ -257,48 +286,48 @@ define(['utils/fsutils'], function(fsutils) {
 		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
 		    		function(result) {
 		    			//if all are ready move file from src directory to private data storage
-		    			var dstPath = fsutils.createFullPath(result.fullPath, fileName);
+		    			const dstPath = fsutils.createFullPath(result.fullPath, fileName);
 		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
 		    		},
-		    		function(error) {
-		    			onError(error);
-		    		}
+		    		onError
 		    	);
 			};
 			
 			//at first we have to remove old file saved by current + 1 position
-			removeAtIndex(newIndex,
-				function() {
-					proceed();
-				},
-				function(error) {
-					//so nothing to delete, so just proceed
-					proceed();
-				}
-			);
+			removeAtIndex(newIndex, proceed);
 		};
 		
 		/**
 		 * remove file at given index
 		 * Params:
 		 * 		index - used to obtain filename
-		 * 		onSuccess() - called when file was deleted
-		 * 		onError(error) - if deleting completed with fail 
+		 * 		onResult() - called when file was deleted or if deleting completed with fail 
+		 * Rerturns:
+		 * 		nothing
 		 * */
-		const removeAtIndex = function(index, onSuccess, onError) {
+		const removeAtIndex = function(index, onResult) {
 			//get name of saved file at index
 			const savedFileName = localStorage.getItem(FSFileName + index);
 			if(savedFileName) {
 				//create full path to a file
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				console.log('removed file: ' + pathName + ' at index: ' + index);
-				fsutils.removeFile(pathName, onSuccess, onError);
+				fsutils.removeFile(pathName, onResult, onResult);
 			} else {
-				onSuccess();
+				onResult();
 			}
 		};
 		
-		const remove = function() {
+		const remove = function(handler) {
+			handler = handler || {};
+			const onSuccess = handler.onSuccess || function() {
+				console.log('file was deleted');
+			};
+			
+			const onError = handler.onError || function(error) {
+				console.warn('file wasnt deleted, error: ' + error);
+			};
+			
 			const index = getIndex(FSIndex);
 			//get name of last saved file
 			const savedFileName = localStorage.getItem(FSFileName + index);
@@ -307,14 +336,7 @@ define(['utils/fsutils'], function(fsutils) {
 			
 			const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 			//remove file
-			fsutils.removeFile(pathName,
-				function() {
-					console.log('file: ' + pathName + ' was deleted');
-				},
-				function(error) {
-					console.warn('file: ' + pathName + ' wasnt deleted, error: ' + error.message);
-				}
-			);
+			fsutils.removeFile(pathName, onSuccess, onError);
 			decreaseAndStoreIndex(FSIndex, index, maxSize);
 		};
 		

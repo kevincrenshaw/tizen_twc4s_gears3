@@ -118,16 +118,17 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			};
 			
 			//get last saved session
-			storage.file.get(function(file) {
-				if(file) {
+			storage.file.get(
+				function(file) {
 					console.log('last session: ' + file.toURI());
 					ui.map.set(file.toURI());
-				} else {
+					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
+				},
+				function(error) {
 					ui.text.set('checking location...');
 					ui.text.setVisibility(true);
-				}
-				navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
-			});
+					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
+				});
 		},
 	};
 });
