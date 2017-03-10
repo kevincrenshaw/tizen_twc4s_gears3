@@ -212,18 +212,28 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				console.log('getting current position...');
 				
 				if (!subscription) {
-					subscription = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+					const baseObs = subscription = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 						return [pos.coords.latitude, pos.coords.longitude];
-					}).subscribe(currentPositionAvailable, function(err) {
-						console.warn('getCurrentPositionRx: ' + JSON.stringify(err));
 					});
+					
+					subscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
+						const mapFilePath = data[0];
+						const weather = data[1];
+						
+						console.log('Map and weather data downloaded successfully');
+						displayData(mapFilePath, weather);
+					}, function(err) {
+						//It may happen download will fail, just warning
+						console.warn('Download/store problem: ' + JSON.stringify(err));
+					});
+
 				} else {
 					console.warn('Subscription for current location already exists');
 				}
 			};
 			
 			//Called when geolocation has current positon
-			const currentPositionAvailable = function(coords) {
+			const currentPositionAvailableRx = function(coords) {
 				const latitude = coords[0];
 				const longitude = coords[1];
 				
@@ -231,7 +241,7 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				const distance = parseInt(storage.settings.units.distance.get());
 				const lod = map.getMapLod(mapZoom, distance);
 				
-				console.log('currentPositionAvailable: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
+				console.log('currentPositionAvailableRx: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
 				
 				const mapImgUri = getMapImgUri(latitude, longitude, lod);
 				console.log('mapImgUri: ' + mapImgUri);
@@ -251,16 +261,7 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 					return data;
 				});
 				
-				rx.Observable.zip([mapStoreObs, weatherStoreObs]).subscribe(function(data) {
-					const mapFilePath = data[0];
-					const weather = data[1];
-					
-					console.log('Map and weather data downloaded successfully');
-					displayData(mapFilePath, weather);
-				}, function(err) {
-					//It may happen download will fail, just warning
-					console.warn('Download/store problem: ' + JSON.stringify(err));
-				});
+				return rx.Observable.zip([mapStoreObs, weatherStoreObs]);
 			};
 			
 			storageFileGetRx().subscribe(displayCachedData, function(err) {
