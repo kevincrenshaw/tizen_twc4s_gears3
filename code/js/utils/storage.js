@@ -246,9 +246,9 @@ define(['utils/fsutils'], function(fsutils) {
 		
 		
 		/**
-		 * add file to FS storage
+		 * get file from FS storage
 		 * Params:
-		 * 		onSuccess(file) will be called if file was added successfully
+		 * 		onSuccess(file) will be called if file was obtained successfully
 		 * 		onError(error) will be called if something went wrong
 		 * Returns:
 		 * 		nothing
@@ -262,6 +262,18 @@ define(['utils/fsutils'], function(fsutils) {
 			} else {
 				onError('cant get resolve file: ' + savedFileName);
 			}
+		};
+		
+		/**
+		 * check if file storage is empty
+		 * 
+		 * Returns:
+		 * 		true if file storage is empty false otherwise
+		 * */
+		const empty = function() {
+			const index = getIndex(FSIndex);
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			return (!savedFileName);
 		};
 
 		const add = function(filePath, options) {
@@ -353,6 +365,7 @@ define(['utils/fsutils'], function(fsutils) {
 		return {
 			get: get,
 			add: add,
+			empty: empty,
 			remove: remove,
 		};
 	};
