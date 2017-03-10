@@ -6,10 +6,11 @@ const radarModules = [
 	'utils/network',
 	'utils/const',
 	'utils/utils',
+	'utils/dom',
 	'rx'
 ];
 
-define(radarModules, function(storage, map, network, consts, utils, rx) {
+define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var subscription;
 	
 	const createUri = function(base, params) {
@@ -105,8 +106,8 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				storage.file.get(function(file) {
 					observer.onNext(file);
 					observer.onCompleted();
-				}, observer.onError)
-			};
+				}, observer.onError);
+			}
 		});
 	};
 	
@@ -117,41 +118,22 @@ define(radarModules, function(storage, map, network, consts, utils, rx) {
 				observer.onCompleted();
 			};
 			
-			const onError = function(err) {
-				//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
-				//1: 'PERMISSION_DENIED',
-				//2: 'POSITION_UNAVAILABLE',
-				//3: 'TIMEOUT',
-				observer.onError(err);
-			};
-			
-			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: timeout });
+			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
+			//1: 'PERMISSION_DENIED',
+			//2: 'POSITION_UNAVAILABLE',
+			//3: 'TIMEOUT',			
+			navigator.geolocation.getCurrentPosition(onSuccess, observer.onError, { timeout: timeout });
 		});
-	};
-	
-	//TODO move to utils/ui
-	const queryWrappedElement = function(root, selector) {
-		const element = root.querySelector(selector);
-		
-		return {
-			apply: function(func) {
-				if (element) {
-					return func(element);
-				} else {
-					console.warn('element "' + selector + '" not found');
-				}
-			},
-		};
 	};
 	
 	const createUiManager = function(root) {
 		const element = {
-			map: queryWrappedElement(root, '#map'),
+			map: dom.queryWrappedElement(root, '#map'),
 			header: {
-				container: queryWrappedElement(root, '#header'),
+				container: dom.queryWrappedElement(root, '#header'),
 				temperature: {
-					value: queryWrappedElement(root, '#temperatureBox #value'),
-					unit: queryWrappedElement(root, '#temperatureBox #unit'),
+					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
+					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
 				},
 			},
 		};
