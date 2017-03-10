@@ -39,7 +39,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 					network.downloadImageFile(url, fileName,
 						function(downloadedFileName) {
 							if(subscription) {
-								const handler = {
+								const options = {
 									onSuccess : function(fileURI) {
 										utils.modifySrc(page, 'img#status', fileURI);
 										var timestamp = new Date();
@@ -51,7 +51,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 									}
 								};
 								
-								storage.file.add(downloadedFileName, handler);								
+								storage.file.add(downloadedFileName, options);								
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}

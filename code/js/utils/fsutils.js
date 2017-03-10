@@ -37,7 +37,11 @@ define([], function() {
 			function(rootDir) {
 				hasSuchFile(fullPath,onSuccess,
 					function(error) {
-						rootDir.createDirectory(dirName);
+						try {
+							onSuccess(rootDir.createDirectory(dirName));
+						} catch(error) {
+							onError(error);
+						}
 					});
 			},
 			onError

@@ -264,14 +264,14 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 		};
 
-		const add = function(filePath, handler) {
+		const add = function(filePath, options) {
 			
-			handler = handler || {};
-			const onSuccess = handler.onSuccess || function(fileURI) {
+			options = options || {};
+			const onSuccess = options.onSuccess || function(fileURI) {
 				console.log('file: ' + fileURI + ' was added to a storage');
 			};
 			
-			const onError = handler.onError || function(error) {
+			const onError = options.onError || function(error) {
 				console.warn('file wasnt added to a storage, error' + error.message);
 			};
 			
@@ -294,7 +294,15 @@ define(['utils/fsutils'], function(fsutils) {
 			};
 			
 			//at first we have to remove old file saved by current + 1 position
-			removeAtIndex(newIndex, proceed);
+			removeAtIndex(newIndex, 
+				function() {
+					proceed();
+				},
+				function(error) {
+					console.warn('cant remove file at given index, error: ' + error);
+					proceed();
+				}
+			);
 		};
 		
 		/**
@@ -305,39 +313,41 @@ define(['utils/fsutils'], function(fsutils) {
 		 * Rerturns:
 		 * 		nothing
 		 * */
-		const removeAtIndex = function(index, onResult) {
+		const removeAtIndex = function(index, onSuccess, onError) {
 			//get name of saved file at index
 			const savedFileName = localStorage.getItem(FSFileName + index);
 			if(savedFileName) {
 				//create full path to a file
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				console.log('removed file: ' + pathName + ' at index: ' + index);
-				fsutils.removeFile(pathName, onResult, onResult);
+				fsutils.removeFile(pathName, onSuccess, onError);
 			} else {
-				onResult();
+				onSuccess();
 			}
 		};
 		
-		const remove = function(handler) {
-			handler = handler || {};
-			const onSuccess = handler.onSuccess || function() {
+		const remove = function(options) {
+			options = options || {};
+			const onSuccess = options.onSuccess || function() {
 				console.log('file was deleted');
 			};
 			
-			const onError = handler.onError || function(error) {
+			const onError = options.onError || function(error) {
 				console.warn('file wasnt deleted, error: ' + error);
 			};
 			
 			const index = getIndex(FSIndex);
 			//get name of last saved file
 			const savedFileName = localStorage.getItem(FSFileName + index);
-			//remove a name of file from localStorage
-			localStorage.removeItem(FSFileName + index);
-			
-			const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
-			//remove file
-			fsutils.removeFile(pathName, onSuccess, onError);
-			decreaseAndStoreIndex(FSIndex, index, maxSize);
+			//if we have a record of this file in localStorage
+			if(savedFileName) {
+				//remove a name of file from localStorage
+				localStorage.removeItem(FSFileName + index);
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				//remove file
+				fsutils.removeFile(pathName, onSuccess, onError);
+				decreaseAndStoreIndex(FSIndex, index, maxSize);
+			}
 		};
 		
 		return {

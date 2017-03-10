@@ -39,7 +39,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 		
 		network.downloadImageFile(link, fileName,
 			function(downloadedFileName) {
-				const handler = {
+				const options = {
 					onSuccess : function(fileURI) {
 						ui.text.setVisibility(false);
 						ui.map.set(fileURI);
@@ -49,7 +49,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 					}
 				};
 
-				storage.file.add(downloadedFileName, handler);
+				storage.file.add(downloadedFileName, options);
 			},
 			function(error) {
 				console.error('cant download file, error: ' + error);
