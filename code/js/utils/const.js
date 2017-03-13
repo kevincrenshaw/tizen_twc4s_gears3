@@ -7,7 +7,12 @@ define([], function() {
 				SYSTEM: 1,
 				FAHRENHEIT: 2,
 				CELSIUS: 3,
-			}
+			},
+			time: {
+				SYSTEM: 1,
+				TIME_12H: 2,
+				TIME_24H: 3,
+			},
 		},
 	};
 	

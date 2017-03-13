@@ -83,6 +83,24 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		}
 	};
 	
+	const getTimeAsText = function(date, currentTimeUnitSetting) {
+		const isAmPmEnabled = parseInt(currentTimeUnitSetting) === consts.settings.units.time.TIME_12H ? true : false;	
+
+		var hours = date.getHours();
+	    var minutes = date.getMinutes();
+	    var ampm = '';
+	    
+	    if(isAmPmEnabled) {
+	    	ampm = hours >= 12 ? ' PM' : ' AM';
+	        hours = hours % 12;
+	        //0 hour should be printed as 12
+	        hours = hours ? hours : 12;
+	    }
+	    minutes = minutes < 10 ? '0' + minutes : minutes;
+
+	    return [hours + ':' + minutes, ampm];
+	};
+	
 	const extractTempertatureFromCurrentConditions = function(weather) {
 		return weather.observation.metric.temp;
 	};
@@ -135,6 +153,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
 					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
 				},
+				time : {
+					value: dom.queryWrappedElement(root, '#timeBox #value'),
+					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
+				},
 			},
 		};
 		
@@ -174,6 +196,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					text: setInnerHtml(element.header.temperature.value),
 					unit: setInnerHtml(element.header.temperature.unit),
 				},
+				time: {
+					text: setInnerHtml(element.header.time.value),
+					unit: setInnerHtml(element.header.time.unit),
+				},
 			},
 		};
 	};
@@ -201,10 +227,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
+				//time
+				const currentTimeRepr = getTimeAsText(new Date(), storage.settings.units.time.get());
+				const timeText = currentTimeRepr[0];
+				const timeUnit = currentTimeRepr[1];
 				
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
 				ui.header.temperature.unit(unitText);
+				ui.header.time.text(timeText);
+				ui.header.time.unit(timeUnit);
 				ui.map.visible(true);
 				ui.header.visible(true);
 			};

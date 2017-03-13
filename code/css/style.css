@@ -100,36 +100,46 @@ body {
 	position: absolute;
 	top: 0%;
 	width: 100%;
-	text-align: center;
-	padding: 20px;
+	height: 127px;
 	background-color: rgba(0,0,0,0.4);
 	visibility: hidden;
 }
 
+#radar.ui-page #header #temperatureBox {
+	position: absolute;
+	left: 64px;
+	top: 61px;
+}
+
 #radar.ui-page #header #temperatureBox #value {
-	width: 54px;
-	height: 34px;
 	opacity: 0.9;
 	font-family: BreezeSans;
 	font-size: 28px;
-	font-weight: normal;
-	font-style: normal;
-	font-stretch: condensed;
-	line-height: normal;
-	letter-spacing: normal;
 	color: #ffffff;
 }
 
 #radar.ui-page #header #temperatureBox #unit {
-	width: 9px;
-	height: 22px;
 	font-family: BreezeSans;
 	font-size: 18px;
-	font-weight: normal;
-	font-style: normal;
-	font-stretch: condensed;
-	line-height: normal;
-	letter-spacing: normal;
-	text-align: right;
+	color: #e0e0e0;
+}
+
+#radar.ui-page #header #timeBox {
+	position: absolute;
+	width: 100%;
+	top: 15px;
+	text-align: center;
+	
+}
+
+#radar.ui-page #header #timeBox #value {
+	font-size: 24px;
+	font-family: BreezeSans;
+	color: #ffffff;
+}
+
+#radar.ui-page #header #timeBox #unit {
+	font-size: 18px;
+	font-family: BreezeSans;
 	color: #e0e0e0;
 }
