@@ -52,8 +52,28 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		tizen.download.start(request, downloadListener);
 	};
 
+	
+	const downloadFileRx = function(url, dest) {		
+		return Rx.Observable.create(function(observer) {
+			const downloadListener = {
+				oncompleted: function(id, fullPath) {
+					observer.onNext(fullPath);
+					observer.onCompleted();
+				},
+				
+				onfailed : function(id, error) {
+					observer.onError(error);
+				},
+			};
+			
+			const request = new tizen.DownloadRequest(url, '', dest);
+			tizen.download.start(request, downloadListener);
+		});
+	};
+
 	return {
 		getResourcesByURL: getResourcesByURL,
-		downloadImageFile: downloadImageFile, 
+		downloadImageFile: downloadImageFile,
+		downloadFileRx: downloadFileRx,
 	};
 });

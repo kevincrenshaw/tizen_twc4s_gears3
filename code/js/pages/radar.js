@@ -1,6 +1,18 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(storage, map, network, utils) {
+const radarModules = [
+	'utils/storage',
+	'utils/map',
+	'utils/network',
+	'utils/const',
+	'utils/utils',
+	'utils/dom',
+	'rx'
+];
+
+define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
+	var subscription;
+	
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -12,123 +24,262 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
 	};
 	
-	const displayMapForLocation = function(ui, latitude, longitude) {						
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());
-		const lod = map.getMapLod(mapZoom, distance);
-		const lodLatitude = map.getAllowedPrecisionAccordingToLod(latitude, lod);
-		const lodLongitude = map.getAllowedPrecisionAccordingToLod(longitude, lod);
-
-		console.log('mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude);
-		console.log('lod=' + lod + ', lodLatitude=' + lodLatitude + ', lodLatitude=' + lodLatitude);
-			
+	const getMapImgUri = function(latitude, longitude, lod, options) {
+		options = options || {};
+		
+		const latByLod = map.getAllowedPrecisionAccordingToLod(latitude, lod);
+		const longByLod = map.getAllowedPrecisionAccordingToLod(longitude, lod);
+		
+		console.log('getMapImgUri: lod={value=' + lod + ', lat:' + latitude + '->' + latByLod + ', long:' + longitude + '->' + longByLod + '}');
+		
 		const params = {
-			geocode: [lodLatitude, lodLongitude].join(','),
-			w: 400,
-			h: 400,
+			geocode: [latByLod, longByLod].join(','),
+			w: options.width || 400,
+			h: options.height || 400,
 			lod: lod,
-			product: 'satrad',
-			apiKey: 'ce21274b08780261ce553b0b9166a9ae',
+			product: options.product || 'satrad',
+			apiKey: consts.API_KEY,
 		};
 
-		const link = createUri('https://api.weather.com/v2/maps/dynamic', params);
-		console.log(link);
+		const uriBase = ['https://api.weather.com', 'v2', 'maps', 'dynamic'].join('/');
+		return createUri(uriBase, params);
+	};
 
-		//generate new file name
-		const fileName = new Date().getTime() + '-' + utils.guid() + '.tmp';
+	const getCurrentConditionsUri = function(latitude, longitude) {
+		const options = {
+			language: 'en-US',
+			units: 'm', //'e' for imperial
+			apiKey: consts.API_KEY,
+		};
 		
-		network.downloadImageFile(link, fileName,
-			function(downloadedFileName) {
-				const options = {
-					onSuccess : function(fileURI) {
-						ui.text.setVisibility(false);
-						ui.map.set(fileURI);
-					},
-					onError : function(error) {
-						console.error('cant apply file, error: ' + error.message);
-					}
-				};
+		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
+		return createUri(uriBase, options);
+	};
+	
+	/*
+	 * Converts temperature into textual representation.
+	 * Parameters:
+	 *		tempValueInCelsius - current temperature in Celsius
+	 *		currentTemperatureUnitSetting - current temperature unit setting, for instance value returned by:
+	 *			storage.settings.units.temperature.get()
+	 *
+	 * Result:
+	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
+	 * 		textual representation of temperature unit.
+	 */
+	const getTemperatureAndUnitAsText = function(tempValueInCelsius, currentTemperatureUnitSetting) {
+		switch (parseInt(currentTemperatureUnitSetting)) {
+		case consts.settings.units.temperature.SYSTEM:
+			console.warn('temperature system setting not supported yet, falling back to Celsius');
+			/* falls through */
+		case consts.settings.units.temperature.CELSIUS:
+			return [tempValueInCelsius, 'C'];
+			
+		case consts.settings.units.temperature.FAHRENHEIT:
+			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)), 'F'];
+			
+		default:
+			console.warn('unexpected temperature setting value "' + temperatureSetting + '"');
+		}
+	};
+	
+	const extractTempertatureFromCurrentConditions = function(weather) {
+		return weather.observation.metric.temp;
+	};
+	
+	const storageFileAddRx = function(filePath) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function(fileUri) {
+		 		observer.onNext(fileUri);
+		 		observer.onCompleted();
+			};
 
-				storage.file.add(downloadedFileName, options);
-			},
-			function(error) {
-				console.error('cant download file, error: ' + error);
+			storage.file.add(filePath, { onSuccess:onSuccess, onError:observer.onError });
+		});
+	};
+	
+	const storageFileGetRx = function() {
+		return rx.Observable.create(function(observer) {
+			if (storage.file.empty()) {
+				observer.onCompleted();
+			} else {
+				storage.file.get(function(file) {
+					observer.onNext(file);
+					observer.onCompleted();
+				}, observer.onError);
 			}
-		);
+		});
+	};
+	
+	const getCurrentPositionRx = function(timeout) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function(pos) {
+				observer.onNext(pos);
+				observer.onCompleted();
+			};
+			
+			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
+			//1: 'PERMISSION_DENIED',
+			//2: 'POSITION_UNAVAILABLE',
+			//3: 'TIMEOUT',			
+			navigator.geolocation.getCurrentPosition(onSuccess, observer.onError, { timeout: timeout });
+		});
 	};
 	
 	const createUiManager = function(root) {
-		const textSelector = '#text';
-		const textWrapperSelector = '#textWrapper';
-		const mapSelector = '#map';
-		
-		const textElement = root.querySelector(textSelector);
-		const textWrapperElement = root.querySelector(textWrapperSelector);
-		const mapElement = root.querySelector(mapSelector);
-		
-		return {
-			text: {
-				set: function(text) {
-					if (textElement) {
-						textElement.innerHTML = text;
-					} else {
-						console.warn('element with selector ' + textSelector + ' not found');
-					}
-				},
-
-				setVisibility: function(flag) {
-					if (textWrapperElement) {
-						textWrapperElement.style.visibility = flag ? 'visible' : 'hidden';
-					} else {
-						console.warn('element with selector ' + textWrapperSelector + ' not found');
-					}
+		const element = {
+			map: dom.queryWrappedElement(root, '#map'),
+			header: {
+				container: dom.queryWrappedElement(root, '#header'),
+				temperature: {
+					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
+					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
 				},
 			},
-
+		};
+		
+		const visibilityImpl = function(wrappedElement) {
+			return function(isVisible) {
+				wrappedElement.apply(function(el) {
+					el.style.visibility = isVisible ? 'visible' : 'hidden';
+				});
+			};
+		};
+		
+		const setSrcImpl = function(wrappedElement) {
+			return function(uri) {
+				wrappedElement.apply(function(el) {
+					el.src = uri;
+				});
+			};
+		};
+		
+		const setInnerHtml = function(wrappedElement) {
+			return function(text) {
+				wrappedElement.apply(function(el) {
+					el.innerHTML = text;
+				});
+			};
+		};
+		
+		return {
 			map: {
-				set: function(uri) {
-					if (mapElement) {
-						mapElement.src = uri;
-					} else {
-						console.warn('element with selector ' + mapSelector + ' not found');
-					}
-				}
+				visible: visibilityImpl(element.map),
+				src: setSrcImpl(element.map),
+			},
+			
+			header: {
+				visible: visibilityImpl(element.header.container),
+				temperature: {
+					text: setInnerHtml(element.header.temperature.value),
+					unit: setInnerHtml(element.header.temperature.unit),
+				},
 			},
 		};
 	};
 	
 	return {
+		pagebeforehide: function(ev) {
+			if (subscription) {
+				subscription.dispose();
+				subscription = null;
+			}
+		},
+		
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			const ui = createUiManager(page);
 			
-			const success = function(pos) {
-				displayMapForLocation(ui, pos.coords.latitude, pos.coords.longitude);
-			};
+			ui.map.visible(false);
+			ui.header.visible(false);
 			
-			const error = function(err) {
-				//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
-				//1: 'PERMISSION_DENIED',
-				//2: 'POSITION_UNAVAILABLE',
-				//3: 'TIMEOUT',
+			const displayData = function(mapFilePath, weather) {
+				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);			
+				const tempTextualRepr = getTemperatureAndUnitAsText(
+					tempInCelsius,
+					storage.settings.units.temperature.get());
 				
-				ui.text.set('error: code=' + err.code);
-				console.error('error: ' + err.message);
-				ui.text.setVisibility(true);
+				const tempText = [tempTextualRepr[0], '°'].join('');
+				const unitText = tempTextualRepr[1];
+				
+				ui.map.src(mapFilePath);
+				ui.header.temperature.text(tempText);
+				ui.header.temperature.unit(unitText);
+				ui.map.visible(true);
+				ui.header.visible(true);
 			};
 			
-			//get last saved session
-			storage.file.get(
-				function(file) {
-					console.log('last session: ' + file.toURI());
-					ui.map.set(file.toURI());
-					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
-				},
-				function(err) {
-					ui.text.set('checking location...');
-					ui.text.setVisibility(true);
-					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
+			const displayCachedData = function(mapFile) {
+				const weather = JSON.parse(storage.json.get());
+				console.log('displayCachedData: mapFile=' + mapFile.toURI() + ', weather=' + weather);
+				
+				if (weather) {
+					displayData(mapFile.toURI(), weather);
+				} else {
+					console.warn('No weather data despite we have map file');
+				}
+			};
+			
+			//Attempts to get current location, fetch data for location and then display it
+			const tryGetNewData = function() {
+				console.log('getting current position...');
+				
+				if (!subscription) {
+					const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+						return [pos.coords.latitude, pos.coords.longitude];
+					});
+					
+					subscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
+						const mapFilePath = data[0];
+						const weather = data[1];
+						
+						console.log('Map and weather data downloaded successfully');
+						displayData(mapFilePath, weather);
+					}, function(err) {
+						//It may happen download will fail, just warning
+						console.warn('Download/store problem: ' + JSON.stringify(err));
+					});
+
+				} else {
+					console.warn('Subscription for current location already exists');
+				}
+			};
+			
+			//Called when geolocation has current positon
+			const currentPositionAvailableRx = function(coords) {
+				const latitude = coords[0];
+				const longitude = coords[1];
+				
+				const mapZoom = parseInt(storage.settings.units.mapzoom.get());
+				const distance = parseInt(storage.settings.units.distance.get());
+				const lod = map.getMapLod(mapZoom, distance);
+				
+				console.log('currentPositionAvailableRx: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
+				
+				const mapImgUri = getMapImgUri(latitude, longitude, lod);
+				console.log('mapImgUri: ' + mapImgUri);
+				
+				const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
+				console.log('currentConditionsUri: ' + currentConditionsUri);
+				
+				const epoch = (new Date()).getTime();
+				const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
+				console.log('uniqueFileName: ' + uniqueFileName);
+				
+				const mapStoreObs = network.downloadFileRx(mapImgUri, uniqueFileName)
+					.flatMap(storageFileAddRx);
+				
+				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri]).map(function(data) {
+					storage.json.add(JSON.stringify(data));
+					return data;
 				});
+				
+				return rx.Observable.zip([mapStoreObs, weatherStoreObs]);
+			};
+			
+			storageFileGetRx().subscribe(displayCachedData, function(err) {
+				console.error('storageFileGetRx: ' + JSON.stringify(err));
+			}, tryGetNewData);
 		},
 	};
 });

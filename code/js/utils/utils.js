@@ -107,6 +107,10 @@ define(['rx'], function(Rx) {
 				});
 		});
 	};
+	
+	const celsiusToFahrenheit = function(value) {
+		return value * 9.0 / 5.0 + 32;
+	};
 
 	return {
 		tryModifyElement: tryModifyElement,
@@ -115,5 +119,6 @@ define(['rx'], function(Rx) {
 		modifySrc: modifySrc,
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 		guid: guid,
+		celsiusToFahrenheit: celsiusToFahrenheit,
 	};
 });
