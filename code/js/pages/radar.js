@@ -286,10 +286,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 						
 						if (locArr[1] in TIZEN_L10N) {
 							locArr[1] = TIZEN_L10N[locArr[1]];
+							
+							const text = locArr.join(' ').trim();
+							ui.header.refresh.text(text);
+						} else {
+							console.warn('Localization "' + locArr[1] + '" not available');
 						}
-						
-						const text = locArr.join(' ').trim();
-						ui.header.refresh.text(text + ' [' + diffInSeconds + ']');
 					}
 				};
 				
