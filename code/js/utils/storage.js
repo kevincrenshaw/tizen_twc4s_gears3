@@ -260,7 +260,7 @@ define(['utils/fsutils'], function(fsutils) {
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				fsutils.hasSuchFile(pathName, onSuccess, onError);
 			} else {
-				onError('cant get resolve file: ' + savedFileName);
+				onError('cant get resolve file');
 			}
 		};
 		
@@ -413,6 +413,7 @@ define(['utils/fsutils'], function(fsutils) {
 		},
 		json : createLocalStorage('json', 4),
 		file : createFileStorage('file', 4),
+		radar: createFileStorage('radar', 4),
 	};
 	
 	return storage;

@@ -49,7 +49,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 					}
 				};
 
-				storage.file.add(downloadedFileName, options);
+				storage.radar.add(downloadedFileName, options);
 			},
 			function(error) {
 				console.error('cant download file, error: ' + error);
@@ -118,13 +118,13 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			};
 			
 			//get last saved session
-			storage.file.get(
+			storage.radar.get(
 				function(file) {
 					console.log('last session: ' + file.toURI());
 					ui.map.set(file.toURI());
 					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
 				},
-				function(error) {
+				function(err) {
 					ui.text.set('checking location...');
 					ui.text.setVisibility(true);
 					navigator.geolocation.getCurrentPosition(success, error, { timeout: 30000 });
