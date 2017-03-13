@@ -49,7 +49,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 					}
 				};
 
-				storage.radar.add(downloadedFileName, options);
+				storage.file.add(downloadedFileName, options);
 			},
 			function(error) {
 				console.error('cant download file, error: ' + error);
@@ -118,7 +118,7 @@ define(['utils/storage', 'utils/map', 'utils/network', 'utils/utils'], function(
 			};
 			
 			//get last saved session
-			storage.radar.get(
+			storage.file.get(
 				function(file) {
 					console.log('last session: ' + file.toURI());
 					ui.map.set(file.toURI());

@@ -20,7 +20,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));			
 				
 			//get last saved session
-			storage.file.get(
+			storage.compass.get(
 				function(file) {
 					console.log('loaded saved session: ' + file.toURI());
 					utils.modifySrc(document, 'img#status', file.toURI());
@@ -51,7 +51,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 									}
 								};
 								
-								storage.file.add(downloadedFileName, options);								
+								storage.compass.add(downloadedFileName, options);								
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -69,7 +69,7 @@ define(['rx', 'utils/network', 'utils/utils', 'utils/storage'], function(Rx, net
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.file.remove();
+				storage.compass.remove();
 				utils.modifySrc(root, 'img#status', null);
 			};
 			return deleteLastSession;
