@@ -13,6 +13,11 @@ const radarModules = [
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var subscription;
 	
+	//every 10 seconds update interval
+	const updateInterval = 10000;
+	
+	var intervalUpdaterId;
+	
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -204,11 +209,29 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 	};
 	
+	const updateUI = function(ui) {
+		console.log('timeUpdater::update, ui:' + ui);
+		if(ui) {
+			
+			const currentTimeRepr = getTimeAsText(new Date(), storage.settings.units.time.get());
+			const timeText = currentTimeRepr[0];
+			const timeUnit = currentTimeRepr[1];
+			//apply on ui
+			ui.header.time.text(timeText);
+			ui.header.time.unit(timeUnit);			
+		}
+	};
+	
 	return {
 		pagebeforehide: function(ev) {
 			if (subscription) {
 				subscription.dispose();
 				subscription = null;
+			}
+			
+			if(intervalUpdaterId) {
+				console.log('clearInterval::id: ' + intervalUpdaterId);
+				clearInterval(intervalUpdaterId);
 			}
 		},
 		
@@ -228,15 +251,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
 				//time
-				const currentTimeRepr = getTimeAsText(new Date(), storage.settings.units.time.get());
-				const timeText = currentTimeRepr[0];
-				const timeUnit = currentTimeRepr[1];
+				updateUI(ui);
+				intervalUpdaterId = setInterval(updateUI, updateInterval, ui);
 				
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
 				ui.header.temperature.unit(unitText);
-				ui.header.time.text(timeText);
-				ui.header.time.unit(timeUnit);
 				ui.map.visible(true);
 				ui.header.visible(true);
 			};
