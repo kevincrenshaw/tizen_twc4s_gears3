@@ -144,11 +144,14 @@ body {
 	color: #e0e0e0;
 }
 
-#radar.ui-page #refreshBtn {
+#radar.ui-page #refreshBox #btn {
 	width: 50px;
 	height: 50px;
 }
 
-#radar.ui-page #refreshBtn:disabled {
+#radar.ui-page #refreshBox #btn:disabled {
 	opacity: 0.35;
+}
+
+#radar.ui-page #refreshBox #text {
 }

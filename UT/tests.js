@@ -132,10 +132,37 @@ define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, uti
         assert.equal(stringAM4, '8:33,');
     });
 	
-	QUnit.test("guid ", function(assert) {
+	QUnit.test('guid', function(assert) {
 		var time = new Date().getTime();
 		var string1 = time + '-' + utils.guid();
 		var string2 = time + '-' + utils.guid();
 		assert.ok(string1 !== string2);
+	});
+
+	QUnit.test('timeDiffToValueAndLocalizationKey', function(assert) {
+		const MINUTE_IN_SECONDS = 60;
+		const HOUR_IN_SECONDS = MINUTE_IN_SECONDS * 60;
+		const DAY_IN_SECONDS = HOUR_IN_SECONDS * 24;
+
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(0), [null, 'NOW']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(30), [null, 'NOW']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(59), [null, 'NOW']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(MINUTE_IN_SECONDS + 59), [1, 'MINUTES_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * MINUTE_IN_SECONDS), [2, 'MINUTES_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * MINUTE_IN_SECONDS + 1), [2, 'MINUTES_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(HOUR_IN_SECONDS - 1), [59, 'MINUTES_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(HOUR_IN_SECONDS), [1, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * HOUR_IN_SECONDS - 1), [1, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * HOUR_IN_SECONDS), [2, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(15 * HOUR_IN_SECONDS), [15, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(23 * HOUR_IN_SECONDS), [23, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(24 * HOUR_IN_SECONDS - 1), [23, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(DAY_IN_SECONDS - 1), [23, 'HOURS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(DAY_IN_SECONDS), [1, 'DAY_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS), [1, 'DAY_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * DAY_IN_SECONDS - 1), [1, 'DAY_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(2 * DAY_IN_SECONDS), [2, 'DAYS_AGO']);
+		assert.deepEqual(utils.timeDiffToValueAndLocalizationKey(15 * DAY_IN_SECONDS), [15, 'DAYS_AGO']);
+
 	});
 });

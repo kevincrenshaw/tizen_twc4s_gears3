@@ -12,6 +12,7 @@ const radarModules = [
 
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
+	var updateInterval;
 	
     //every 1 second update interval
     const updateInterval = 1000;
@@ -144,7 +145,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					value: dom.queryWrappedElement(root, '#timeBox #value'),
 					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
 				},
-				refresh: dom.queryWrappedElement(root, '#refreshBtn'),
+				refresh: {
+					btn: dom.queryWrappedElement(root, '#refreshBox #btn'),
+					text: dom.queryWrappedElement(root, '#refreshBox #text'),
+				},
 			},
 		};
 		
@@ -201,8 +205,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					unit: setInnerHtmlImpl(element.header.temperature.unit),
 				},
 				refresh: {
-					enable: enableImpl(element.header.refresh),
-					onClick: onClickImpl(element.header.refresh),
+					btn: {
+						enable: enableImpl(element.header.refresh.btn),
+						onClick: onClickImpl(element.header.refresh.btn),
+					},
+
+					text: setInnerHtmlImpl(element.header.refresh.text),
 				},
 				time: {
 					text: setInnerHtml(element.header.time.value),
@@ -237,6 +245,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				clearInterval(intervalUpdaterId);
                 intervalUpdaterId = null;
 			}
+			if (updateInterval) {
+				clearInterval(updateInterval);
+				updateInterval = null;
+			}
 		},
 		
 		pagebeforeshow: function(ev) {
@@ -245,10 +257,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			ui.map.visible(false);
 			ui.header.visible(false);
-			ui.header.refresh.enable(false);
+			ui.header.refresh.btn.enable(false);
 			
-			const displayData = function(mapFilePath, weather) {
-				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);			
+			const displayData = function(mapFilePath, jsonStorageObject) {
+				const weather = jsonStorageObject.external;
+				
+				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
 				const tempTextualRepr = getTemperatureAndUnitAsText(
 					tempInCelsius,
 					storage.settings.units.temperature.get());
@@ -261,20 +275,49 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
                     intervalUpdaterId = setInterval(updateUI, updateInterval, ui);                    
                 }
 				
+				const createWeatherDownloadTimeUpdater = function(baseEpochInSeconds) {
+					return function() {
+						const diffInSeconds = utils.getNowAsEpochInSeconds() - baseEpochInSeconds;
+						const locArr = utils.timeDiffToValueAndLocalizationKey(diffInSeconds);
+						
+						if (locArr[0] === null) {
+							locArr[0] = '';
+						}
+						
+						if (locArr[1] in TIZEN_L10N) {
+							locArr[1] = TIZEN_L10N[locArr[1]];
+						}
+						
+						const text = locArr.join(' ').trim();
+						ui.header.refresh.text(text + ' [' + diffInSeconds + ']');
+					}
+				};
+				
+				if (updateInterval) {
+					clearInterval(updateInterval);
+					updateInterval = null;
+				}
+
+				const baseEpochInSeconds = jsonStorageObject.internal.downloadTimeEpochInSeconds;
+				const weatherDownloadTimeUpdater = createWeatherDownloadTimeUpdater(baseEpochInSeconds);
+				weatherDownloadTimeUpdater();
+				updateInterval = setInterval(weatherDownloadTimeUpdater, 1000);
+				
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
 				ui.header.temperature.unit(unitText);
-				ui.header.refresh.enable(true);
+				ui.header.refresh.btn.enable(true);
 				ui.map.visible(true);
 				ui.header.visible(true);
 			};
 			
 			const displayCachedData = function(mapFile) {
-				const weather = JSON.parse(storage.json.get());
-				console.log('displayCachedData: mapFile=' + mapFile.toURI() + ', weather=' + weather);
+				const jsonStorageObject = JSON.parse(storage.json.get());
+				
+				console.log('displayCachedData: mapFile=' + mapFile.toURI());
 				
 				if (weather) {
-					displayData(mapFile.toURI(), weather);
+					displayData(mapFile.toURI(), jsonStorageObject);
 				} else {
 					console.warn('No weather data despite we have map file');
 				}
@@ -289,7 +332,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					currentPositionSubscription = null;
 				}
 				
-				ui.header.refresh.enable(false);
+				ui.header.refresh.btn.enable(false);
 				
 				const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 					return [pos.coords.latitude, pos.coords.longitude];
@@ -297,14 +340,14 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				currentPositionSubscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
 					const mapFilePath = data[0];
-					const weather = data[1];
+					const jsonStorageContent = data[1];
 					
 					console.log('Map and weather data downloaded successfully');
-					displayData(mapFilePath, weather);
+					displayData(mapFilePath, jsonStorageContent);
 				}, function(err) {
 					//It may happen download will fail, just warning
 					console.warn('Download/store problem: ' + JSON.stringify(err));
-					ui.header.refresh.enable(true);
+					ui.header.refresh.btn.enable(true);
 				});
 			};
 			
@@ -325,16 +368,26 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
 				console.log('currentConditionsUri: ' + currentConditionsUri);
 				
-				const epoch = (new Date()).getTime();
+				const epoch = utils.getNowAsEpochInMiliseconds();
 				const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
 				console.log('uniqueFileName: ' + uniqueFileName);
 				
 				const mapStoreObs = network.downloadFileRx(mapImgUri, uniqueFileName)
 					.flatMap(storageFileAddRx);
 				
-				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri]).map(function(data) {
-					storage.json.add(JSON.stringify(data));
-					return data;
+				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri])
+				.filter(function(data) {
+					return data && data.metadata && data.metadata.status_code === 200;
+				})
+				.map(function(data) {
+					const storageContent = storage.json.get();
+					const storageObject = storageContent ? JSON.parse(storageContent) : { internal: {}, external:null, };
+					
+					storageObject.internal.downloadTimeEpochInSeconds = utils.getNowAsEpochInSeconds();
+					storageObject.external = data;
+
+					storage.json.add(JSON.stringify(storageObject));
+					return storageObject;
 				});
 				
 				return rx.Observable.zip([mapStoreObs, weatherStoreObs]);
@@ -342,10 +395,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			storageFileGetRx().subscribe(displayCachedData, function(err) {
 				console.error('storageFileGetRx: ' + JSON.stringify(err));
-				ui.header.refresh.enable(true);
+				ui.header.refresh.btn.enable(true);
 			}, tryGetNewData);
 			
-			ui.header.refresh.onClick(tryGetNewData);
+			ui.header.refresh.btn.onClick(tryGetNewData);
 		},
 	};
 });

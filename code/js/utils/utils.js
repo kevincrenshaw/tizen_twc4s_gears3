@@ -111,6 +111,54 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	const celsiusToFahrenheit = function(value) {
 		return value * 9.0 / 5.0 + 32;
 	};
+	
+	const getNowAsEpochInMiliseconds = function() {
+		return (new Date()).getTime();
+	};
+	
+	const getNowAsEpochInSeconds = function() {
+		return Math.floor((getNowAsEpochInMiliseconds() / 1000));
+	};
+	
+	/*
+	 * Convert time difference (in seconds into) representations that ease converting into textutal form.
+	 * For mapping check: https://tracker.intive.com/jira/browse/TWCGS3-67k
+	 * 
+	 * Params:
+	 * 		diffInSecconds - difference between two points in time (in seconds)
+	 * 
+	 * Returns:
+	 * 		Return array of two elements:
+	 * 			first - value to display (in case of null skip it)
+	 * 			seconds - key to TIZEN_L10N (localized text object)
+	 * 
+	 * Examples:
+	 * 		timeDiffToValueAndLocalizationKey(30) returns [null, 'NOW']
+	 * 			TIZEN_L10N.NOW == 'now' for default language
+	 * 
+	 *		timeDiffToValueAndLocalizationKey(62) returns [1, 'MINUTES_AGO']
+	 * 			TIZEN_L10N.MINUTES_AGO == 'minutes' for default language
+	 */
+	const timeDiffToValueAndLocalizationKey = function(diffInSeconds) {
+		if (diffInSeconds < 60) {
+			return [null, 'NOW'];
+		} else {
+			const minutes = Math.floor(diffInSeconds / 60);
+
+			if (minutes < 60) {
+				return [minutes, 'MINUTES_AGO'];
+			} else {
+				const hours = Math.floor(minutes / 60);
+
+				if (hours < 24) {
+					return [hours, 'HOURS_AGO'];
+				} else {
+					const days = Math.floor(hours / 24);
+					return [days, days < 2 ? 'DAY_AGO' : 'DAYS_AGO'];
+				}
+			}
+		}
+	};
 
 	/**
 	 * convert date object to a text representation
@@ -164,5 +212,8 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		guid: guid,
 		celsiusToFahrenheit: celsiusToFahrenheit,
 		getTimeAsText: getTimeAsText,
+		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
+		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
+		timeDiffToValueAndLocalizationKey: timeDiffToValueAndLocalizationKey,
 	};
 });
