@@ -149,101 +149,224 @@ define(['utils/fsutils'], function(fsutils) {
 		return createValueDecoratedMappingObject(mapZoomMapping, function(value) {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
-	
-	//json section
-	const jsonStorageSession = 'json_stored_session_';
-	const jsonStorageSessionIndex = 'json_stored_session_index';
-	const jsonStorageMaxSize = 4;
-	
-	//file section
-	const fileStorageSession = 'file_stored_session_';
-	const fileStorageSessionIndex = 'file_stored_session_index';
-	const fileStorageMaxSize = 4;
-	const rootDirName = 'wgt-private';
-	const fileDataDirName = 'file-data';
-	const fileFilePrefix = 'file-data-';
-	
-	const getJsonSession = function(index) {
-		console.log('getJsonSession:: ' + index);
-        return localStorage.getItem(jsonStorageSession + index);
-    };
-    
-    const getFiletSession = function(index, callback) {
-    	const imageFileName = fileFilePrefix + index;
-		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
-		
-		fsutils.hasSuchFile(rootDirectoryName, imageFileName, fsutils.comparatorFileNamesWithoutExtension, callback);
-    };
 
-    const addJsonSession = function(index, value) {
-        localStorage.setItem(jsonStorageSession + index, value);
-    };
-    
-    const addFileSession = function(index, downloadedFileName, callback) {
-    	const newFileName = fileFilePrefix + index + '.' + fsutils.getFileExtension(downloadedFileName);
-    	//create data file directory if its not exist
-    	var fileDataDir = fsutils.createFileIfNotExists(rootDirName, fileDataDirName, true, function(result) {
-        	//if all are ready move file from downloads directory to data file
-        	var srcPath = fsutils.createFullPath('downloads', downloadedFileName);
-        	var dstPath = fsutils.createFullPath(rootDirName, fileDataDirName, newFileName);
-        	fsutils.moveFile(srcPath, dstPath, callback);
-        });
-    };
-   
-    const removeLastJsonSession = function(index) {
-    	localStorage.removeItem(jsonStorageSession + index);
-    };
-    
-    const removeLastFileSession = function(index) {
-		const imageFileName = fileFilePrefix + index;
-		const rootDirectoryName = fsutils.createFullPath(rootDirName, fileDataDirName);
-		fsutils.removeFile(rootDirectoryName, imageFileName);
+	/**
+	 * get saved index by key in a localStorage
+	 * Params:
+	 * 		sessionStorageKey - key for getting index data from locale storage
+	 * 
+	 * Returns:
+	 * 		index stored by sessionStorageKey, or 0
+	 * */
+	const getIndex = function(sessionStorageKey) {
+		return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
 	};
+	
+	/**
+	 * set and save index by key in a localStorage
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		index - index value to save
+	 * 
+	 * Returns:
+	 * 		nothing
+	 * */
+	const setIndex = function(sessionStorageKey, index) {
+		localStorage.setItem(sessionStorageKey, index);
+	};
+	
+	/**
+	 * increase and save index value
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		oldIndexVal - old index value
+	 * 		maxIndexVal - max for an index value
+	 * 
+	 * Returns:
+	 * 		new index value (increased)
+	 * */
+	const increaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
+		const newValue = (oldIndexVal + 1) % maxIndexVal;
+		setIndex(sessionStorageKey, newValue);
+		return newValue;
+	};
+	
+	/**
+	 * decrease and save index value
+	 * Params:
+	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		oldIndexVal - old index value
+	 * 		maxIndexVal - max for an index value
+	 * 
+	 * Returns:
+	 * new index value (decreased)
+	 * */
+	const decreaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
+    	const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
+    	setIndex(sessionStorageKey, newValue);
+    	return newValue;
+    };
+	
+    
+	const createLocalStorage = function(key, maxSize) {
+		const LSIndex = key + '_ls_index';
+		const LSValue = key + '_ls_value_';
 
-	const createSessionObject = function(sessionStorageKey, maxSize, getSessionCallback, addSessionCallback, removeLastSessionCallback) {
-		
-		const getIndex = function() {
-			return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
+		const get = function() {
+			const index = getIndex(LSIndex);
+			return localStorage.getItem(LSValue + index);
 		};
 		
-		const increaseIndex = function() {
-			const newValue = (getIndex() + 1) % maxSize;
-			localStorage.setItem(sessionStorageKey, newValue);
-    	};
-    	
-    	const decreaseIndex = function() {
-	    	const newValue = (getIndex() + maxSize - 1) % maxSize;
-	    	localStorage.setItem(sessionStorageKey, newValue);
-	    };
-	    
-	    const getSession = function(callback) {
-	    	console.log('get session, index: ' +  getIndex());
-	    	return getSessionCallback(getIndex(), callback);
-	    };
-	    
-	    const addSessionToLocalStorage = function(value) {
-	    	increaseIndex();
-	    	console.log('addSession.index: ' + getIndex());
-	    	addSessionCallback(getIndex(), value);
-	    };
-	    
-	    const addSessionToFile = function(downloadedFileName, callback) {
-	    	increaseIndex();
-	    	console.log('addSession.index: ' + getIndex());
-	    	addSessionCallback(getIndex(), downloadedFileName, callback);
-	    };
-
-	    const removeLastSession = function() {
-	    	console.log('removeLastSession.index: ' + getIndex());
-	    	removeLastSessionCallback(getIndex());
-	    	decreaseIndex();
-	    };
-
+		const add = function(value) {
+			const index = getIndex(LSIndex);
+			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
+			localStorage.setItem(LSValue + newIndex, value);
+		};
+		
+		const remove = function() {
+			const index = getIndex(LSIndex);
+			localStorage.removeItem(LSValue + index);
+			decreaseAndStoreIndex(LSIndex, index, maxSize);
+		};
+		
 		return {
-			getSession: getSession,
-			addSessionToLocalStorage: addSessionToLocalStorage,
-			addSessionToFile: addSessionToFile,
-			removeLastSession: removeLastSession,
+			get: get,
+			add: add,
+			remove: remove,
+		};
+	};
+	
+	const createFileStorage = function(key, maxSize) {
+
+		const rootDirName = 'wgt-private';
+		const fileDataDirName = 'file-data';
+		
+		const FSIndex = key + '_fs_index';
+		const FSFileName = key + '_fs_filename_';
+		
+		
+		/**
+		 * get file from FS storage
+		 * Params:
+		 * 		onSuccess(file) will be called if file was obtained successfully
+		 * 		onError(error) will be called if something went wrong
+		 * Returns:
+		 * 		nothing
+		 * */
+		const get = function(onSuccess, onError) {
+			const index = getIndex(FSIndex);
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			if(savedFileName) {
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				fsutils.hasSuchFile(pathName, onSuccess, onError);
+			} else {
+				onError('cant get resolve file');
+			}
+		};
+		
+		/**
+		 * check if file storage is empty
+		 * 
+		 * Returns:
+		 * 		true if file storage is empty false otherwise
+		 * */
+		const empty = function() {
+			const index = getIndex(FSIndex);
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			return (!savedFileName);
+		};
+
+		const add = function(filePath, options) {
+			
+			options = options || {};
+			const onSuccess = options.onSuccess || function(fileURI) {
+				console.log('file: ' + fileURI + ' was added to a storage');
+			};
+			
+			const onError = options.onError || function(error) {
+				console.warn('file wasnt added to a storage, error' + error.message);
+			};
+			
+			const index = getIndex(FSIndex);
+			const newIndex = increaseAndStoreIndex(FSIndex, index, maxSize);
+			
+			const proceed = function() {
+				//extract filename form file path
+				const fileName = fsutils.getFileNameFromPath(filePath);
+				localStorage.setItem(FSFileName + newIndex, fileName);
+				//create data file directory if its not exist
+		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
+		    		function(result) {
+		    			//if all are ready move file from src directory to private data storage
+		    			const dstPath = fsutils.createFullPath(result.fullPath, fileName);
+		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
+		    		},
+		    		onError
+		    	);
+			};
+			
+			//at first we have to remove old file saved by current + 1 position
+			removeAtIndex(newIndex, 
+				function() {
+					proceed();
+				},
+				function(error) {
+					console.warn('cant remove file at given index, error: ' + error);
+					proceed();
+				}
+			);
+		};
+		
+		/**
+		 * remove file at given index
+		 * Params:
+		 * 		index - used to obtain filename
+		 * 		onResult() - called when file was deleted or if deleting completed with fail 
+		 * Rerturns:
+		 * 		nothing
+		 * */
+		const removeAtIndex = function(index, onSuccess, onError) {
+			//get name of saved file at index
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			if(savedFileName) {
+				//create full path to a file
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				console.log('removed file: ' + pathName + ' at index: ' + index);
+				fsutils.removeFile(pathName, onSuccess, onError);
+			} else {
+				onSuccess();
+			}
+		};
+		
+		const remove = function(options) {
+			options = options || {};
+			const onSuccess = options.onSuccess || function() {
+				console.log('file was deleted');
+			};
+			
+			const onError = options.onError || function(error) {
+				console.warn('file wasnt deleted, error: ' + error);
+			};
+			
+			const index = getIndex(FSIndex);
+			//get name of last saved file
+			const savedFileName = localStorage.getItem(FSFileName + index);
+			//if we have a record of this file in localStorage
+			if(savedFileName) {
+				//remove a name of file from localStorage
+				localStorage.removeItem(FSFileName + index);
+				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
+				//remove file
+				fsutils.removeFile(pathName, onSuccess, onError);
+				decreaseAndStoreIndex(FSIndex, index, maxSize);
+			}
+		};
+		
+		return {
+			get: get,
+			add: add,
+			empty: empty,
+			remove: remove,
 		};
 	};
 	
@@ -288,8 +411,9 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		jsonSession : createSessionObject(jsonStorageSessionIndex, jsonStorageMaxSize, getJsonSession, addJsonSession, removeLastJsonSession),
-		fileSession : createSessionObject(fileStorageSessionIndex, fileStorageMaxSize, getFiletSession, addFileSession, removeLastFileSession),
+		json : createLocalStorage('json', 4),
+		file : createFileStorage('file', 4),
+		compass: createFileStorage('compass', 4),
 	};
 	
 	return storage;

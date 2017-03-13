@@ -1,4 +1,4 @@
-define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
+define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, utils) {
 	QUnit.module('map');
 
 	QUnit.test('LOD 1-4 (precision 0)', function(assert) {
@@ -102,10 +102,12 @@ define(['utils/map', 'utils/fsutils'], function(map, fsutils) {
 		assert.equal(map.getMapLod(mapZoom100, distanceMegameters), 3);
 	});
     
-	QUnit.module('fsutils');
-
-	QUnit.test("getFileExtension function", function(assert) {
-		var extension = fsutils.getFileExtension('https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg');
-        assert.equal(extension, 'jpg');
+	QUnit.module('utils');
+	
+	QUnit.test("guid ", function(assert) {
+		var time = new Date().getTime();
+		var string1 = time + '-' + utils.guid();
+		var string2 = time + '-' + utils.guid();
+		assert.ok(string1 !== string2);
 	});
 });

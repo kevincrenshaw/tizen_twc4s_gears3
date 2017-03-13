@@ -20,7 +20,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 			page.querySelector('#delete-button').addEventListener("click", this.createLastSessionDeleter(page));
 				
 			//try to load last saved sesstion and show it on UI
-			var lastSavedSession = storage.jsonSession.getSession();
+			const lastSavedSession = storage.json.get();
 			if(lastSavedSession) {
 				utils.modifyInnerHtml(document, 'span#status', lastSavedSession);					
 			}
@@ -35,7 +35,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 								utils.modifyInnerHtml(page, 'span#status', '');
 								const result = JSON.stringify(response);
 								utils.modifyInnerHtml(page, 'span#status', result);
-								storage.jsonSession.addSessionToLocalStorage(result);
+								storage.json.add(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
@@ -55,14 +55,14 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 						});
 				},
 				function(err) {
-					console.error('error: ' + error.status);
+					console.error('error: ' + err.status);
 				});
 			console.log('subscription: ' + JSON.stringify(subscription));
 		},
 		
 		createLastSessionDeleter : function(root) {
 			const deleteLastSession = function() {
-				storage.jsonSession.removeLastSession();
+				storage.json.remove();
 				utils.modifyInnerHtml(root, 'span#status', '');
 			};
 			

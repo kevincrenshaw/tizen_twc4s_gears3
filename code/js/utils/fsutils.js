@@ -3,144 +3,75 @@
 define([], function() {
 	
 	const separator = '/';
-	
-	/**
-	 * file names comparator. compare only file names without extension
-	 * Params:
-	 * 		lFileName - file name to compare
-	 * 		rFileName - file name to compare
-	 * Returns:
-	 * 		true if names are equal, false otherwise
-	 * */
-	const comparatorFileNamesWithoutExtension = function(lFileName, rFileName) {
-		lFileName = getFileNameFromPath(lFileName);
-		lFileName = getPureFileName(lFileName);
-		
-		rFileName = getFileNameFromPath(rFileName);
-		rFileName = getPureFileName(rFileName);
-		
-		return lFileName === rFileName;
-	};
-	
-	/**
-	 * file names comparator. compare full file names (with extension)
-	 * Params:
-	 * 		lFileName - file name to compare
-	 * 		rFileName - file name to compare
-	 * Returns:
-	 * 		true if names are equal, false otherwise
-	 * */
-	const comparatorFileNames = function(lFileName, rFileName) {
-		return lFileName === rFileName;
-	};
-	
+
 	/**
 	 * Search file in a current directory, subdirectories are ignored 
 	 * 
 	 * Params:
-	 * 		rootDirectory - name of directory where we have to find a file
-	 * 		fileToSearch - name of file which need to find
-	 * 		comparator - function-comparator of file names, returns true if filenames are equal, 
-	 * 						possible values are: comparatorFileNames, comparatorFileNamesWithoutExtension
-	 * 		callback(file) - used to return found file, otherwise null
+	 * 		filePath - full path to a file
+	 * 		onSuccess(file) - used to return found file
+	 * 		onError(error) - used if no such file found
 	 * Returns:
 	 * 		nothing
 	 * */
-	const hasSuchFile = function(rootDirectory, fileToSearch, comparator, callback) {
-		
-		function onSucess(files) {
-			for (var i = 0; i < files.length; i++) {
-				if(comparator(files[i].name, fileToSearch)) {
-					callback(files[i]);
-					return;
-				}
-			}
-			callback(null);
-		}
-		
-		function onError(error) {
-			callback(null);
-		}
-		
-		tizen.filesystem.resolve(rootDirectory, 
-			function(dir) {
-				dir.listFiles(onSucess, onError);
-			},
-			function(err) {
-				callback(null);
-			}
-		);
+	const hasSuchFile = function(filePath, onSuccess, onError) {
+		tizen.filesystem.resolve(filePath, onSuccess, onError);
 	};
 
 	/**
 	 * create file in specified directory
 	 * 
 	 * Params: 
-	 * 		rootDir - root directory where new file will be placed
-	 * 		filename - name of a new file
-	 * 		isDirectory - if true new directory will be created otherwise file 
-	 * 		callback(file) - uses to return newly created file/folder, if error happend during file creation returns null
+	 * 		rootDirPath - root directory where new file will be placed
+	 * 		dirName - name of a new directory
+ 
+	 * 		onSuccess(file) - uses to return newly created directory
+	 * 		onError(error) - uses to return and error of dir creation
 	 * 
 	 * Returns:
-	 * 		created file (if it wasn't exist) or old one 
+	 * 		nothing 
 	 * */
-	const createFileIfNotExists = function(rootDir, fileName, isDirectory, callback) {
-		hasSuchFile(rootDir, fileName, comparatorFileNames, function(result) {
-			if(!result) {
-				tizen.filesystem.resolve(rootDir, function(dir) {
-					try {
-						if(isDirectory === true) {
-							callback(dir.createDirectory(fileName));
-							return;
-						} else {
-							callback(dir.createFile(fileName));
-							return;
+	const createDirectoryIfNotExists = function(rootDirPath, dirName, onSuccess, onError) {
+		const fullPath = createFullPath(rootDirPath, dirName);
+		hasSuchFile(rootDirPath, 
+			function(rootDir) {
+				hasSuchFile(fullPath,onSuccess,
+					function(error) {
+						try {
+							onSuccess(rootDir.createDirectory(dirName));
+						} catch(error) {
+							onError(error);
 						}
-					} catch(ex) {
-						callback(null);
-					}
-				});
-			} else {
-				callback(result);
-			}
-		});
+					});
+			},
+			onError
+		);
 	};
 
 	/**
 	 * remove file
 	 * Params:
-	 * 		rootDirectoryName - name of directory which contains file to delete
-	 * 		imageFileName - name of file to remove, without extension
+	 * 		filePath - full path to a file which should be removed
+	 * 		onSuccess() - is triggered when file was deleted successfully
+	 * 		onError(error) - is called when deletion was fail
 	 * Returns:
 	 * 		nothing
 	 * */
-	const removeFile = function(rootDirectoryName, imageFileName) {
-		tizen.filesystem.resolve(rootDirectoryName, function(dir) {
-			function onSuccess(files) {
-				
-				const onDeleteSuccess = function() {
-					console.log('file: ' + imageFileName + ' deleted');
-					return;
-				};
-				
-				const onDeleteError = function(error) {
-					console.error('cant delete file: ' + imageFileName + 'error: ' + error.message);
-				};
-				
-				for (var i = 0; i < files.length; i++) {
-					
-					if(comparatorFileNamesWithoutExtension(files[i].name, imageFileName)) {
-						dir.deleteFile(files[i].fullPath, onDeleteSuccess, onDeleteError);
-					}
-				}
-			}
-			
-			function onError(error) {
-				console.error('cant list files in directory: ' + dir.toURI() + ' error: ' + error.message);
-			}
-			
-			dir.listFiles(onSuccess, onError);
-		});
+	const removeFile = function(filePath, onSuccess, onError) {
+		//we have to resolve directory path first
+		hasSuchFile(getDirectoryNameFromPath(filePath),
+			function(dir) {
+				//because tizen allows only to delete file (by file full path) from current firectory
+				//we have to resolve full file path as well
+				hasSuchFile(filePath,
+					function(file) {
+						dir.deleteFile(file.fullPath, onSuccess, onError);
+					},
+					onError
+				);
+			},
+			onError
+		);
 	};
 
 	/**
@@ -149,58 +80,30 @@ define([], function() {
 	 * Params:
 	 * 		srcFilePath - full src file path
 	 * 		dstFilePath - full dst file path
-	 * 		callback(fileURI) - if move operation was successfull callback will get file URI, otherwise null 
+	 * 		onSuccess(fileURI) - if move operation was successfull callback will get file URI
+	 * 		onError(error) - if move operation was unsuccessfull 
 	 * */
-	const moveFile = function(srcFilePath, dstFilePath, callback) {
-		onMoveSuccess = function() {
+	const moveFile = function(srcFilePath, dstFilePath, onSuccess, onError) {
+		const onMoveSuccess = function() {
 			tizen.filesystem.resolve(dstFilePath, 
 				function(file) {
-					callback(file.toURI());			
+					onSuccess(file.toURI());
 				},
-				function(error) {
-					callback(null);
-				}
+				onError
 			);
 		};
 		
-		onError = function(error) {
-			callback(null);
-		};
-		
 		//resolve src directory
-		tizen.filesystem.resolve(getDirectoryNameFromPath(srcFilePath), 
+		hasSuchFile(getDirectoryNameFromPath(srcFilePath),
 			function(srcDir) {
-				//resolve dst directory
-				tizen.filesystem.resolve(getDirectoryNameFromPath(dstFilePath),
+				hasSuchFile(getDirectoryNameFromPath(dstFilePath),
 					function(dstDir) {
-						srcDir.moveTo(srcFilePath, dstFilePath,
-							true, //override files
-							onMoveSuccess,
-							onError
-							);
+						srcDir.moveTo(srcFilePath, dstFilePath, true, onMoveSuccess, onError);
 					},
 					onError
-					);
-			},
-			onError
+				);
+			}, onError
 		);
-	};
-
-	/**
-	 * get file extension from filename or url
-	 * 
-	 * Params:
-	 * 		fileName - file path or url
-	 * 
-	 * Returns:
-	 * 		string - extension or empty one 
-	 * */
-	const getFileExtension = function(filePath) {
-		const pointPos = filePath.lastIndexOf('.');
-		if(pointPos > -1 && pointPos < filePath.length - 1) {
-			return filePath.substr(pointPos + 1);
-		}
-		return '';
 	};
 	
 	/**
@@ -272,12 +175,11 @@ define([], function() {
 	
 	return {
 		hasSuchFile: hasSuchFile,
-		getFileExtension: getFileExtension,
-		createFileIfNotExists: createFileIfNotExists,
+		createDirectoryIfNotExists: createDirectoryIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
-		comparatorFileNamesWithoutExtension: comparatorFileNamesWithoutExtension,
-		comparatorFileNames: comparatorFileNames,
 		createFullPath: createFullPath,
+		getFileNameFromPath: getFileNameFromPath,
+		getDirectoryNameFromPath: getDirectoryNameFromPath,
 	};
 });

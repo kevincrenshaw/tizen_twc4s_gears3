@@ -88,7 +88,7 @@ define([], function() {
 		const transformedFunction = function(x) {
 			const transformedX = ((x + translationBeforeScaleX) * scaleX) + translationAfterScaleX;
 			return func(transformedX) * scaleY;
-		}
+		};
 
 		return transformedFunction;
 	};
