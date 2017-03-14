@@ -234,6 +234,14 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
         }
 	};
 	
+	const diffCategoryToLocalizationKey = {
+		1: 'NOW',
+		2: 'MINUTES_AGO',
+		3: 'HOURS_AGO',
+		4: 'DAY_AGO',
+		5: 'DAYS_AGO',
+	};
+	
 	return {
 		pagebeforehide: function(ev) {
 			if (currentPositionSubscription) {
@@ -278,19 +286,28 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const createWeatherDownloadTimeUpdater = function(baseEpochInSeconds) {
 					return function() {
 						const diffInSeconds = utils.getNowAsEpochInSeconds() - baseEpochInSeconds;
-						const locArr = utils.timeDiffToValueAndLocalizationKey(diffInSeconds);
+						const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
 						
-						if (locArr[0] === null) {
-							locArr[0] = '';
-						}
-						
-						if (locArr[1] in TIZEN_L10N) {
-							locArr[1] = TIZEN_L10N[locArr[1]];
-							
-							const text = locArr.join(' ').trim();
-							ui.header.refresh.text(text);
+						if (diffCategory in diffCategoryToLocalizationKey) {
+							const localizationKey = diffCategoryToLocalizationKey[diffCategory];
+							if (localizationKey in TIZEN_L10N) {
+								const localizedText = TIZEN_L10N[localizationKey];
+								
+								var textToDisplay;
+								
+								if (diffCategory === 1) {
+									textToDisplay = localizedText;
+								} else {
+									textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory),
+									                 localizedText].join(' ');
+								}
+								
+								ui.header.refresh.text(textToDisplay);
+							} else {
+								console.warn('Key "' + localizationKey + '" not available in localization');								
+							}
 						} else {
-							console.warn('Localization "' + locArr[1] + '" not available');
+							console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
 						}
 					}
 				};

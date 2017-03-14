@@ -121,42 +121,59 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	};
 	
 	/*
-	 * Convert time difference (in seconds into) representations that ease converting into textutal form.
-	 * For mapping check: https://tracker.intive.com/jira/browse/TWCGS3-67k
+	 * Converts time difference to category according to task TWCGS3-67
 	 * 
 	 * Params:
 	 * 		diffInSecconds - difference between two points in time (in seconds)
 	 * 
-	 * Returns:
-	 * 		Return array of two elements:
-	 * 			first - value to display (in case of null skip it)
-	 * 			seconds - key to TIZEN_L10N (localized text object)
-	 * 
-	 * Examples:
-	 * 		timeDiffToValueAndLocalizationKey(30) returns [null, 'NOW']
-	 * 			TIZEN_L10N.NOW == 'now' for default language
-	 * 
-	 *		timeDiffToValueAndLocalizationKey(62) returns [1, 'MINUTES_AGO']
-	 * 			TIZEN_L10N.MINUTES_AGO == 'minutes' for default language
+	 * Result:
+	 * 		returns 1 if diffInSeconds < 60s
+	 * 		returns 2 if 60s <= diffInSeconds < 1h
+	 *		returns 3 if 1h <= diffInSeconds < 24h=1day
+	 *		returns 4 if 1day <= diffInSeconds < 2days
+	 *		returns 5 if 2days <= diffInSeconds
 	 */
-	const timeDiffToValueAndLocalizationKey = function(diffInSeconds) {
+	const getCategoryForTimeDiff = function(diffInSeconds) {
 		if (diffInSeconds < 60) {
-			return [null, 'NOW'];
+			return 1;
 		} else {
 			const minutes = Math.floor(diffInSeconds / 60);
-
+	
 			if (minutes < 60) {
-				return [minutes, 'MINUTES_AGO'];
+				return 2;
 			} else {
 				const hours = Math.floor(minutes / 60);
-
+	
 				if (hours < 24) {
-					return [hours, 'HOURS_AGO'];
+					return 3;
 				} else {
 					const days = Math.floor(hours / 24);
-					return [days, days < 2 ? 'DAY_AGO' : 'DAYS_AGO'];
+					return days < 2 ? 4 : 5;
 				}
 			}
+		}
+	};
+	
+	/*
+	 * Format time diff for given category
+	 * Parameters:
+	 * 		diffInSecconds - difference between two points in time (in seconds)
+	 * 		category - category returned by getCategoryForTimeDiff
+	 * 
+	 * Result:
+	 * 		Returns time diff for given category. For example if category is 1 then it will return number of seconds
+	 * 		less than 60. If category is 2 then will return full minutes. For category 3 return full hours, etc.
+	 */
+	const formatTimeDiffValue = function(diffInSeconds, category) {
+		switch(category) {
+		//seconds
+		case 1: return diffInSeconds % 60;
+		//minutes
+		case 2: return Math.floor(diffInSeconds / 60);
+		//hours
+		case 3: return Math.floor(diffInSeconds / (60 * 60));
+		//days
+		default: return Math.floor(diffInSeconds / (60 * 60 * 24));
 		}
 	};
 
@@ -214,6 +231,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getTimeAsText: getTimeAsText,
 		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
 		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
-		timeDiffToValueAndLocalizationKey: timeDiffToValueAndLocalizationKey,
+		getCategoryForTimeDiff: getCategoryForTimeDiff,
+		formatTimeDiffValue: formatTimeDiffValue,
 	};
 });
