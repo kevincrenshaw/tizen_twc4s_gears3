@@ -336,25 +336,37 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				ui.header.refresh.btn.enable(false);
 				
-				const baseObs = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+				getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 					return [pos.coords.latitude, pos.coords.longitude];
-				});
-				
-				currentPositionSubscription = baseObs.flatMap(currentPositionAvailableRx).subscribe(function(data) {
-					const mapFilePath = data[0];
-					const jsonStorageContent = data[1];
-					
+				})
+				.flatMap(downloadWeatherDataAndMap)
+				.flatMap(storeWeatherDataAndMap)
+				.subscribe(function(data) {
+					const currentWeatherData = data[0];
+					const mapFilePath = data[1];
 					console.log('Map and weather data downloaded successfully');
-					displayData(mapFilePath, jsonStorageContent);
+					displayData(mapFilePath, currentWeatherData);
 				}, function(err) {
 					//It may happen download will fail, just warning
 					console.warn('Download/store problem: ' + JSON.stringify(err));
-					ui.header.refresh.btn.enable(true);
+					ui.header.refresh.btn.enable(true);					
 				});
 			};
-			
-			//Called when geolocation has current positon
-			const currentPositionAvailableRx = function(coords) {
+						
+			/*
+			 * For given coords tries to get current condition data (json) and download map (without stroing it
+			 * in storage)
+			 * 
+			 * Parameters:
+			 * 		coords - array of exactly two elements [latitude, longitude]
+			 * 
+			 * Result:
+			 * 		Returns observable that emits array of exactly two elements:
+			 * 			- current weather respresented as object (json returned by TWC API described
+			 * 				here http://goo.gl/TO9kYm)
+			 * 			- path to downloaded map (_not_ stored in our storage)
+			 */
+			const downloadWeatherDataAndMap = function(coords) {
 				const latitude = coords[0];
 				const longitude = coords[1];
 				
@@ -362,41 +374,66 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				const distance = parseInt(storage.settings.units.distance.get());
 				const lod = map.getMapLod(mapZoom, distance);
 				
-				console.log('currentPositionAvailableRx: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
-				
-				const mapImgUri = getMapImgUri(latitude, longitude, lod);
-				console.log('mapImgUri: ' + mapImgUri);
+				console.log('downloadWeatherDataAndMap: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
 				
 				const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
 				console.log('currentConditionsUri: ' + currentConditionsUri);
+				
+				const mapImgUri = getMapImgUri(latitude, longitude, lod);
+				console.log('mapImgUri: ' + mapImgUri);
 				
 				const epoch = utils.getNowAsEpochInMiliseconds();
 				const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
 				console.log('uniqueFileName: ' + uniqueFileName);
 				
-				const mapStoreObs = network.downloadFileRx(mapImgUri, uniqueFileName)
-					.flatMap(storageFileAddRx);
+				return network.getResourcesByURL([currentConditionsUri])
+					.filter(function(weatherData) {
+						return weatherData && weatherData.metadata && weatherData.metadata.status_code === 200;
+					})
+					.flatMap(function(weatherData) {
+						//By now we have current conditions json data
+						//Try to download map
+						return network.downloadFileRx(mapImgUri, uniqueFileName)
+							.map(function(mapFilePath) {
+								//Return both downloaded map file path and current weather data
+								return [weatherData, mapFilePath];
+							});
+					});
+			};
+			
+			/*
+			 * Stores given data (current weather object and map) in storage.json and storage.file. 
+			 * 
+			 * Parameters:
+			 * 		data - array of exactly two elements [weatherDataObjec, filePathToMap]
+			 * 
+			 * Result:
+			 * 		Returns observable that emits array of exactly two elements:
+			 * 			- saved data from storage (current weather data stored in 'external' attribute)
+			 * 			- full file path to image data (map) in storage 
+			 */
+			const storeWeatherDataAndMap = function(data) {
+				const weatherData = data[0];
+				const mapFilePath = data[1];
 				
-				const weatherStoreObs = network.getResourcesByURL([currentConditionsUri])
-				.filter(function(data) {
-					return data && data.metadata && data.metadata.status_code === 200;
-				})
-				.map(function(data) {
-					const storageContent = storage.json.get();
-					const storageObject = storageContent ? JSON.parse(storageContent) : { internal: {}, external:null, };
+				return storageFileAddRx(mapFilePath).map(function(mapFilePathInStorage) {
+					//Json storage for weather data does not have rx version. Just store it when map is stored
+					//successfully.
+					const newStorageObject = {
+						internal: {
+							downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
+							mapFilePath: mapFilePathInStorage, //store map file path for given weather data
+						},
+						external: weatherData,
+					};
 					
-					storageObject.internal.downloadTimeEpochInSeconds = utils.getNowAsEpochInSeconds();
-					storageObject.external = data;
-
-					storage.json.add(JSON.stringify(storageObject));
-					return storageObject;
+					storage.json.add(JSON.stringify(newStorageObject));
+					return [newStorageObject, mapFilePathInStorage];
 				});
-				
-				return rx.Observable.zip([mapStoreObs, weatherStoreObs]);
 			};
 			
 			storageFileGetRx().subscribe(displayCachedData, function(err) {
-				console.error('storageFileGetRx: ' + JSON.stringify(err));
+				console.error('storeWeatherDataAndMap: ' + JSON.stringify(err));
 				ui.header.refresh.btn.enable(true);
 			}, tryGetNewData);
 			
