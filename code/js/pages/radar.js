@@ -85,7 +85,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)), 'F'];
 			
 		default:
-			console.warn('unexpected temperature setting value "' + temperatureSetting + '"');
+			console.warn('unexpected temperature setting value "' + currentTemperatureUnitSetting + '"');
 		}
 	};
 	
@@ -336,7 +336,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				ui.header.refresh.btn.enable(false);
 				
-				getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+				currentPositionSubscription = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 					return [pos.coords.latitude, pos.coords.longitude];
 				})
 				.flatMap(downloadWeatherDataAndMap)
