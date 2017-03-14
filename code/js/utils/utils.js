@@ -118,6 +118,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	 * 		date - date object
 	 * 		currentTimeUnitSetting - used time unit setting, can be SYSTEM, TIME_12H 
 	 * 									or TIME_24H (see consts.settings.units.time section)
+	 * 		isSystemUses12hFormat - indicates if system setting uses 12h format
 	 * 
 	 * Returns:
 	 * 		object-array with:
@@ -125,13 +126,12 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	 * 		second element - 'AM' or 'PM' text for currentTimeUnitSetting === TIME_12H (or system time settings is set to 12h),
 	 * 						 otherwise empty (not null)
 	 * */
-	const getTimeAsText = function(date, currentTimeUnitSetting) {
+	const getTimeAsText = function(date, currentTimeUnitSetting, isSystemUses12hFormat) {
 		const timeUnitSetting = parseInt(currentTimeUnitSetting);
 		var isAmPmEnabled = false;
 		switch(timeUnitSetting) {
 			case consts.settings.units.time.SYSTEM:
-				const timeFormat = tizen.time.getTimeFormat();
-				isAmPmEnabled = timeFormat === 'h:m:s ap' ? true : false;
+				isAmPmEnabled = isSystemUses12hFormat;
 			break;
 			
 			case consts.settings.units.time.TIME_12H:

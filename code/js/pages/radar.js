@@ -193,7 +193,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	
 	const updateUI = function(ui) {
 		if(ui) {
-			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get());
+			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 			const timeText = currentTimeRepr[0];
 			const timeUnit = currentTimeRepr[1];
 			//apply on ui
