@@ -103,29 +103,6 @@ define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, uti
 	});
     
 	QUnit.module('utils');
-	QUnit.test('getTimeAsText', function(assert) {
-		//PM test
-		const datePM = new Date(99,5,24,//year, month, day
-			18,33,30); //hour, minutes, seconds
-		const stringPM1 = utils.getTimeAsText(datePM, '1'); //SYSTEM
-		const stringPM2 = utils.getTimeAsText(datePM, '2'); //12h
-		const stringPM3 = utils.getTimeAsText(datePM, '3'); //24h
-		 
-		assert.equal(stringPM1, '18:33,');
-		assert.equal(stringPM2, '6:33, PM');
-		assert.equal(stringPM3, '18:33,');
-		
-		//AM test 
-		const dateAM = new Date(99,5,24,//year, month, day
-				8,33,30); //hour, minutes, seconds 
-		const stringAM1 = utils.getTimeAsText(dateAM, '1'); //SYSTEM
-		const stringAM2 = utils.getTimeAsText(dateAM, '2'); //12h
-		const stringAM3 = utils.getTimeAsText(dateAM, '3'); //24h
-		
-		assert.equal(stringAM1, '8:33,');
-		assert.equal(stringAM2, '8:33, AM');
-		assert.equal(stringAM3, '8:33,');
-	});
 	
 	QUnit.test("guid ", function(assert) {
 		var time = new Date().getTime();
