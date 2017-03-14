@@ -1,0 +1,13 @@
+body {
+    width: 360px;
+    height: 360px;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+	background-image: url("../resources/images/radar_content.png");
+	background-color: #000000;
+    height: 100%;
+    width: 100%;
+}
