@@ -89,7 +89,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	};
 	
 	const getTimeAsText = function(date, currentTimeUnitSetting) {
-		const isAmPmEnabled = parseInt(currentTimeUnitSetting) === consts.settings.units.time.TIME_12H ? true : false;	
+		const isAmPmEnabled = parseInt(currentTimeUnitSetting) === consts.settings.units.time.TIME_12H ? true : false;
+		if(parseInt(currentTimeUnitSetting) == consts.settings.units.time.SYSTEM) {
+			console.warn('time system setting not supported yet, falling back to 24H format');
+		}
 
 		var hours = date.getHours();
 	    var minutes = date.getMinutes();
