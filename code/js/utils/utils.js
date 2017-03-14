@@ -122,12 +122,21 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	 * Returns:
 	 * 		object-array with:
 	 * 		first element - 'HH:mm' formatted time
-	 * 		second element - 'AM' or 'PM' text for currentTimeUnitSetting === TIME_12H, otherwise empty (not null)
+	 * 		second element - 'AM' or 'PM' text for currentTimeUnitSetting === TIME_12H (or system time settings is set to 12h),
+	 * 						 otherwise empty (not null)
 	 * */
 	const getTimeAsText = function(date, currentTimeUnitSetting) {
-		const isAmPmEnabled = parseInt(currentTimeUnitSetting) === consts.settings.units.time.TIME_12H ? true : false;
-		if(parseInt(currentTimeUnitSetting) == consts.settings.units.time.SYSTEM) {
-			console.warn('time system setting not supported yet, falling back to 24H format');
+		const timeUnitSetting = parseInt(currentTimeUnitSetting);
+		var isAmPmEnabled = false;
+		switch(timeUnitSetting) {
+			case consts.settings.units.time.SYSTEM:
+				const timeFormat = tizen.time.getTimeFormat();
+				isAmPmEnabled = timeFormat === 'h:m:s ap' ? true : false;
+			break;
+			
+			case consts.settings.units.time.TIME_12H:
+				isAmPmEnabled = true;
+				break;
 		}
 
 		var hours = date.getHours();
