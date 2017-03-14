@@ -88,27 +88,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		}
 	};
 	
-	const getTimeAsText = function(date, currentTimeUnitSetting) {
-		const isAmPmEnabled = parseInt(currentTimeUnitSetting) === consts.settings.units.time.TIME_12H ? true : false;
-		if(parseInt(currentTimeUnitSetting) == consts.settings.units.time.SYSTEM) {
-			console.warn('time system setting not supported yet, falling back to 24H format');
-		}
-
-		var hours = date.getHours();
-	    var minutes = date.getMinutes();
-	    var ampm = '';
-	    
-	    if(isAmPmEnabled) {
-	    	ampm = hours >= 12 ? ' PM' : ' AM';
-	        hours = hours % 12;
-	        //0 hour should be printed as 12
-	        hours = hours ? hours : 12;
-	    }
-	    minutes = minutes < 10 ? '0' + minutes : minutes;
-
-	    return [hours + ':' + minutes, ampm];
-	};
-	
 	const extractTempertatureFromCurrentConditions = function(weather) {
 		return weather.observation.metric.temp;
 	};
@@ -214,7 +193,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	
 	const updateUI = function(ui) {
 		if(ui) {
-			const currentTimeRepr = getTimeAsText(new Date(), storage.settings.units.time.get());
+			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get());
 			const timeText = currentTimeRepr[0];
 			const timeUnit = currentTimeRepr[1];
 			//apply on ui
