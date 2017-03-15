@@ -126,7 +126,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
 			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
 			const onError = function(err) {
-				observer.onError(err)
+				observer.onError(err);
 			};
 			
 			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
@@ -145,6 +145,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
 					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
+					atLabel: dom.queryWrappedElement(root, '#temperatureBox #at_label'),
+					time: dom.queryWrappedElement(root, '#temperatureBox #time'),
+					ampm: dom.queryWrappedElement(root, '#temperatureBox #ampm'),
 				},
 				time : {
 					value: dom.queryWrappedElement(root, '#timeBox #value'),
@@ -208,6 +211,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					text: setInnerHtmlImpl(element.header.temperature.value),
 					unit: setInnerHtmlImpl(element.header.temperature.unit),
+					labelAt: setInnerHtmlImpl(element.header.temperature.atLabel),
+					time: setInnerHtmlImpl(element.header.temperature.time),
+					ampm: setInnerHtmlImpl(element.header.temperature.ampm),
 				},
 				refresh: {
 					btn: {
@@ -225,15 +231,25 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 	};
 	
-	const updateUI = function(ui) {
+	const updateUI = function(ui, snapshotTimeInSeconds) {
 		if(ui) {
 			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 			const timeText = currentTimeRepr[0];
 			const timeUnit = currentTimeRepr[1];
+			
+			//time of snapshot
+			const obsSnapshotTime = new Date(snapshotTimeInSeconds * 1000);
+			const shapshotTimeRepr = utils.getTimeAsText(obsSnapshotTime, storage.settings.units.time.get(), systemUses12hFormat);
+			const snapshotTime = shapshotTimeRepr[0];
+			const shapshotTimeAmpm = shapshotTimeRepr[1];
+			
 			//apply on ui
 			ui.header.time.text(timeText);
-			ui.header.time.unit(timeUnit);			
+			ui.header.time.unit(timeUnit);
+			ui.header.temperature.time(snapshotTime);
+			ui.header.temperature.ampm(shapshotTimeAmpm);
+			ui.header.temperature.labelAt(TIZEN_L10N.RADAR_AT);
         } else {
             console.warn('updateUI. there is no ui to update');
         }
@@ -306,8 +322,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					}
 				};
 				
+				const shapshotTimeInSeconds = weather.observation.obs_time;
+				
 				//time
-				updateUI(ui);
+				updateUI(ui, shapshotTimeInSeconds);
 				
 				//refresh time
 				lastRefreshEpochTime = jsonStorageObject.internal.downloadTimeEpochInSeconds;
@@ -315,7 +333,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
                 if(intervalUpdaterId === null) {
                     intervalUpdaterId = setInterval(function() {
-                    	updateUI(ui);
+                    	updateUI(ui, shapshotTimeInSeconds);
                     	weatherDownloadTimeUpdater();
                     }, updateInterval);                    
                 }

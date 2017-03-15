@@ -107,8 +107,9 @@ body {
 
 #radar.ui-page #header #temperatureBox {
 	position: absolute;
-	left: 64px;
+	width: 100%;
 	bottom: 42px;
+	text-align: center;
 }
 
 #radar.ui-page #header #temperatureBox #value {
@@ -122,12 +123,33 @@ body {
 	font-family: BreezeSans;
 	font-size: 18px;
 	color: #e0e0e0;
+	margin-left: 1px;
+}
+
+#radar.ui-page #header #temperatureBox #at_label {
+	opacity: 0.9;
+	font-size: 28px;
+	color: #ffffff;
+	margin-left: 19px;
+}
+
+#radar.ui-page #header #temperatureBox #time {
+	opacity: 0.9;
+	font-size: 28px;
+	color: #ffffff;
+	margin-left: 13px;
+}
+
+#radar.ui-page #header #temperatureBox #ampm {
+	font-size: 18px;
+	color: #e0e0e0;
+	margin-left: 2px;
 }
 
 #radar.ui-page #header #timeBox {
 	position: absolute;
 	width: 100%;
-	top: 15px;
+	bottom: 78px;
 	text-align: center;
 	
 }

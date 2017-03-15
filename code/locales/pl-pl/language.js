@@ -36,5 +36,6 @@ TIZEN_L10N=
 	"MINUTES_AGO" : "min temu",
 	"HOURS_AGO" : "g temu",
 	"DAY_AGO" : "dzień temu",
-	"DAYS_AGO" : "dni temu"
+	"DAYS_AGO" : "dni temu",
+	"RADAR_AT": "o",
 };
