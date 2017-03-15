@@ -291,7 +291,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 								                 localizedText].join(' ');
 							}
 							
-							ui.header.refresh.text(textToDisplay + ' [' + diffInSeconds + ']');
+							ui.header.refresh.text(textToDisplay);
 						} else {
 							console.warn('Key "' + localizationKey + '" not available in localization');								
 						}
