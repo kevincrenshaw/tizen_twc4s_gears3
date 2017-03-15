@@ -108,7 +108,7 @@ body {
 #radar.ui-page #header #temperatureBox {
 	position: absolute;
 	left: 64px;
-	top: 61px;
+	bottom: 42px;
 }
 
 #radar.ui-page #header #temperatureBox #value {
@@ -142,4 +142,34 @@ body {
 	font-size: 18px;
 	font-family: BreezeSans;
 	color: #e0e0e0;
+}
+
+#radar.ui-page #refreshBox {
+	position: absolute;
+	bottom: 12px;
+	width: 100%;
+	text-align: center;
+}
+
+#radar.ui-page #refreshBox #btn {
+	width: 25px;
+	height: 25px;
+	vertical-align: middle;
+	-webkit-transform-origin: center center;
+}
+
+#radar.ui-page #refreshBox #btn:disabled {
+	-webkit-animation:spin 1s linear infinite;
+}
+
+@-webkit-keyframes spin {
+	100% {
+		-webkit-transform: rotate(-360deg);
+	}
+}
+
+#radar.ui-page #refreshBox #text {
+	font-size: 18px;
+	color: #ffffff;
+	vertical-align: middle;
 }

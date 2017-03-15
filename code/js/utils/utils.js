@@ -111,6 +111,71 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	const celsiusToFahrenheit = function(value) {
 		return value * 9.0 / 5.0 + 32;
 	};
+	
+	const getNowAsEpochInMiliseconds = function() {
+		return (new Date()).getTime();
+	};
+	
+	const getNowAsEpochInSeconds = function() {
+		return Math.floor((getNowAsEpochInMiliseconds() / 1000));
+	};
+	
+	/*
+	 * Converts time difference to category according to task TWCGS3-67
+	 * 
+	 * Params:
+	 * 		diffInSecconds - difference between two points in time (in seconds)
+	 * 
+	 * Result:
+	 * 		returns 1 if diffInSeconds < 60s
+	 * 		returns 2 if 60s <= diffInSeconds < 1h
+	 *		returns 3 if 1h <= diffInSeconds < 24h=1day
+	 *		returns 4 if 1day <= diffInSeconds < 2days
+	 *		returns 5 if 2days <= diffInSeconds
+	 */
+	const getCategoryForTimeDiff = function(diffInSeconds) {
+		if (diffInSeconds < 60) {
+			return 1;
+		} else {
+			const minutes = Math.floor(diffInSeconds / 60);
+	
+			if (minutes < 60) {
+				return 2;
+			} else {
+				const hours = Math.floor(minutes / 60);
+	
+				if (hours < 24) {
+					return 3;
+				} else {
+					const days = Math.floor(hours / 24);
+					return days < 2 ? 4 : 5;
+				}
+			}
+		}
+	};
+	
+	/*
+	 * Format time diff for given category
+	 * Parameters:
+	 * 		diffInSecconds - difference between two points in time (in seconds)
+	 * 		category - category returned by getCategoryForTimeDiff
+	 * 
+	 * Result:
+	 * 		Returns time diff for given category. For example if category is 1 then it will return number of seconds
+	 * 		less than 60. If category is 2 then will return full minutes. For category 3 return full hours, etc.
+	 */
+	const formatTimeDiffValue = function(diffInSeconds, category) {
+		switch(category) {
+		//seconds
+		case 1: return diffInSeconds % 60;
+		//minutes
+		case 2: return Math.floor(diffInSeconds / 60);
+		//hours
+		case 3: return Math.floor(diffInSeconds / (60 * 60));
+		//days
+		default: return Math.floor(diffInSeconds / (60 * 60 * 24));
+		}
+	};
 
 	/**
 	 * convert date object to a text representation
@@ -164,5 +229,9 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		guid: guid,
 		celsiusToFahrenheit: celsiusToFahrenheit,
 		getTimeAsText: getTimeAsText,
+		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
+		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
+		getCategoryForTimeDiff: getCategoryForTimeDiff,
+		formatTimeDiffValue: formatTimeDiffValue,
 	};
 });

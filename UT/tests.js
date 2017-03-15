@@ -1,4 +1,8 @@
 define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, utils) {
+	const MINUTE_IN_SECONDS = 60;
+	const HOUR_IN_SECONDS = MINUTE_IN_SECONDS * 60;
+	const DAY_IN_SECONDS = HOUR_IN_SECONDS * 24;
+
 	QUnit.module('map');
 
 	QUnit.test('LOD 1-4 (precision 0)', function(assert) {
@@ -132,10 +136,60 @@ define(['utils/map', 'utils/fsutils', 'utils/utils'], function(map, fsutils, uti
         assert.equal(stringAM4, '8:33,');
     });
 	
-	QUnit.test("guid ", function(assert) {
+	QUnit.test('guid', function(assert) {
 		var time = new Date().getTime();
 		var string1 = time + '-' + utils.guid();
 		var string2 = time + '-' + utils.guid();
 		assert.ok(string1 !== string2);
+	});
+	
+	QUnit.test('getCategoryForTimeDiff', function(assert) {
+		assert.equal(utils.getCategoryForTimeDiff(0), 1);
+		assert.equal(utils.getCategoryForTimeDiff(30), 1);
+		assert.equal(utils.getCategoryForTimeDiff(59), 1);
+		assert.equal(utils.getCategoryForTimeDiff(MINUTE_IN_SECONDS + 59), 2);
+		assert.equal(utils.getCategoryForTimeDiff(2 * MINUTE_IN_SECONDS), 2);
+		assert.equal(utils.getCategoryForTimeDiff(2 * MINUTE_IN_SECONDS + 1), 2);
+		assert.equal(utils.getCategoryForTimeDiff(HOUR_IN_SECONDS - 1), 2);
+		assert.equal(utils.getCategoryForTimeDiff(HOUR_IN_SECONDS), 3);
+		assert.equal(utils.getCategoryForTimeDiff(2 * HOUR_IN_SECONDS - 1), 3);
+		assert.equal(utils.getCategoryForTimeDiff(2 * HOUR_IN_SECONDS), 3);
+		assert.equal(utils.getCategoryForTimeDiff(15 * HOUR_IN_SECONDS), 3);
+		assert.equal(utils.getCategoryForTimeDiff(23 * HOUR_IN_SECONDS), 3);
+		assert.equal(utils.getCategoryForTimeDiff(24 * HOUR_IN_SECONDS - 1), 3);
+		assert.equal(utils.getCategoryForTimeDiff(DAY_IN_SECONDS - 1), 3);
+		assert.equal(utils.getCategoryForTimeDiff(DAY_IN_SECONDS), 4);
+		assert.equal(utils.getCategoryForTimeDiff(DAY_IN_SECONDS + 10 * HOUR_IN_SECONDS), 4);
+		assert.equal(utils.getCategoryForTimeDiff(2 * DAY_IN_SECONDS - 1), 4);
+		assert.equal(utils.getCategoryForTimeDiff(2 * DAY_IN_SECONDS), 5);
+		assert.equal(utils.getCategoryForTimeDiff(15 * DAY_IN_SECONDS), 5);
+	});
+
+	QUnit.test('formatTimeDiffValue', function(assert) {
+		assert.equal(utils.formatTimeDiffValue(0, 1), 0);
+		assert.equal(utils.formatTimeDiffValue(30, 1), 30);
+		assert.equal(utils.formatTimeDiffValue(59, 1), 59);
+		assert.equal(utils.formatTimeDiffValue(60, 1), 0);
+		assert.equal(utils.formatTimeDiffValue(65, 1), 5);
+
+		assert.equal(utils.formatTimeDiffValue(30, 2), 0);
+		assert.equal(utils.formatTimeDiffValue(59, 2), 0);
+		assert.equal(utils.formatTimeDiffValue(MINUTE_IN_SECONDS, 2), 1);
+		assert.equal(utils.formatTimeDiffValue(MINUTE_IN_SECONDS + 59, 2), 1);
+		assert.equal(utils.formatTimeDiffValue(2 * MINUTE_IN_SECONDS, 2), 2);
+		assert.equal(utils.formatTimeDiffValue(15 * MINUTE_IN_SECONDS, 2), 15);
+		assert.equal(utils.formatTimeDiffValue(HOUR_IN_SECONDS - 1, 2), 59);
+
+		assert.equal(utils.formatTimeDiffValue(HOUR_IN_SECONDS - 1, 3), 0);
+		assert.equal(utils.formatTimeDiffValue(HOUR_IN_SECONDS, 3), 1);
+		assert.equal(utils.formatTimeDiffValue(10 * HOUR_IN_SECONDS, 3), 10);
+		assert.equal(utils.formatTimeDiffValue(DAY_IN_SECONDS - 1, 3), 23);
+
+		assert.equal(utils.formatTimeDiffValue(DAY_IN_SECONDS, 4), 1);
+
+		assert.equal(utils.formatTimeDiffValue(DAY_IN_SECONDS, 5), 1);
+		assert.equal(utils.formatTimeDiffValue(2 * DAY_IN_SECONDS - 1, 5), 1);
+		assert.equal(utils.formatTimeDiffValue(2 * DAY_IN_SECONDS, 5), 2);
+		assert.equal(utils.formatTimeDiffValue(42 * DAY_IN_SECONDS, 5), 42);
 	});
 });
