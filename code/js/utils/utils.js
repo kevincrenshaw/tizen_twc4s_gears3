@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['rx'], function(Rx) {
+define(['rx', 'utils/const'], function(Rx, consts) {
 	const tryModifyElement = function(root, selector, callback) {
 		const element = root.querySelector(selector);
 	
@@ -112,6 +112,49 @@ define(['rx'], function(Rx) {
 		return value * 9.0 / 5.0 + 32;
 	};
 
+	/**
+	 * convert date object to a text representation
+	 * Params:
+	 * 		date - date object
+	 * 		currentTimeUnitSetting - used time unit setting, can be SYSTEM, TIME_12H 
+	 * 									or TIME_24H (see consts.settings.units.time section)
+	 * 		isSystemUses12hFormat - indicates if system setting uses 12h format
+	 * 
+	 * Returns:
+	 * 		object-array with:
+	 * 		first element - 'HH:mm' formatted time
+	 * 		second element - 'AM' or 'PM' text for currentTimeUnitSetting === TIME_12H (or system time settings is set to 12h),
+	 * 						 otherwise empty (not null)
+	 * */
+	const getTimeAsText = function(date, currentTimeUnitSetting, isSystemUses12hFormat) {
+		const timeUnitSetting = parseInt(currentTimeUnitSetting);
+		var isAmPmEnabled = false;
+		switch(timeUnitSetting) {
+			case consts.settings.units.time.SYSTEM:
+				isAmPmEnabled = isSystemUses12hFormat;
+			break;
+			
+			case consts.settings.units.time.TIME_12H:
+				isAmPmEnabled = true;
+				break;
+		}
+
+		var hours = date.getHours();
+	    var minutes = date.getMinutes();
+	    var ampm = '';
+	    
+	    if(isAmPmEnabled) {
+	    	ampm = hours >= 12 ? ' PM' : ' AM';
+	        hours = hours % 12;
+	        //0 hour should be printed as 12
+	        hours = hours ? hours : 12;
+	    }
+	    minutes = minutes < 10 ? '0' + minutes : minutes;
+
+	    return [hours + ':' + minutes, ampm];
+	};
+	
+	
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -120,5 +163,6 @@ define(['rx'], function(Rx) {
 		setupSettingPageWithRadioButtons: setupSettingPageWithRadioButtons,
 		guid: guid,
 		celsiusToFahrenheit: celsiusToFahrenheit,
+		getTimeAsText: getTimeAsText,
 	};
 });

@@ -13,6 +13,11 @@ const radarModules = [
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var subscription;
 	
+    //every 1 second update interval
+    const updateInterval = 1000;
+	
+    var intervalUpdaterId = null;
+
 	const createUri = function(base, params) {
 		params = params || {};
 		const paramsArr = [];
@@ -135,6 +140,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
 					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
 				},
+				time : {
+					value: dom.queryWrappedElement(root, '#timeBox #value'),
+					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
+				},
 			},
 		};
 		
@@ -174,8 +183,26 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					text: setInnerHtml(element.header.temperature.value),
 					unit: setInnerHtml(element.header.temperature.unit),
 				},
+				time: {
+					text: setInnerHtml(element.header.time.value),
+					unit: setInnerHtml(element.header.time.unit),
+				},
 			},
 		};
+	};
+	
+	const updateUI = function(ui) {
+		if(ui) {
+			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
+			const timeText = currentTimeRepr[0];
+			const timeUnit = currentTimeRepr[1];
+			//apply on ui
+			ui.header.time.text(timeText);
+			ui.header.time.unit(timeUnit);			
+        } else {
+            console.warn('updateUI. there is no ui to update');
+        }
 	};
 	
 	return {
@@ -183,6 +210,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			if (subscription) {
 				subscription.dispose();
 				subscription = null;
+			}
+			
+			if(intervalUpdaterId) {
+				clearInterval(intervalUpdaterId);
+                intervalUpdaterId = null;
 			}
 		},
 		
@@ -201,6 +233,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
+				//time
+				updateUI(ui);
+                if(intervalUpdaterId === null) {
+                    intervalUpdaterId = setInterval(updateUI, updateInterval, ui);                    
+                }
 				
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
