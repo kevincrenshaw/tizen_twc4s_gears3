@@ -12,12 +12,11 @@ const radarModules = [
 
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
-	var updateInterval;
+	var intervalUpdaterId = null;
+	var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
 	
     //every 1 second update interval
     const updateInterval = 1000;
-	
-    var intervalUpdaterId = null;
 
 	const createUri = function(base, params) {
 		params = params || {};
@@ -213,8 +212,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					text: setInnerHtmlImpl(element.header.refresh.text),
 				},
 				time: {
-					text: setInnerHtml(element.header.time.value),
-					unit: setInnerHtml(element.header.time.unit),
+					text: setInnerHtmlImpl(element.header.time.value),
+					unit: setInnerHtmlImpl(element.header.time.unit),
 				},
 			},
 		};
@@ -253,10 +252,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				clearInterval(intervalUpdaterId);
                 intervalUpdaterId = null;
 			}
-			if (updateInterval) {
-				clearInterval(updateInterval);
-				updateInterval = null;
-			}
 		},
 		
 		pagebeforeshow: function(ev) {
@@ -277,50 +272,47 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
-				//time
-				updateUI(ui);
-                if(intervalUpdaterId === null) {
-                    intervalUpdaterId = setInterval(updateUI, updateInterval, ui);                    
-                }
 				
-				const createWeatherDownloadTimeUpdater = function(baseEpochInSeconds) {
-					return function() {
-						const diffInSeconds = utils.getNowAsEpochInSeconds() - baseEpochInSeconds;
-						const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
-						
-						if (diffCategory in diffCategoryToLocalizationKey) {
-							const localizationKey = diffCategoryToLocalizationKey[diffCategory];
-							if (localizationKey in TIZEN_L10N) {
-								const localizedText = TIZEN_L10N[localizationKey];
-								
-								var textToDisplay;
-								
-								if (diffCategory === 1) {
-									textToDisplay = localizedText;
-								} else {
-									textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory),
-									                 localizedText].join(' ');
-								}
-								
-								ui.header.refresh.text(textToDisplay);
+				const weatherDownloadTimeUpdater = function() {
+					const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
+					const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
+					
+					if (diffCategory in diffCategoryToLocalizationKey) {
+						const localizationKey = diffCategoryToLocalizationKey[diffCategory];
+						if (localizationKey in TIZEN_L10N) {
+							const localizedText = TIZEN_L10N[localizationKey];
+							
+							var textToDisplay;
+							
+							if (diffCategory === 1) {
+								textToDisplay = localizedText;
 							} else {
-								console.warn('Key "' + localizationKey + '" not available in localization');								
+								textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory),
+								                 localizedText].join(' ');
 							}
+							
+							ui.header.refresh.text(textToDisplay + ' [' + diffInSeconds + ']');
 						} else {
-							console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
+							console.warn('Key "' + localizationKey + '" not available in localization');								
 						}
+					} else {
+						console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
 					}
 				};
 				
-				if (updateInterval) {
-					clearInterval(updateInterval);
-					updateInterval = null;
-				}
-
-				const baseEpochInSeconds = jsonStorageObject.internal.downloadTimeEpochInSeconds;
-				const weatherDownloadTimeUpdater = createWeatherDownloadTimeUpdater(baseEpochInSeconds);
+				//time
+				updateUI(ui);
+				
+				//refresh time
+				lastRefreshEpochTime = jsonStorageObject.internal.downloadTimeEpochInSeconds;
 				weatherDownloadTimeUpdater();
-				updateInterval = setInterval(weatherDownloadTimeUpdater, 1000);
+				
+                if(intervalUpdaterId === null) {
+                    intervalUpdaterId = setInterval(function() {
+                    	updateUI(ui);
+                    	weatherDownloadTimeUpdater();
+                    }, updateInterval);                    
+                }
 				
 				ui.map.src(mapFilePath);
 				ui.header.temperature.text(tempText);
