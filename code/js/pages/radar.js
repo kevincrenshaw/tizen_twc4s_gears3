@@ -14,6 +14,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
 	var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
+	var shapshotTimeInSeconds = null;
 	
     //every 1 second update interval
     const updateInterval = 1000;
@@ -145,7 +146,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
 					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
-					atLabel: dom.queryWrappedElement(root, '#temperatureBox #at_label'),
+					at: dom.queryWrappedElement(root, '#temperatureBox #at'),
 					time: dom.queryWrappedElement(root, '#temperatureBox #time'),
 					ampm: dom.queryWrappedElement(root, '#temperatureBox #ampm'),
 				},
@@ -211,7 +212,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					text: setInnerHtmlImpl(element.header.temperature.value),
 					unit: setInnerHtmlImpl(element.header.temperature.unit),
-					labelAt: setInnerHtmlImpl(element.header.temperature.atLabel),
+					at: setInnerHtmlImpl(element.header.temperature.at),
 					time: setInnerHtmlImpl(element.header.temperature.time),
 					ampm: setInnerHtmlImpl(element.header.temperature.ampm),
 				},
@@ -249,7 +250,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			ui.header.time.unit(timeUnit);
 			ui.header.temperature.time(snapshotTime);
 			ui.header.temperature.ampm(shapshotTimeAmpm);
-			ui.header.temperature.labelAt(TIZEN_L10N.RADAR_AT);
+			ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
         } else {
             console.warn('updateUI. there is no ui to update');
         }
@@ -286,6 +287,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			const displayData = function(mapFilePath, jsonStorageObject) {
 				const weather = jsonStorageObject.external;
+				shapshotTimeInSeconds = weather.observation.obs_time;
 				
 				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
 				const tempTextualRepr = getTemperatureAndUnitAsText(
@@ -322,8 +324,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					}
 				};
 				
-				const shapshotTimeInSeconds = weather.observation.obs_time;
-				
 				//time
 				updateUI(ui, shapshotTimeInSeconds);
 				
@@ -351,7 +351,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				console.log('displayCachedData: mapFile=' + mapFile.toURI());
 				
-				if (weather) {
+				if (jsonStorageObject) {
 					displayData(mapFile.toURI(), jsonStorageObject);
 				} else {
 					console.warn('No weather data despite we have map file');
