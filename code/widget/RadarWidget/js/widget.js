@@ -5,7 +5,6 @@ window.onload = function() {
 	handleVisibilityChange();
 	
 	function handleVisibilityChange() {
-		console.log('visibility: ' + document.visibilityState);
 		if(document.visibilityState === 'visible') {
 			startButton = document.getElementById('main-screen');
 			startButton.addEventListener('click', launchApp);
