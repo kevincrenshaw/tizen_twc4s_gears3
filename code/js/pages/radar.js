@@ -123,11 +123,17 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				observer.onCompleted();
 			};
 			
+			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
+			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
+			const onError = function(err) {
+				observer.onError(err)
+			};
+			
 			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
 			//1: 'PERMISSION_DENIED',
 			//2: 'POSITION_UNAVAILABLE',
 			//3: 'TIMEOUT',			
-			navigator.geolocation.getCurrentPosition(onSuccess, observer.onError, { timeout: timeout });
+			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: timeout });
 		});
 	};
 	
