@@ -13,11 +13,6 @@ const radarModules = [
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
-	var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
-	var shapshotTimeInSeconds = null;
-	
-    //every 1 second update interval
-    const updateInterval = 1000;
 
 	const createUri = function(base, params) {
 		params = params || {};
@@ -281,6 +276,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			const page = ev.target;
 			const ui = createUiManager(page);
 			
+			var shapshotTimeInSeconds = null;
+			var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
+			
 			ui.map.visible(false);
 			ui.header.visible(false);
 			ui.header.refresh.btn.enable(false);
@@ -332,10 +330,13 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				weatherDownloadTimeUpdater();
 				
                 if(intervalUpdaterId === null) {
-                    intervalUpdaterId = setInterval(function() {
-                    	updateUI(ui, shapshotTimeInSeconds);
-                    	weatherDownloadTimeUpdater();
-                    }, updateInterval);                    
+                    intervalUpdaterId = setInterval(
+                    	function() {
+                    		updateUI(ui, shapshotTimeInSeconds);
+                    		weatherDownloadTimeUpdater();
+                    	},
+                    	1000 //every 1 second update interval
+                    );                    
                 }
 				
 				ui.map.src(mapFilePath);
