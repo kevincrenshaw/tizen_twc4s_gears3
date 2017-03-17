@@ -31,7 +31,7 @@ window.onload = function() {
 	function launchApp() {
 		var app = window.tizen.application.getCurrentApplication();
 		var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
-		var appControl = new window.tizen.ApplicationControl('', null, null, null, null, null);
+		var appControl = new window.tizen.ApplicationControl('navigate', 'radar', null, null, null, null);
 		window.tizen.application.launchAppControl(appControl, appId,
 			function() {
 				console.log("application has been launched successfully");

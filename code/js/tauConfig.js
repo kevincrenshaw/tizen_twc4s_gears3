@@ -1,3 +1,3 @@
 var tauConfig = {
-    autorun: false
+    autorun: true
 };
