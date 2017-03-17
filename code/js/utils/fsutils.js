@@ -41,7 +41,7 @@ define([], function() {
 							onSuccess(rootDir.createDirectory(dirName));
 						} catch(err) {
 							onError(err);
-						};
+						}
 					});
 			},
 			onError

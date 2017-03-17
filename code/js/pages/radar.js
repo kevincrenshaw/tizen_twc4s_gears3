@@ -13,10 +13,6 @@ const radarModules = [
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
-	var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
-	
-    //every 1 second update interval
-    const updateInterval = 1000;
 
 	const createUri = function(base, params) {
 		params = params || {};
@@ -126,7 +122,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
 			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
 			const onError = function(err) {
-				observer.onError(err)
+				observer.onError(err);
 			};
 			
 			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
@@ -145,6 +141,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
 					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
+					at: dom.queryWrappedElement(root, '#temperatureBox #at'),
+					time: dom.queryWrappedElement(root, '#temperatureBox #time'),
+					ampm: dom.queryWrappedElement(root, '#temperatureBox #ampm'),
 				},
 				time : {
 					value: dom.queryWrappedElement(root, '#timeBox #value'),
@@ -208,6 +207,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				temperature: {
 					text: setInnerHtmlImpl(element.header.temperature.value),
 					unit: setInnerHtmlImpl(element.header.temperature.unit),
+					at: setInnerHtmlImpl(element.header.temperature.at),
+					time: setInnerHtmlImpl(element.header.temperature.time),
+					ampm: setInnerHtmlImpl(element.header.temperature.ampm),
 				},
 				refresh: {
 					btn: {
@@ -225,15 +227,25 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 	};
 	
-	const updateUI = function(ui) {
+	const updateUI = function(ui, snapshotTimeInSeconds) {
 		if(ui) {
 			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 			const timeText = currentTimeRepr[0];
 			const timeUnit = currentTimeRepr[1];
+			
+			//time of snapshot
+			const obsSnapshotTime = new Date(snapshotTimeInSeconds * 1000);
+			const shapshotTimeRepr = utils.getTimeAsText(obsSnapshotTime, storage.settings.units.time.get(), systemUses12hFormat);
+			const snapshotTime = shapshotTimeRepr[0];
+			const shapshotTimeAmpm = shapshotTimeRepr[1];
+			
 			//apply on ui
 			ui.header.time.text(timeText);
-			ui.header.time.unit(timeUnit);			
+			ui.header.time.unit(timeUnit);
+			ui.header.temperature.time(snapshotTime);
+			ui.header.temperature.ampm(shapshotTimeAmpm);
+			ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
         } else {
             console.warn('updateUI. there is no ui to update');
         }
@@ -264,12 +276,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			const page = ev.target;
 			const ui = createUiManager(page);
 			
+			var shapshotTimeInSeconds = null;
+			var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
+			
 			ui.map.visible(false);
 			ui.header.visible(false);
 			ui.header.refresh.btn.enable(false);
 			
 			const displayData = function(mapFilePath, jsonStorageObject) {
 				const weather = jsonStorageObject.external;
+				shapshotTimeInSeconds = weather.observation.obs_time;
 				
 				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
 				const tempTextualRepr = getTemperatureAndUnitAsText(
@@ -307,17 +323,20 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				};
 				
 				//time
-				updateUI(ui);
+				updateUI(ui, shapshotTimeInSeconds);
 				
 				//refresh time
 				lastRefreshEpochTime = jsonStorageObject.internal.downloadTimeEpochInSeconds;
 				weatherDownloadTimeUpdater();
 				
                 if(intervalUpdaterId === null) {
-                    intervalUpdaterId = setInterval(function() {
-                    	updateUI(ui);
-                    	weatherDownloadTimeUpdater();
-                    }, updateInterval);                    
+                    intervalUpdaterId = setInterval(
+                    	function() {
+                    		updateUI(ui, shapshotTimeInSeconds);
+                    		weatherDownloadTimeUpdater();
+                    	},
+                    	1000 //every 1 second update interval
+                    );                    
                 }
 				
 				ui.map.src(mapFilePath);
@@ -333,7 +352,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				console.log('displayCachedData: mapFile=' + mapFile.toURI());
 				
-				if (weather) {
+				if (jsonStorageObject) {
 					displayData(mapFile.toURI(), jsonStorageObject);
 				} else {
 					console.warn('No weather data despite we have map file');
