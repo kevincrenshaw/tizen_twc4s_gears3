@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns:tizen="http://tizen.org/ns/widgets" xmlns="http://www.w3.org/ns/widgets" id="http://theweathercompany/TWC" version="0.0.1" viewmodes="maximized">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://theweathercompany/TWC" version="0.0.1" viewmodes="maximized">
     <access origin="*" subdomains="true"></access>
+    
+    <tizen:app-widget id="IEKeJFGHg3.TWC.RadarWidget" primary="true">
+    	<tizen:widget-label>Radar Widget</tizen:widget-label>
+		<tizen:widget-content src="widget/RadarWidget/index.html">
+            <tizen:widget-size preview="widget/RadarWidget/resources/images/preview.png">2x2</tizen:widget-size>
+        </tizen:widget-content>
+    </tizen:app-widget>
+    
     <tizen:application id="IEKeJFGHg3.TWC" package="IEKeJFGHg3" required_version="2.3.2"/>
     <content src="index.html"/>
     <feature name="http://tizen.org/feature/screen.size.normal"/>
@@ -13,8 +21,8 @@
     <tizen:privilege name="http://tizen.org/privilege/package.info"/>
     <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
     <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
-	<tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
-	<tizen:privilege name="http://tizen.org/privilege/download"/>
+    <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
+    <tizen:privilege name="http://tizen.org/privilege/download"/>
     <tizen:profile name="wearable"/>
     <tizen:setting hwkey-event="enable"/>
 </widget>
