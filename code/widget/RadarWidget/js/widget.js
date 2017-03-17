@@ -1,33 +1,98 @@
 window.onload = function() {
-	var mainScreen;
+	var intervalUpdaterId = null;
+
+	var currentTimeRepr = {};
+	var snapshotTimeRepr = {};
+	
+	var ampm = '';
+	
+	var ui = null;
 	
 	//run for first time when widget is added to a widget board
 	handleVisibilityChange();
 	
-	function handleVisibilityChange() {
-		var currentMapImagePath;
+	/**
+	 * triggered on page visible state 
+	 * */
+	function onpageshow() {
+		console.log('on page show');
+		ui = createUi(document);
 		
-		console.log('visibility: ' + document.visibilityState);
-		if(document.visibilityState === 'visible') {
-			mainScreen = document.getElementById('main-screen');
-			if (mainScreen) {
-				mainScreen.addEventListener('click', launchApp);
-				
-				if (tizen.preference.exists('current_map_image_path')) {
-					currentMapImagePath = tizen.preference.getValue('current_map_image_path');
-					console.log('currentMapImagePath = ' + currentMapImagePath);
-					mainScreen.style['background-image'] = 'url("' + currentMapImagePath + '")';
-				}
-				
-			} else {
-				console.warn('main screen not found');
-			}
-		} else {
-			mainScreen.removeEventListener('click', launchApp);
-			mainScreen = null;
+		ui.map.addEventListener('click', launchApp);
+		
+		if(tizen.preference.exists('time_ampm')) {
+			ampm = tizen.preference.getValue('time_ampm');
+		}
+		
+		if(tizen.preference.exists('snapshot_time')) {
+			snapshotTimeRepr[0] = tizen.preference.getValue('snapshot_time');
+			snapshotTimeRepr[1] = ampm;
+		}
+		onUpdate();
+	}
+	
+	/**
+	 * triggered on page hidden state 
+	 * */
+	function onpagehide() {
+		console.log('on page hide');
+		if(ui) {
+			ui.map.removeEventListener('click', launchApp);
+			ui.map = null;
 		}
 	}
 	
+	function onUpdateUi() {
+		if(ui) {
+			//if we have data to show
+			if(snapshotTimeRepr[0] && currentTimeRepr[0]) {
+				if(ui.header.style.display !== 'inline') {
+					//show header if it was hidden
+					ui.header.style.display = 'inline';
+				}
+				//if header is visible and we have data to show
+				if(ui.header.style.display === 'inline') {
+					ui.currentTime.time.textContent = currentTimeRepr[0];
+					ui.currentTime.ampm.textContent = currentTimeRepr[1];
+					
+					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
+					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * function for periodic tasks (like updating ui, etc)
+	 * */
+	function onUpdate() {
+		var time = getTimeAsText(new Date(), ampm !== '');
+		if(currentTimeRepr[0] !== time[0] || currentTimeRepr[1] !== time[1]) {
+			currentTimeRepr = time;
+		}
+		onUpdateUi();
+	}
+
+	/**
+	 * internal function to handle visibility state changes 
+	 * */
+	function handleVisibilityChange() {
+		if(document.visibilityState === 'visible') {
+			onpageshow();
+			if(intervalUpdaterId === null) {
+				intervalUpdaterId = setInterval(onUpdate, 1000);
+			}
+		} else {
+			onpagehide();
+			
+			if(intervalUpdaterId) {
+				clearInterval(intervalUpdaterId);
+                intervalUpdaterId = null;
+			}
+		}
+	}
+
 	function launchApp() {
 		var app = window.tizen.application.getCurrentApplication();
 		var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
@@ -40,6 +105,28 @@ window.onload = function() {
 				console.error("application launch has been failed. reason: " + e.message);
 			},
 			null);
+	}
+	
+	function createUi(root) {
+		var element = {
+			header: root.getElementById('header'),
+			map: root.getElementById('main-screen'),
+			
+			currentTime : {
+				time: root.getElementById('time-value'),
+				ampm: root.getElementById('time-ampm'),
+			},
+			
+			temperature: {
+				value: root.getElementById('value'),
+				unit: root.getElementById('unit'),
+				at: root.getElementById('at'),
+				snapshotTime: root.getElementById('snapshot-time'),
+				ampm: root.getElementById('ampm'),
+			},
+		};
+		
+		return element;
 	}
 	
 	document.addEventListener('visibilitychange', handleVisibilityChange);

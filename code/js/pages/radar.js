@@ -227,24 +227,25 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 	};
 	
-	const updateUI = function(ui, snapshotTimeInSeconds) {
+	const saveSnapshotTime = function(time) {
+		tizen.preference.setValue('snapshot_time', time);
+	};
+	
+	const saveTimeAmPm = function(ampm) {
+		if(ampm) {
+			tizen.preference.setValue('time_ampm', ampm);			
+		} else {
+			tizen.preference.remove('time_ampm');
+		}
+	};
+	
+	const updateUI = function(ui, currentTimeRepr, snapshotTimeRepr) {
 		if(ui) {
-			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-			const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-			const timeText = currentTimeRepr[0];
-			const timeUnit = currentTimeRepr[1];
-			
-			//time of snapshot
-			const obsSnapshotTime = new Date(snapshotTimeInSeconds * 1000);
-			const shapshotTimeRepr = utils.getTimeAsText(obsSnapshotTime, storage.settings.units.time.get(), systemUses12hFormat);
-			const snapshotTime = shapshotTimeRepr[0];
-			const shapshotTimeAmpm = shapshotTimeRepr[1];
-			
 			//apply on ui
-			ui.header.time.text(timeText);
-			ui.header.time.unit(timeUnit);
-			ui.header.temperature.time(snapshotTime);
-			ui.header.temperature.ampm(shapshotTimeAmpm);
+			ui.header.time.text(currentTimeRepr[0]);
+			ui.header.time.unit(currentTimeRepr[1]);
+			ui.header.temperature.time(snapshotTimeRepr[0]);
+			ui.header.temperature.ampm(snapshotTimeRepr[1]);
 			ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
         } else {
             console.warn('updateUI. there is no ui to update');
@@ -276,8 +277,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			const page = ev.target;
 			const ui = createUiManager(page);
 			
-			var shapshotTimeInSeconds = null;
+			var currentTimeRepr = null;
+			var shapshotTimeRepr = null;
+
 			var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
+			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 			
 			ui.map.visible(false);
 			ui.header.visible(false);
@@ -285,7 +289,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			
 			const displayData = function(mapFilePath, jsonStorageObject) {
 				const weather = jsonStorageObject.external;
-				shapshotTimeInSeconds = weather.observation.obs_time;
 				
 				const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
 				const tempTextualRepr = getTemperatureAndUnitAsText(
@@ -326,7 +329,15 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				};
 				
 				//time
-				updateUI(ui, shapshotTimeInSeconds);
+				currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
+				//snapshot time
+				const shapshotTimeInMillis = weather.observation.obs_time * 1000;
+				shapshotTimeRepr = utils.getTimeAsText(new Date(shapshotTimeInMillis), storage.settings.units.time.get(), systemUses12hFormat);
+
+				updateUI(ui, currentTimeRepr, shapshotTimeRepr);
+
+				saveSnapshotTime(shapshotTimeRepr[0]);
+				saveTimeAmPm(currentTimeRepr[1]);
 				
 				//refresh time
 				lastRefreshEpochTime = jsonStorageObject.internal.downloadTimeEpochInSeconds;
@@ -335,7 +346,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
                 if(intervalUpdaterId === null) {
                     intervalUpdaterId = setInterval(
                     	function() {
-                    		updateUI(ui, shapshotTimeInSeconds);
+                    		updateUI(ui, currentTimeRepr, shapshotTimeRepr);
                     		weatherDownloadTimeUpdater();
                     	},
                     	1000 //every 1 second update interval
