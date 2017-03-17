@@ -3,6 +3,7 @@ window.onload = function() {
 
 	var currentTimeRepr = {};
 	var snapshotTimeRepr = {};
+	var weatherData;
 	
 	var ampm = '';
 	
@@ -28,7 +29,13 @@ window.onload = function() {
 			snapshotTimeRepr[0] = tizen.preference.getValue('snapshot_time');
 			snapshotTimeRepr[1] = ampm;
 		}
-		onUpdate();
+		
+		
+		if (tizen.preference.exists('weather_data')) {
+			weatherData = tizen.preference.getValue('weather_data');
+			console.log('weatherData = ' + weatherData);
+			weatherData = JSON.parse(weatherData);
+		}
 	}
 	
 	/**
@@ -58,6 +65,10 @@ window.onload = function() {
 					
 					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
 					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
+					
+					ui.temperature.value.textContent = weatherData.temperature.text;
+					ui.temperature.unit.textContent = weatherData.temperature.unit;
+					ui.temperature.at.textContent = TIZEN_L10N.AT;
 				}
 			}
 			
@@ -89,6 +100,9 @@ window.onload = function() {
 	function handleVisibilityChange() {
 		if(document.visibilityState === 'visible') {
 			onpageshow();
+			//call it immideatelly for a first time
+			onUpdate();
+			
 			if(intervalUpdaterId === null) {
 				intervalUpdaterId = setInterval(onUpdate, 1000);
 			}
