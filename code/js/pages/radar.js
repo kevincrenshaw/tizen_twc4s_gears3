@@ -232,10 +232,13 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	};
 	
 	const saveTimeAmPm = function(ampm) {
+		const ampm_key = 'time_ampm';
 		if(ampm) {
-			tizen.preference.setValue('time_ampm', ampm);			
+			tizen.preference.setValue(ampm_key, ampm);			
 		} else {
-			tizen.preference.remove('time_ampm');
+			if(tizen.preference.exists(ampm_key)) {
+				tizen.preference.remove(ampm_key);				
+			}
 		}
 	};
 	
