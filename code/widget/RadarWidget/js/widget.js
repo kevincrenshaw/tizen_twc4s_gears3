@@ -39,6 +39,7 @@ window.onload = function() {
 		if(ui) {
 			ui.map.removeEventListener('click', launchApp);
 			ui.map = null;
+			ui = null;
 		}
 	}
 	
