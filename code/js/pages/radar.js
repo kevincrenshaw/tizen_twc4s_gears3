@@ -13,6 +13,7 @@ const radarModules = [
 define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
+	var ui;
 
 	const createUri = function(base, params) {
 		params = params || {};
@@ -264,6 +265,13 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	};
 	
 	return {
+		visibilitychange : function() {
+			tryGetNewData();
+			if(document.hidden !== true) {
+				tryGetNewData();
+			}
+		},
+		
 		pagebeforehide: function(ev) {
 			if (currentPositionSubscription) {
 				currentPositionSubscription.dispose();
@@ -274,11 +282,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				clearInterval(intervalUpdaterId);
                 intervalUpdaterId = null;
 			}
+			document.removeEventListener('visibilitychange', this.visibilitychange);
 		},
 		
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
-			const ui = createUiManager(page);
 			
 			var currentTimeRepr = null;
 			var shapshotTimeRepr = null;
