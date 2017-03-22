@@ -74,6 +74,8 @@ window.onload = function() {
 	 * function for periodic tasks (like updating ui, etc)
 	 * */
 	function onUpdate() {
+		//because of limitations of web widget we cannot obtain system settings of am/pm
+		//so we are ignoring it and in case of empty ampm (system setting) use 24h format
 		var time = getTimeAsText(new Date(), ampm !== '');
 		if(currentTimeRepr[0] !== time[0] || currentTimeRepr[1] !== time[1]) {
 			currentTimeRepr = time;
