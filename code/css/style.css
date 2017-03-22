@@ -17,7 +17,7 @@ body {
 }
 
 .ui-page#main .ui-selector .ui-item-active {
-	background-color: rgba(0,143,191,1);
+	background-color: #009DE8;
 }
 
 .contents {
@@ -48,11 +48,6 @@ body {
 
 .weather-icon {
     background-image: url("../resources/gfx/storm-icon-weather-changes.png");
-    background-size: contain;
-}
-
-.compass-icon {
-    background-image: url("../resources/gfx/compass.png");
     background-size: contain;
 }
 

@@ -32,10 +32,6 @@ define([], function() {
 			tau.changePage("html/weather.html");
 			break;
 			
-		case 'compass':
-			tau.changePage("html/compass.html");
-			break;
-			
 		default:
 			//By default show popup with localized option title
 			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
@@ -94,7 +90,6 @@ define([], function() {
 			
 			setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
 			setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
-			setDataTitleAttributeValue(selector, '#compass',  TIZEN_L10N.MAIN_MENU_COMPASS);
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
 			setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
 			
@@ -118,7 +113,7 @@ define([], function() {
 				return;
 			}
 			
-			selectorWidget = tau.widget.Selector(selector);
+			selectorWidget = tau.widget.Selector(selector, { itemStartDegree: 0, continousRotation: true });
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
 			}
