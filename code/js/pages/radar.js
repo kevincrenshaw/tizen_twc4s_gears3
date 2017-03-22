@@ -265,13 +265,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	};
 	
 	return {
-		visibilitychange : function() {
-			tryGetNewData();
-			if(document.hidden !== true) {
-				tryGetNewData();
-			}
-		},
-		
 		pagebeforehide: function(ev) {
 			if (currentPositionSubscription) {
 				currentPositionSubscription.dispose();
@@ -282,7 +275,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				clearInterval(intervalUpdaterId);
                 intervalUpdaterId = null;
 			}
-			document.removeEventListener('visibilitychange', this.visibilitychange);
 		},
 		
 		pagebeforeshow: function(ev) {
