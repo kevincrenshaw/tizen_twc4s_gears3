@@ -60,6 +60,12 @@ window.onload = function() {
 					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
 				}
 			}
+			
+			if (tizen.preference.exists('current_map_image_path')) {
+				currentMapImagePath = tizen.preference.getValue('current_map_image_path');
+				console.log('currentMapImagePath = ' + currentMapImagePath);
+				ui.map.style['background-image'] = 'url("' + currentMapImagePath + '")';
+			}
 		}
 	}
 	
