@@ -294,7 +294,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				
 				const tempText = [tempTextualRepr[0], '°'].join('');
 				const unitText = tempTextualRepr[1];
-				
+
+				//Store path to map file for widget
+				tizen.preference.setValue('current_map_image_path', mapFilePath);				
+
 				const weatherDownloadTimeUpdater = function() {
 					const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
 					const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);

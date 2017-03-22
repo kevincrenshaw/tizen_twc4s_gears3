@@ -6,8 +6,11 @@ body {
 }
 
 .container {
-	background-image: url("../resources/images/radar_content.png");
+	background-image: url("../resources/images/preview.png");
 	background-color: #000000;
+	background-position: 0px 0px;
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
     height: 100%;
     width: 100%;
 }
