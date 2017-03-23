@@ -117,11 +117,6 @@ define(modules, function(require, utils) {
 		activeMaruqeeWidget.destroy();
 	};
 	
-	const getAppControl = function() {
-		const app = window.tizen.application.getCurrentApplication();
-		return app.getRequestedAppControl().appControl;
-	};
-	
 	document.addEventListener('pagebeforeshow', function(ev) {
 		const page = ev.target;
 		
@@ -179,7 +174,7 @@ define(modules, function(require, utils) {
 	//From now on tau engine starts automatically
 	//tau.engine.run();
 	
-	const appCtrl = getAppControl();
+	const appCtrl = utils.getAppControl();
 	const operation = appCtrl.operation;
 	const uri = appCtrl.uri;
 	
