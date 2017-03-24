@@ -219,6 +219,10 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	    return [hours + ':' + minutes, ampm];
 	};
 	
+	const getAppControl = function() {
+		const app = window.tizen.application.getCurrentApplication();
+		return app.getRequestedAppControl().appControl;
+	};
 	
 	return {
 		tryModifyElement: tryModifyElement,
@@ -233,5 +237,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
 		getCategoryForTimeDiff: getCategoryForTimeDiff,
 		formatTimeDiffValue: formatTimeDiffValue,
+		getAppControl: getAppControl,
 	};
 });

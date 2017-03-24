@@ -171,5 +171,23 @@ define(modules, function(require, utils) {
 		dispatchEventToPage(ev);
 	});
 	
-	tau.engine.run();
+	//From now on tau engine starts automatically
+	//tau.engine.run();
+	
+	const appCtrl = utils.getAppControl();
+	const operation = appCtrl.operation;
+	const uri = appCtrl.uri;
+	
+	console.log('App ctrl: operation="' + operation + '", uri="' + uri + '"');
+	
+	if (operation === 'navigate') {
+		const target = 'html/' + uri + '.html';
+		console.log('Navigating to: "' + target + '"');
+		
+		tau.changePage(target);
+	} else {
+		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
+		//To maintain backward comatibility send this event manually.
+		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
+	}
 });
