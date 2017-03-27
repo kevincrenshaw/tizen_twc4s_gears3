@@ -15,6 +15,44 @@ body {
     width: 100%;
 }
 
+.radar-normal-text-24px {
+	font-size: 24px;
+	color: #ffffff;
+}
+
+.radar-normal-text-28px {
+	opacity: 0.9;
+	font-size: 28px;
+	color: #ffffff;
+} 
+
+.radar-small-text {
+	font-size: 18px;
+	color: #e0e0e0;
+}
+
+#header {
+	position: absolute;
+	top: 0%;
+	width: 100%;
+	height: 127px;
+	background-color: rgba(0,0,0,0.4);
+	display: none;
+}
+
+div#timeBox {
+	position: absolute;
+	width: 100%;
+	bottom: 78px;
+	text-align: center;
+}
+
+div#temperatureBox {
+	position: absolute;
+	width: 100%;
+	bottom: 42px;
+	text-align: center;
+}
 #play {
 	position: absolute;
 	width: 100px;
