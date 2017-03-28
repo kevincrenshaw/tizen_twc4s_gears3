@@ -11,16 +11,19 @@ define(['utils/fsutils'], function(fsutils) {
 	 *		boolean has(value) - test if value exists in mapping
 	 *		value map(value) - returns mapping for given value
 	 */
-	const createGetterAndSetterForLocalStorageImpl = function(key, defaultValue, mappingObject) {
+	const createGetterAndSetterForStorageImpl = function(key, defaultValue, mappingObject) {
 		if (mappingObject) {
 			if (!mappingObject.has(defaultValue)) {
 				console.warn('Default value "' + defaultValue + '" for key "' + key + '" cannot be mapped');
 			}
 		}
 	
-		const rawValueGetterImpl = function() {
-			const value = localStorage.getItem(key) || defaultValue;
-			return value;
+		const rawValueGetterImpl = function() {			
+			if (tizen.preference.exists(key)) {
+				return tizen.preference.getValue(key);
+			} else {
+				return defaultValue;
+			}
 		};
 	
 		const result = {
@@ -57,8 +60,8 @@ define(['utils/fsutils'], function(fsutils) {
 				const oldValue = this.get();
 				
 				if (newValue !== oldValue) {
-					localStorage.setItem(key, newValue);
-					console.log('localStorage["' + key + '"] value change: "' + oldValue + '" -> "' + newValue + '"');
+					tizen.preference.setValue(key, newValue);
+					console.log('storage["' + key + '"] value change: "' + oldValue + '" -> "' + newValue + '"');
 					return true;
 				} else {
 					return false;
@@ -67,14 +70,14 @@ define(['utils/fsutils'], function(fsutils) {
 			
 			//Create new object with given mapping
 			remap: function(newMappingObject) {
-				return createGetterAndSetterForLocalStorageImpl(key, defaultValue, newMappingObject);
+				return createGetterAndSetterForStorageImpl(key, defaultValue, newMappingObject);
 			},
 		};
 	
 		return result;
 	};
 	
-	//May be used as mappingObject in createGetterAndSetterForLocalStorageImpl function
+	//May be used as mappingObject in createGetterAndSetterForStorageImpl function
 	//Simple value to value mapping.
 	const createValueMapping = function(mapping) {
 		return {
@@ -88,7 +91,7 @@ define(['utils/fsutils'], function(fsutils) {
 		};
 	};
 	
-	//May be used as mappingObject in createGetterAndSetterForLocalStorageImpl function
+	//May be used as mappingObject in createGetterAndSetterForStorageImpl function
 	//Value to localized text mapping.
 	const createValueToLocalizationKeyMapping = function(mapping) {
 		//Value to localization key mapping
@@ -373,26 +376,26 @@ define(['utils/fsutils'], function(fsutils) {
 	const storage = {
 		settings: {
 			units: {
-				time: createGetterAndSetterForLocalStorageImpl(
+				time: createGetterAndSetterForStorageImpl(
 						'settings_units_time_key',
 						'1',
 						createValueToLocalizationKeyMapping({
 							'1': 'SETTINGS_MENU_UNITS_TIME_SYSTEM',
 							'2': 'SETTINGS_MENU_UNITS_TIME_12h',
 							'3': 'SETTINGS_MENU_UNITS_TIME_24h'})),
-				distance: createGetterAndSetterForLocalStorageImpl(
+				distance: createGetterAndSetterForStorageImpl(
 						'settings_units_distance_key',
 						'1',
 						createValueToLocalizationKeyMapping({
 							'1': 'SETTINGS_MENU_UNITS_DISTANCE_MILES_DEFAULT',
 							'2': 'SETTINGS_MENU_UNITS_DISTANCE_KILOMETERS',
 							'3': 'SETTINGS_MENU_UNITS_DISTANCE_MEGAMETERS'})),
-				mapzoom: createGetterAndSetterForLocalStorageImpl(
+				mapzoom: createGetterAndSetterForStorageImpl(
 						'settings_units_mapzoom_key',
 						'1',
 						createMapZoomMappingObject()),
 	            
-				temperature: createGetterAndSetterForLocalStorageImpl(
+				temperature: createGetterAndSetterForStorageImpl(
 						'settings_units_temperature_key', 
 						'1',
 						createValueToLocalizationKeyMapping({
@@ -400,7 +403,7 @@ define(['utils/fsutils'], function(fsutils) {
 							'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
 							'3': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
 							
-				partnerapp : createGetterAndSetterForLocalStorageImpl(
+				partnerapp : createGetterAndSetterForStorageImpl(
 						'settings_units_partnerapp_key', 
 						'1',
 						createValueToLocalizationKeyMapping({

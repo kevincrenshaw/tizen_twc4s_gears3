@@ -41,3 +41,15 @@ function getTimeAsText(date, ampm) {
 
 	return [hours + ':' + minutes, ampmStr];
 };
+
+function celsiusToFahrenheit(value) {
+	return value * 9.0 / 5.0 + 32;
+};
+
+function getFromStore(key, defaultValue) {
+	if (tizen.preference.exists(key)) {
+		return tizen.preference.getValue(key);
+	} else {
+		return defaultValue;
+	}
+}

@@ -30,7 +30,6 @@ window.onload = function() {
 			snapshotTimeRepr[1] = ampm;
 		}
 		
-		
 		if (tizen.preference.exists('weather_data')) {
 			weatherData = tizen.preference.getValue('weather_data');
 			console.log('weatherData = ' + weatherData);
@@ -50,7 +49,16 @@ window.onload = function() {
 		}
 	}
 	
+	function isCelsiusSelected() {
+		if (parseInt(getFromStore('settings_units_temperature_key', '3')) === 2) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	function onUpdateUi() {
+		var displayInCelsius = isCelsiusSelected();
 		if(ui) {
 			//if we have data to show
 			if(snapshotTimeRepr[0] && currentTimeRepr[0]) {
@@ -66,8 +74,10 @@ window.onload = function() {
 					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
 					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
 					
-					ui.temperature.value.textContent = weatherData.temperature.text;
-					ui.temperature.unit.textContent = weatherData.temperature.unit;
+					ui.temperature.value.textContent = [(displayInCelsius
+						? weatherData.temperature.valueInCelsius
+						: Math.round(celsiusToFahrenheit(weatherData.temperature.valueInCelsius))), '°'].join('');
+					ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
 					ui.temperature.at.textContent = TIZEN_L10N.AT;
 				}
 			}
