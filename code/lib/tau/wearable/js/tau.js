@@ -28360,24 +28360,24 @@ ns.version = '0.13.7';
 				if (validPrevLayer && validPrevLayer.classList.contains(classes.LAYER)) {
 					validPrevLayer.classList.add(classes.LAYER_PREV);
 					prevLayerDeg = options.itemStartDegree - DEFAULT.ITEM_DEGREE / 6;
-					setItemTransform(validPrevLayer, prevLayerDeg, radius, -prevLayerDeg, DEFAULT.ITEM_NORMAL_SCALE);
+					setItemTransform(validPrevLayer, prevLayerDeg, radius, -prevLayerDeg, options.itemNormalScale);
 					ppLayer = validPrevLayer.previousElementSibling;
 					ppLayerDeg = options.itemStartDegree - DEFAULT.ITEM_DEGREE / 4;
 					if (ppLayer && ppLayer.classList.contains(classes.LAYER)) {
 						ppLayer.classList.add(classes.LAYER_PREV_PREV);
-						setItemTransform(ppLayer, ppLayerDeg, radius, -ppLayerDeg, DEFAULT.ITEM_NORMAL_SCALE);
+						setItemTransform(ppLayer, ppLayerDeg, radius, -ppLayerDeg, options.itemNormalScale);
 					}
 				}
 
 				if (validNextLayer && validNextLayer.classList.contains(classes.LAYER)) {
 					validNextLayer.classList.add(classes.LAYER_NEXT);
 					nextLayerDeg = options.itemEndDegree + DEFAULT.ITEM_DEGREE / 6;
-					setItemTransform(validNextLayer, nextLayerDeg, radius, -nextLayerDeg, DEFAULT.ITEM_NORMAL_SCALE);
+					setItemTransform(validNextLayer, nextLayerDeg, radius, -nextLayerDeg, options.itemNormalScale);
 					nnLayer = validNextLayer.nextElementSibling;
 					nnLayerDeg = options.itemEndDegree + DEFAULT.ITEM_DEGREE / 4;
 					if (nnLayer && nnLayer.classList.contains(classes.LAYER)) {
 						nnLayer.classList.add(classes.LAYER_NEXT_NEXT);
-						setItemTransform(nnLayer, nnLayerDeg, radius, -nnLayerDeg, DEFAULT.ITEM_NORMAL_SCALE);
+						setItemTransform(nnLayer, nnLayerDeg, radius, -nnLayerDeg, options.itemNormalScale);
 					}
 				}
 				validLayer.classList.add(classes.LAYER_ACTIVE);
@@ -28419,7 +28419,8 @@ ns.version = '0.13.7';
 					indicatorAutoControl: true,
 					itemStartDegree: DEFAULT.ITEM_START_DEGREE,
 					itemEndDegree: DEFAULT.ITEM_END_DEGREE,
-					continousRotation: false
+					continousRotation: false,
+					itemNormalScale: DEFAULT.ITEM_NORMAL_SCALE
 				});
 			};
 
@@ -28512,7 +28513,7 @@ ns.version = '0.13.7';
 				len = items.length;
 				for (i = 0; i < len; i++) {
 					utilDom.setNSData(items[i], "index", i);
-					setItemTransform(items[i], options.itemEndDegree, options.itemRadius, -options.itemEndDegree, DEFAULT.ITEM_NORMAL_SCALE);
+					setItemTransform(items[i], options.itemEndDegree, options.itemRadius, -options.itemEndDegree, options.itemNormalScale);
 				}
 				if (activeLayerIndex === null) {
 					self._activeLayerIndex = 0;
@@ -28541,7 +28542,7 @@ ns.version = '0.13.7';
 				len = items.length > options.maxItemNumber ? options.maxItemNumber : items.length;
 				for (i = 0; i < len; i++) {
 					degree = options.itemStartDegree + (options.itemDegree * i);
-					setItemTransform(items[i], degree, options.itemRadius, -degree, DEFAULT.ITEM_NORMAL_SCALE);
+					setItemTransform(items[i], degree, options.itemRadius, -degree, options.itemNormalScale);
 				}
 
 				self._setActiveItem(self._activeItemIndex);
@@ -28669,12 +28670,12 @@ ns.version = '0.13.7';
 					active = element.querySelector("." + classes.ITEM_ACTIVE);
 
 				if (active) {
-					active.style.transform = active.style.transform.replace(DEFAULT.ITEM_ACTIVE_SCALE, DEFAULT.ITEM_NORMAL_SCALE);
+					active.style.transform = active.style.transform.replace(DEFAULT.ITEM_ACTIVE_SCALE, options.itemNormalScale);
 					active.classList.remove(classes.ITEM_ACTIVE);
 				}
 				if (items.length) {
 					items[index].classList.add(classes.ITEM_ACTIVE);
-					items[index].style.transform = items[index].style.transform.replace(DEFAULT.ITEM_NORMAL_SCALE, DEFAULT.ITEM_ACTIVE_SCALE);
+					items[index].style.transform = items[index].style.transform.replace(options.itemNormalScale, DEFAULT.ITEM_ACTIVE_SCALE);
 					if (self.options.indicatorAutoControl) {
 						self._setIndicatorIndex(index);
 					}
@@ -28898,13 +28899,13 @@ ns.version = '0.13.7';
 				layer.classList.add(classes.LAYER_HIDE);
 				len = items.length;
 				for (i = 0; i < len; i++) {
-					setItemTransform(items[i], options.itemStartDegree, self.options.itemRadius, -options.itemStartDegree, DEFAULT.ITEM_NORMAL_SCALE);
+					setItemTransform(items[i], options.itemStartDegree, self.options.itemRadius, -options.itemStartDegree, options.itemNormalScale);
 				}
 
 				setTimeout(function() {
 					len = items.length;
 					for (i = 0; i < len; i++) {
-						setItemTransform(items[i], options.itemEndDegree, self.options.itemRadius, -options.itemEndDegree, DEFAULT.ITEM_NORMAL_SCALE);
+						setItemTransform(items[i], options.itemEndDegree, self.options.itemRadius, -options.itemEndDegree, options.itemNormalScale);
 					}
 					layer.classList.remove(classes.LAYER_HIDE);
 				}, 150);

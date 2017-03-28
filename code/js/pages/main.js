@@ -113,7 +113,14 @@ define([], function() {
 				return;
 			}
 			
-			selectorWidget = tau.widget.Selector(selector, { itemStartDegree: 0, continousRotation: true });
+			const selectorOptions = {
+				itemStartDegree: 0,
+				continousRotation: true,
+				itemRadius: 126,
+				itemNormalScale: "scale(0.791666667)",
+			};
+			
+			selectorWidget = tau.widget.Selector(selector, selectorOptions);
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
 			}

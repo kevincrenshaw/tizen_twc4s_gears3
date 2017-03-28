@@ -186,3 +186,19 @@ body {
 	color: #ffffff;
 	vertical-align: middle;
 }
+
+.ui-page .ui-selector .ui-selector-indicator-arrow {
+	width: 180px;
+	height: 180px;
+	margin: -90px;
+}
+
+.ui-page .ui-selector .ui-selector-indicator-arrow::before {
+	-webkit-mask-image: url("../resources/gfx/selector_arrow.png");
+}
+
+.ui-page .ui-selector .ui-item {
+	width: 72px;
+	height: 72px;
+	margin: -36px;
+}
