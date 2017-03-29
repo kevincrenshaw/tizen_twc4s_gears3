@@ -16,6 +16,7 @@ const modules = [
 	'utils/back',
 	'utils/lowBatteryCheck',
 	'utils/dom',
+	'utils/alert_updater',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
@@ -28,17 +29,23 @@ const modules = [
 	'pages/information',
 	'pages/radar',
 	'pages/weather',
+	'pages/alerts'
 ];
 
 define(modules, function(require, utils) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
+		if(ev.target.id === null || ev.target.id === undefined) {
+			console.log('no active page for dispatching event: "' + ev.type + '", skip it');
+			return;
+		}
+
 		const page = ev.target;
 		const moduleName = 'pages/' + page.id;
-		
-		pageModule = require(moduleName);
-		
+
+		const pageModule = require(moduleName);
+
 		if (pageModule) {
 			if (pageModule.hasOwnProperty(ev.type)) {
 				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
@@ -50,7 +57,23 @@ define(modules, function(require, utils) {
 			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 		}
 	};
-	
+
+	//Call event handler for module
+	const setModuleToAciveState = function(moduleName, active) {
+		const module = require(moduleName);
+		console.log('dispatchEventToModule::module: ' + module);
+
+		if(module !== null) {
+			if(active === true && module.hasOwnProperty('active')) {
+				module.active();
+			} else if(module.hasOwnProperty('inactive')) {
+				module.inactive();
+			} else {
+				console.warn('module: ' + moduleName + ' doesnt support active state. make sure that module has active() & inactive() public api');
+			}
+		}
+	};
+
 	//Creates object that manages array of destroyables.
 	const createDestroyableManager = function() {
 		const destroyableArr = [];
@@ -115,13 +138,13 @@ define(modules, function(require, utils) {
 	const listItemScrollStartEventListener = function(ev) {
 		activeMaruqeeWidget.destroy();
 	};
-	
+
 	document.addEventListener('pagebeforeshow', function(ev) {
 		const page = ev.target;
-		
+
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
-		
+
 		const title = page.querySelector(".ui-title");
 		if (title) {
 			destroyables.add(createMarqueWidget(title));
@@ -162,14 +185,21 @@ define(modules, function(require, utils) {
 		}
 	});
 	
-	document.addEventListener('pagebeforehide', function(ev) {	
+	document.addEventListener('pagebeforehide', function(ev) {
 		//Cleanup destroyable objects
 		destroyables.destroy();
-		
+
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
 	});
-	
+
+	document.addEventListener('onupdatealerts', function(ev) {
+		console.log('onupdatealerts::event triggered');
+
+		//Call event handler from page module (if provided)
+		dispatchEventToPage(ev);
+	});
+
 	//From now on tau engine starts automatically
 	//tau.engine.run();
 	
@@ -188,5 +218,6 @@ define(modules, function(require, utils) {
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
+		setModuleToAciveState('utils/alert_updater', true);
 	}
 });

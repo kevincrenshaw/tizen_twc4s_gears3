@@ -7,26 +7,7 @@
 //			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
 
 define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
-	
-	const getResourcesByURL = function(urls, options) {
-		options = options || {};
 
-		const timeout = options.timeout || 30000;
-		const delay = options.delay || 0;
-		
-		var requestedStream = Rx.Observable
-			.from(urls)
-			.delay(new Date(Date.now() + delay));
-
-		var response = requestedStream.flatMap(function(requestedUrl) {
-			return Rx.Observable
-				.fromPromise($.get(requestedUrl))
-				.timeout(timeout);
-		});
-
-		return response;
-	};
-	
 	/**
 	 * download file by given url
 	 * Params:
@@ -71,9 +52,26 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		});
 	};
 
+	const getResourceByURLRx = function(url, timeout) {
+		const timeout = timeout || 30000;
+
+		return Rx.Observable.create(function(observer) {
+			const listener = function(data, textStatus, xhr) {
+				if(xhr.status === 200) {
+					observer.onNext(data, textStatus, xhr);
+					observer.onCompleted();
+				} else {
+					observer.onError({code: xhr.status, message: xhr.statusText});
+				}
+			};
+
+			$.get(url, listener);
+		}).timeout(timeout);
+	};
+
 	return {
-		getResourcesByURL: getResourcesByURL,
 		downloadImageFile: downloadImageFile,
 		downloadFileRx: downloadFileRx,
+		getResourceByURLRx: getResourceByURLRx,
 	};
 });

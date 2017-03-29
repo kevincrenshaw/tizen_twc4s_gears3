@@ -394,7 +394,7 @@ define(['utils/fsutils'], function(fsutils) {
 						'settings_units_mapzoom_key',
 						'1',
 						createMapZoomMappingObject()),
-	            
+
 				temperature: createGetterAndSetterForStorageImpl(
 						'settings_units_temperature_key', 
 						'1',
@@ -417,6 +417,7 @@ define(['utils/fsutils'], function(fsutils) {
 		json : createLocalStorage('json', 4),
 		file : createFileStorage('file', 4),
 		compass: createFileStorage('compass', 4),
+		alert: createLocalStorage('alert', 4),
 	};
 	
 	return storage;

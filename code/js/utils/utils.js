@@ -223,7 +223,27 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		const app = window.tizen.application.getCurrentApplication();
 		return app.getRequestedAppControl().appControl;
 	};
-	
+
+	/**
+	 * Construct url from base url part and params
+	 * Params:
+	 * 		base - base part of url
+	 * 		params - object of params
+	 * 
+	 * Returns:
+	 * 		full url as a string
+	 * */
+	const createUri = function(base, params) {
+		params = params || {};
+		const paramsArr = [];
+		
+		Object.keys(params).forEach(function(key) {
+			paramsArr.push([key, params[key]].join('='));
+		});
+		
+		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
+	};
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -238,5 +258,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getCategoryForTimeDiff: getCategoryForTimeDiff,
 		formatTimeDiffValue: formatTimeDiffValue,
 		getAppControl: getAppControl,
+		createUri: createUri,
 	};
 });

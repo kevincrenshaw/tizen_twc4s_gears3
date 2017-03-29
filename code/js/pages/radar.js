@@ -19,17 +19,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	var snapshotTimeRepr = null;
 	var currentTimeRepr = null;
 
-	const createUri = function(base, params) {
-		params = params || {};
-		const paramsArr = [];
-		
-		Object.keys(params).forEach(function(key) {
-			paramsArr.push([key, params[key]].join('='));
-		});
-		
-		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
-	};
-	
 	const getMapImgUri = function(latitude, longitude, lod, options) {
 		options = options || {};
 		
@@ -48,7 +37,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 
 		const uriBase = ['https://api.weather.com', 'v2', 'maps', 'dynamic'].join('/');
-		return createUri(uriBase, params);
+		return utils.createUri(uriBase, params);
 	};
 
 	const getCurrentConditionsUri = function(latitude, longitude) {
@@ -59,7 +48,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		};
 		
 		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
-		return createUri(uriBase, options);
+		return utils.createUri(uriBase, options);
 	};
 	
 	/*
