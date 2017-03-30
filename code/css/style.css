@@ -17,7 +17,7 @@ body {
 }
 
 .ui-page#main .ui-selector .ui-item-active {
-	background-color: rgba(0,143,191,1);
+	background-color: #009DE8;
 }
 
 .contents {
@@ -48,11 +48,6 @@ body {
 
 .weather-icon {
     background-image: url("../resources/gfx/storm-icon-weather-changes.png");
-    background-size: contain;
-}
-
-.compass-icon {
-    background-image: url("../resources/gfx/compass.png");
     background-size: contain;
 }
 
@@ -190,4 +185,27 @@ body {
 	font-size: 18px;
 	color: #ffffff;
 	vertical-align: middle;
+}
+
+.ui-page .ui-selector .ui-selector-indicator-arrow {
+	width: 180px;
+	height: 180px;
+	margin: -90px;
+}
+
+.ui-page .ui-selector .ui-selector-indicator-arrow::before {
+	-webkit-mask-image: url("../resources/gfx/selector_arrow.png");
+}
+
+.ui-page .ui-selector .ui-item {
+	width: 72px;
+	height: 72px;
+	margin: -36px;
+}
+
+.ui-page .ui-selector .ui-selector-indicator {
+	width: 170px;
+	height: 170px;
+	border-radius: 50%;
+	z-index: auto;
 }
