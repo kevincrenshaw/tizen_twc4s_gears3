@@ -74,7 +74,6 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 			if(subscription !== null) {
 				return;
 			}
-
 			//run for first time
 			fetchAndSaveData();
 			//and start execution for every ALERT_TIMEOUT_IN_MS

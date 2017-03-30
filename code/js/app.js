@@ -61,7 +61,6 @@ define(modules, function(require, utils) {
 	//Call event handler for module
 	const setModuleToAciveState = function(moduleName, active) {
 		const module = require(moduleName);
-		console.log('setModuleToAciveState::module: ' + moduleName + ' active flag: ' + active);
 
 		if(module !== null) {
 			if(active === true && module.hasOwnProperty('active')) {
