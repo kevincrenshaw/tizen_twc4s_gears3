@@ -264,8 +264,15 @@ define(['utils/fsutils'], function(fsutils) {
 		
 		const FSIndex = key + '_fs_index';
 		const FSFileName = key + '_fs_filename_';
-		
-		
+
+		const getSavedFileNameAtIndex = function(index) {
+			try {
+				return tizen.preference.getValue(FSFileName + index);
+			} catch(err) {
+				return null;
+			}
+		};
+
 		/**
 		 * get file from FS storage
 		 * Params:
@@ -276,12 +283,13 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const get = function(onSuccess, onError) {
 			const index = getIndex(FSIndex);
-			const savedFileName = tizen.preference.getValue(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			if(savedFileName) {
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				fsutils.hasSuchFile(pathName, onSuccess, onError);
 			} else {
-				onError('cant get resolve file');
+				onError('get::cant resolve file');
 			}
 		};
 		
@@ -293,7 +301,8 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const empty = function() {
 			const index = getIndex(FSIndex);
-			const savedFileName = tizen.preference.getValue(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			return (!savedFileName);
 		};
 
@@ -325,7 +334,7 @@ define(['utils/fsutils'], function(fsutils) {
 		    		onError
 		    	);
 			};
-			
+
 			//at first we have to remove old file saved by current + 1 position
 			removeAtIndex(newIndex, 
 				function() {
@@ -348,7 +357,8 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const removeAtIndex = function(index, onSuccess, onError) {
 			//get name of saved file at index
-			const savedFileName = tizen.preference.getValue(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			if(savedFileName) {
 				//create full path to a file
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
@@ -358,7 +368,7 @@ define(['utils/fsutils'], function(fsutils) {
 				onSuccess();
 			}
 		};
-		
+
 		const remove = function(options) {
 			options = options || {};
 			const onSuccess = options.onSuccess || function() {
@@ -371,11 +381,15 @@ define(['utils/fsutils'], function(fsutils) {
 			
 			const index = getIndex(FSIndex);
 			//get name of last saved file
-			const savedFileName = tizen.preference.getValue(FSFileName + index);
+
+			const savedFileName = getSavedFileNameAtIndex(index);
 			//if we have a record of this file in tizen.preference
 			if(savedFileName) {
 				//remove a name of file from tizen.preference
-				tizen.preference.remove(FSFileName + index);
+				if(tizen.preference.exists(FSFileName + index)) {
+					tizen.preference.remove(FSFileName + index);
+				}
+
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				//remove file
 				fsutils.removeFile(pathName, onSuccess, onError);

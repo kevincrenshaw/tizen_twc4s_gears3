@@ -326,7 +326,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
 		console.log('uniqueFileName: ' + uniqueFileName);
 
-		return network.getResourcesByURL([currentConditionsUri])
+		return network.getResourceByURLRx(currentConditionsUri)
 			.filter(function(weatherData) {
 				return weatherData && weatherData.metadata && weatherData.metadata.status_code === 200;
 			})
