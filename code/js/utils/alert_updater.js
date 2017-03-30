@@ -44,7 +44,6 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 		const onSuccess = function(lat, lon) {
 			coords[0] = lat;
 			coords[1] = lon;
-			console.log('applied new coords, lat: ' + lat + ' lon: ' + lon);
 
 			const url = constructURL();
 			console.log('request alerts, url: ' + url);
@@ -52,7 +51,6 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 			network.getResourceByURLRx(url).subscribe(
 				//on success
 				function(data, textStatus, xhr) {
-					console.log('data fetched: ' + JSON.stringify(data));
 					storage.alert.add(JSON.stringify(data));
 				},
 				//error
@@ -61,12 +59,9 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 				}
 			);
 		};
-		
-		
+
 		//implemented for testing purposes 
-		obrainTestCoords(
-			//on success
-				onSuccess,
+		obrainTestCoords(onSuccess,
 			//on error
 			function(err) {
 				console.log('obrainTestCoords::error in testing part: ' + JSON.stringify(err));
@@ -76,7 +71,6 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 
 	return {
 		active: function() {
-			console.log('alert::fetchData. alert active');
 			if(subscription !== null) {
 				return;
 			}
@@ -94,11 +88,10 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 			);
 		},
 		inactive: function() {
-			console.log('========> alert inactive');
 			if (subscription) {
 				subscription.dispose();
 				subscription = null;
 			}
-		}
+		},
 	};
 });

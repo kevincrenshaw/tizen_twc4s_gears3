@@ -24,7 +24,7 @@ define([], function() {
 		settings: settings,
 		API_KEY: 'ce21274b08780261ce553b0b9166a9ae',
 		GEOLOCATION_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
-		ALERT_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
+		ALERT_TIMEOUT_IN_MS: 7000,//ONE_MINUTE_IN_MS * 5,
 		ALERTS_URL: BASE_V3_URL + 'alerts/headlines',
 	};
 });

@@ -36,32 +36,32 @@ define(modules, function(require, utils) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
-		if(ev.target.id === null || ev.target.id === undefined) {
-			console.log('no active page for dispatching event: "' + ev.type + '", skip it');
-			return;
-		}
+		if(ev.target.id !== null && ev.target.id !== undefined) {
 
-		const page = ev.target;
-		const moduleName = 'pages/' + page.id;
+			const pageId = ev.target.id;
 
-		const pageModule = require(moduleName);
+			const moduleName = 'pages/' + pageId;
+			const pageModule = require(moduleName);
 
-		if (pageModule) {
-			if (pageModule.hasOwnProperty(ev.type)) {
-				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
-				pageModule[ev.type](ev);
+			if (pageModule) {
+				if (pageModule.hasOwnProperty(ev.type)) {
+					console.info('Calling event handler for ' + moduleName + ':' + ev.type);
+					pageModule[ev.type](ev);
+				} else {
+					console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"');
+				}
 			} else {
-				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"');
+				console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 			}
 		} else {
-			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
+			console.log('no active page for dispatching event: "' + ev.type + '", skip it');
 		}
 	};
 
 	//Call event handler for module
 	const setModuleToAciveState = function(moduleName, active) {
 		const module = require(moduleName);
-		console.log('dispatchEventToModule::module: ' + module);
+		console.log('setModuleToAciveState::module: ' + moduleName + ' active flag: ' + active);
 
 		if(module !== null) {
 			if(active === true && module.hasOwnProperty('active')) {
@@ -139,6 +139,14 @@ define(modules, function(require, utils) {
 		activeMaruqeeWidget.destroy();
 	};
 
+	window.addEventListener('blur', function() {
+		setModuleToAciveState('utils/alert_updater', false);
+	});
+	
+	window.addEventListener('focus', function() {
+		setModuleToAciveState('utils/alert_updater', true);
+	});
+	
 	document.addEventListener('pagebeforeshow', function(ev) {
 		const page = ev.target;
 
@@ -149,7 +157,7 @@ define(modules, function(require, utils) {
 		if (title) {
 			destroyables.add(createMarqueWidget(title));
 		}
-		
+
 		//Find every circle helper on current page, create widget for it and save it for later destruction
 		const selector = '.ui-listview.circle-helper-snap-list';
 		const snapListNodeList = page.querySelectorAll(selector);
@@ -193,16 +201,6 @@ define(modules, function(require, utils) {
 		dispatchEventToPage(ev);
 	});
 
-	document.addEventListener('onupdatealerts', function(ev) {
-		console.log('onupdatealerts::event triggered');
-
-		//Call event handler from page module (if provided)
-		dispatchEventToPage(ev);
-	});
-
-	//From now on tau engine starts automatically
-	//tau.engine.run();
-	
 	const appCtrl = utils.getAppControl();
 	const operation = appCtrl.operation;
 	const uri = appCtrl.uri;
@@ -218,6 +216,8 @@ define(modules, function(require, utils) {
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
-		setModuleToAciveState('utils/alert_updater', true);
 	}
+	
+	//for a first launching app
+	setModuleToAciveState('utils/alert_updater', true);
 });
