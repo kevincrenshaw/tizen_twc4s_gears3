@@ -460,6 +460,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			);
 		}
 
+		const weatherData = {
+			map: mapFilePath,
+			temperature: {
+				valueInCelsius: tempInCelsius,
+			}
+		};
+		
+		//Store information for widget
+		tizen.preference.setValue('weather_data', JSON.stringify(weatherData));
+
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);
