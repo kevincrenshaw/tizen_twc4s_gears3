@@ -131,11 +131,11 @@ define(modules, function(require, utils) {
 		activeMaruqeeWidget.destroy();
 	};
 
-	window.addEventListener('blur', function() {
+	window.addEventListener('blur', function(ev) {
 		setModuleToAciveState('utils/alert_updater', false);
 	});
 	
-	window.addEventListener('focus', function() {
+	window.addEventListener('focus', function(ev) {
 		setModuleToAciveState('utils/alert_updater', true);
 	});
 	
