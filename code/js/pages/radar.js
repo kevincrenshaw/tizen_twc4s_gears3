@@ -126,6 +126,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					text: dom.queryWrappedElement(root, '#refreshBox #text'),
 				},
 			},
+			footer: {
+				container: dom.queryWrappedElement(root, '#footer'),
+				alert: {
+					button: dom.queryWrappedElement(root, '#footer #alerts'),
+					counter: {
+						container: dom.queryWrappedElement(root, '#footer #alerts #counter-container'),
+						value: dom.queryWrappedElement(root, '#footer #alerts #counter-value'),
+					}
+				},
+			},
 		};
 		
 		const visibilityImpl = function(wrappedElement) {
@@ -196,6 +206,27 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					unit: setInnerHtmlImpl(element.header.time.unit),
 				},
 			},
+			
+			footer: {
+				visible: visibilityImpl(element.footer.container),
+				alert: {
+					onClick: onClickImpl(element.footer.alert.button),
+					counter: {
+						visible: visibilityImpl(element.footer.alert.counter.container),
+						value: function(number) {
+							element.footer.alert.counter.value.apply(function(el) {
+								const value = parseInt(number);
+								
+								const text = value >= consts.RADAR_ALERTS_MAX_NBR
+									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
+									: value; 
+								
+								el.innerHTML = text;
+							});
+						},
+					}
+				},
+			}
 		};
 	};
 	
@@ -229,6 +260,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				ui.header.temperature.time(this.snapshotTimeRepr[0]);
 				ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
 				ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
+				
+				ui.footer.alert.counter.value(0);
+				ui.footer.alert.counter.visible(true);
+				ui.footer.visible(true);
 			}
         } else {
             console.warn('updateUI. there is no ui to update');
@@ -487,6 +522,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			}, tryGetNewData);
 			
 			ui.header.refresh.btn.onClick(tryGetNewData);
+			ui.footer.alert.onClick(function() {
+				console.log('Alert click!');
+			});
 		},
 	};
 });

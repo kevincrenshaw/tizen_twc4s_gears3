@@ -209,3 +209,38 @@ body {
 	border-radius: 50%;
 	z-index: auto;
 }
+
+#radar.ui-page #footer {
+	visibility: hidden;
+}
+
+#radar.ui-page #alerts {
+	background-color: #009de8;
+	opacity: 0.75;
+}
+
+#radar.ui-page #alerts #icon {
+	display: block;
+	width: 42px;
+	height: 42px;
+	background-image: url("../resources/gfx/icon-alerts.png");
+	margin: 25px auto;
+	background-size: contain;
+}
+
+#radar.ui-page #alerts #counter-container {
+	position: absolute;
+	left: 191px;
+	top: 48px;
+	width: 20px;
+	height: 20px;
+	line-height: 7px;
+	border-radius: 50%;
+	background: #d6202b;
+	visibility: hidden;
+}
+
+#radar.ui-page #alerts #counter-value {
+	display:inline;
+	font-size: 12px;
+}
