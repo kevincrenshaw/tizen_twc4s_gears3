@@ -36,25 +36,18 @@ define(modules, function(require, utils) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
-		if(ev.target.id !== null && ev.target.id !== undefined) {
+		const moduleName = 'pages/' + ev.target.id;
+		const pageModule = require(moduleName);
 
-			const pageId = ev.target.id;
-
-			const moduleName = 'pages/' + pageId;
-			const pageModule = require(moduleName);
-
-			if (pageModule) {
-				if (pageModule.hasOwnProperty(ev.type)) {
-					console.info('Calling event handler for ' + moduleName + ':' + ev.type);
-					pageModule[ev.type](ev);
-				} else {
-					console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"');
-				}
+		if (pageModule) {
+			if (pageModule.hasOwnProperty(ev.type)) {
+				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
+				pageModule[ev.type](ev);
 			} else {
-				console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
+				console.debug('Module "' + moduleName + '" not accepting event: "' + ev.type + '"');
 			}
 		} else {
-			console.log('no active page for dispatching event: "' + ev.type + '", skip it');
+			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 		}
 	};
 

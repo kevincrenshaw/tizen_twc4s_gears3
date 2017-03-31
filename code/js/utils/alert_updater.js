@@ -1,8 +1,8 @@
 /* jshint esversion: 6 */
 
-define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], function(rx, consts, utils, network, storage) {
+define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], function(consts, utils, network, storage) {
 
-	var subscription = null;
+	var active = false;
 
 	//array of geolocation [latitude, longitude]
 	var coords = [0, 0];
@@ -18,15 +18,15 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 
 		const url = utils.createUri(consts.ALERTS_URL, params);
 		network.getResourceByURLRx(url).subscribe(
-				//on success
-				function(data, textStatus, xhr) {
-					onSuccess(data.alerts[0].latitude, data.alerts[0].longitude);
-				},
-				//error
-				function(err) {
-					console.error('cant fetch resource, response code: ' + err.code + ' and message: ' + err.message);
-					onError(err);
-				}
+			//on success
+			function(data, textStatus, xhr) {
+				onSuccess(data.alerts[0].latitude, data.alerts[0].longitude);
+			},
+			//error
+			function(err) {
+				console.error('cant fetch resource, response code: ' + err.code + ' and message: ' + err.message);
+				onError(err);
+			}
 		);
 	};
 
@@ -48,7 +48,7 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 			const url = constructURL();
 			console.log('request alerts, url: ' + url);
 
-			network.getResourceByURLRx(url).subscribe(
+			network.getResourceByURLRx(url, consts.ALERT_TIMEOUT_IN_MS).subscribe(
 				//on success
 				function(data, textStatus, xhr) {
 					storage.alert.add(JSON.stringify(data));
@@ -71,25 +71,14 @@ define(['rx', 'utils/const', 'utils/utils', 'utils/network', 'utils/storage'], f
 
 	return {
 		active: function() {
-			if(subscription !== null) {
-				return;
+			if(active === false) {
+				active = true;
+				fetchAndSaveData();
 			}
-			//run for first time
-			fetchAndSaveData();
-			//and start execution for every ALERT_TIMEOUT_IN_MS
-			subscription = rx.Observable.interval(consts.ALERT_TIMEOUT_IN_MS).subscribe(
-				function() {
-					fetchAndSaveData();
-				},
-				function(err) {
-					console.error('error: ' + err.status);
-				}
-			);
 		},
 		inactive: function() {
-			if (subscription) {
-				subscription.dispose();
-				subscription = null;
+			if(active === true) {
+				active = false;
 			}
 		},
 	};
