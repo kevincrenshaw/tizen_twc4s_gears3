@@ -216,7 +216,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 						
 						if (value > 0) {
 							element.footer.alert.counter.value.apply(function(el) {								
-								const text = value >= consts.RADAR_ALERTS_MAX_NBR
+								const text = value > consts.RADAR_ALERTS_MAX_NBR
 									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
 									: value; 
 								

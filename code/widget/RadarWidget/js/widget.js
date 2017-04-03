@@ -35,6 +35,8 @@ window.onload = function() {
 			console.log('weatherData = ' + weatherData);
 			weatherData = JSON.parse(weatherData);
 		}
+
+		ui.footer.alert.value(0);
 	}
 	
 	/**
@@ -84,7 +86,6 @@ window.onload = function() {
 			
 			if (tizen.preference.exists('current_map_image_path')) {
 				currentMapImagePath = tizen.preference.getValue('current_map_image_path');
-				console.log('currentMapImagePath = ' + currentMapImagePath);
 				ui.map.style['background-image'] = 'url("' + currentMapImagePath + '")';
 			}
 		}
@@ -141,11 +142,14 @@ window.onload = function() {
 	}
 	
 	function createUi(root) {
+		var footer = root.getElementById('footer');
+		var footer_alerts_value = root.getElementById('footer-alerts-counter-container-value');
+
 		var element = {
 			header: root.getElementById('header'),
 			map: root.getElementById('main-screen'),
 			
-			currentTime : {
+			currentTime: {
 				time: root.getElementById('time-value'),
 				ampm: root.getElementById('time-ampm'),
 			},
@@ -157,6 +161,22 @@ window.onload = function() {
 				snapshotTime: root.getElementById('snapshot-time'),
 				ampm: root.getElementById('ampm'),
 			},
+
+			footer: {
+				alert: {
+					value: function(value) {
+						value = Math.max(0, parseInt(value));
+
+						if (value > 0) {
+							value = value > 99 ? '99+' : value;
+							footer_alerts_value.textContent = value;
+							footer.style.visibility = 'visible';
+						} else {
+							footer.style.visibility = 'hidden';
+						}
+ 					}
+				}
+			}
 		};
 		
 		return element;
