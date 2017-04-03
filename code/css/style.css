@@ -214,12 +214,12 @@ body {
 	visibility: hidden;
 }
 
-#radar.ui-page #alerts {
+#radar.ui-page #footer #alerts {
 	background-color: #009de8;
 	opacity: 0.75;
 }
 
-#radar.ui-page #alerts #icon {
+#radar.ui-page #footer #alerts #icon {
 	display: block;
 	width: 42px;
 	height: 42px;
@@ -228,7 +228,7 @@ body {
 	background-size: contain;
 }
 
-#radar.ui-page #alerts #counter-container {
+#radar.ui-page #footer #alerts #counter-container {
 	position: absolute;
 	left: 191px;
 	top: 48px;
@@ -239,7 +239,7 @@ body {
 	background: #d6202b;
 }
 
-#radar.ui-page #alerts #counter-value {
+#radar.ui-page #footer #alerts #counter-value {
 	display:inline;
 	font-size: 12px;
 }
