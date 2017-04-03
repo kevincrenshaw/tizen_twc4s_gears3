@@ -53,10 +53,52 @@ div#temperatureBox {
 	bottom: 42px;
 	text-align: center;
 }
+
 #play {
 	position: absolute;
 	width: 100px;
 	height: 100px;
 	top: 130px;
 	left: 130px;
+}
+
+#footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	height: 97px;	
+}
+
+#footer-alerts {
+	text-align: center;
+	height: 100%;
+	opacity: 0.75;
+	background-image: url(../resources/images/tw_bottom_btn_bg.png);
+}
+
+#footer-alerts-icon {
+	position: absolute;
+	width: 42px;
+	height: 42px;
+	left: 159px;
+	top: 25px;
+	background-image: url("../resources/images/icon-alerts.png");
+	background-size: contain;
+}
+
+#footer-alerts-counter-container {
+	position: absolute;
+	left: 191px;
+	top: 51px;
+	width: 20px;
+	height: 20px;
+	line-height: 17px;
+	background-image: url("../resources/images/alerts_bg.png");
+	background-size: contain;
+}
+
+#footer-alerts-counter-container-value {
+	display:inline;
+	font-size: 12px;
+	color: white;
 }
