@@ -26,5 +26,6 @@ define([], function() {
 		GEOLOCATION_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		ALERT_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		ALERTS_URL: BASE_V3_URL + 'alerts/headlines',
+		MAPS_URL: BASE_V2_URL + 'maps/dynamic',
 	};
 });

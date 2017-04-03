@@ -32,35 +32,31 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 	};
 
 	const fetchAndSaveData = function() {
-		//implemented for testing purposes 
-		subscription = obtainTestCoords().subscribe(
-			function(lat, lon) {
-				const url = constructURL([lat, lon]);
-				console.log('request alerts, url: ' + url);
 
+		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).subscribe(
+			function(pos) {
+				const url = constructURL([pos.coords.latitude, pos.coords.longitude]);
+				console.log('request alerts, url: ' + url);
 				network.getResourceByURLRx(url, consts.ALERT_TIMEOUT_IN_MS).subscribe(
-					//on success
-					function(result) {
-						storage.alert.add(JSON.stringify(result.data));
-					},
-					//error
-					function(err) {
-						console.error('cant fetch resource, response:' + JSON.stringify(err));
-					}
-				);
+						//on success
+						function(result) {
+							storage.alert.add(JSON.stringify(result.data));
+						},
+						//error
+						function(err) {
+							console.error('cant fetch resource, response:' + JSON.stringify(err));
+						}
+					);
 			},
 			function(err) {
-				console.log('obtainTestCoords::error in testing part: ' + JSON.stringify(err));
+				console.warn('alerts updater. cant get current location' + JSON.stringify(err));
 			});
 	};
 
 	return {
-
 		active: function() {
 			return subscription !== null;
 		},
-			
-		
 		activate: function() {
 			if(subscription === null){
 				fetchAndSaveData();

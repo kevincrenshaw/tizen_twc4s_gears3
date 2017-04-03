@@ -36,8 +36,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			apiKey: consts.API_KEY,
 		};
 
-		const uriBase = ['https://api.weather.com', 'v2', 'maps', 'dynamic'].join('/');
-		return utils.createUri(uriBase, params);
+		return utils.createUri(consts.MAPS_URL, params);
 	};
 
 	const getCurrentConditionsUri = function(latitude, longitude) {
@@ -105,28 +104,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			}
 		});
 	};
-	
-	const getCurrentPositionRx = function(timeout) {
-		return rx.Observable.create(function(observer) {
-			const onSuccess = function(pos) {
-				observer.onNext(pos);
-				observer.onCompleted();
-			};
 
-			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
-			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
-			const onError = function(err) {
-				observer.onError(err);
-			};
-			
-			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
-			//1: 'PERMISSION_DENIED',
-			//2: 'POSITION_UNAVAILABLE',
-			//3: 'TIMEOUT',			
-			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: timeout });
-		});
-	};
-	
 	const createUiManager = function(root) {
 		const element = {
 			map: dom.queryWrappedElement(root, '#map'),
@@ -276,7 +254,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 
 		ui.header.refresh.btn.enable(false);
 
-		currentPositionSubscription = getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+		currentPositionSubscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
 		.flatMap(downloadWeatherDataAndMap)
@@ -327,16 +305,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		console.log('uniqueFileName: ' + uniqueFileName);
 
 		return network.getResourceByURLRx(currentConditionsUri)
-			.filter(function(weatherData) {
-				return weatherData && weatherData.metadata && weatherData.metadata.status_code === 200;
+			.filter(function(result) {
+				return result.data && result.data.metadata && result.xhr.status === 200;
 			})
-			.flatMap(function(weatherData) {
+			.flatMap(function(result) {
 				//By now we have current conditions json data
 				//Try to download map
 				return network.downloadFileRx(mapImgUri, uniqueFileName)
 					.map(function(mapFilePath) {
 						//Return both downloaded map file path and current weather data
-						return [weatherData, mapFilePath];
+						return [result.data, mapFilePath];
 					});
 			});
 	};
