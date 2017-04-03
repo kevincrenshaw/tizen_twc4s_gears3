@@ -56,12 +56,12 @@ define(modules, function(require, utils) {
 		const module = require(moduleName);
 
 		if(module !== null) {
-			if(active === true && module.hasOwnProperty('active')) {
-				module.active();
-			} else if(module.hasOwnProperty('inactive')) {
-				module.inactive();
+			if(active === true && module.hasOwnProperty('activate')) {
+				module.activate();
+			} else if(module.hasOwnProperty('deactivate')) {
+				module.deactivate();
 			} else {
-				console.warn('module: ' + moduleName + ' doesnt support active state. make sure that module has active() & inactive() public api');
+				console.warn('module: ' + moduleName + ' doesnt support active state. make sure that module has activate() & deactivate() public api');
 			}
 		}
 	};

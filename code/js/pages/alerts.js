@@ -8,11 +8,11 @@ define(['utils/storage', 'utils/utils'], function(storage, utils) {
 	function createAlertsDeleter(page) {
 		return function() {
 			//we dont want to catch events after manual deleting entry, unsubscribe first
-			tizen.preference.unsetChangeListener(storage.alert.getIndexKey(), updateHandler);
+			storage.alert.unsetChangeListener(updateHandler);
 			//then delete item
 			storage.alert.remove();
 			//and subscribe again for catching events again
-			tizen.preference.setChangeListener(storage.alert.getIndexKey(), updateHandler);
+			storage.alert.setChangeListener(updateHandler);
 			utils.modifyInnerHtml(page, 'span#status', '');
 		};
 	}
@@ -29,21 +29,21 @@ define(['utils/storage', 'utils/utils'], function(storage, utils) {
 	}
 
 	const alerts = {
-		onPageShow : function(page) {
+		onPageShow: function(page) {
 			deleteHandler = createAlertsDeleter(page);
 			updateHandler = createOnPrefsUpdater(page);
 
 			const savedAlerts = storage.alert.get();
 			if(savedAlerts) {
-				utils.modifyInnerHtml(document, 'span#status', savedAlerts);
+				utils.modifyInnerHtml(page, 'span#status', savedAlerts);
 			}
 			page.querySelector('#delete-button').addEventListener("click", deleteHandler);
-			tizen.preference.setChangeListener(storage.alert.getIndexKey(), updateHandler);
+			storage.alert.setChangeListener(updateHandler);
 		},
 
-		onPageHide : function(page) {
+		onPageHide: function(page) {
 			page.querySelector('#delete-button').removeEventListener("click", deleteHandler);
-			tizen.preference.unsetChangeListener(storage.alert.getIndexKey(), updateHandler);
+			storage.alert.unsetChangeListener(updateHandler);
 		},
 	};
 

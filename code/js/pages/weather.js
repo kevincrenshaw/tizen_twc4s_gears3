@@ -1,7 +1,7 @@
 /* jshint esversion: 6 */
 
 define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network, utils, storage, Rx) {
-	const url = ['http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json'];
+	const url = 'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json';
 	const waitForMillis = 5000; 
 	var subscription = null;
 	
@@ -28,7 +28,7 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 			subscription = Rx.Observable.interval(waitForMillis).subscribe(
 				function(x) {
 					//perform request
-					network.getResourceByURLRx(url).subscribe(
+					network.getResourceByURLRx(url, 0).subscribe(
 						function(data, textStatus, xhr) {
 							if(subscription) {
 								console.log('response fetched and saved');

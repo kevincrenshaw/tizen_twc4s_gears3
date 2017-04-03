@@ -1,11 +1,5 @@
 /* jshint esversion: 6 */
 
-//	var urls = [
-//			'http://jsonplaceholder.typicode.com/posts/1',
-//			'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json',
-//			'http://jsonplaceholder.typicode.com/posts/3',
-//			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
-
 define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 
 	/**
@@ -34,7 +28,7 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	};
 
 	
-	const downloadFileRx = function(url, dest) {		
+	const downloadFileRx = function(url, dest) {
 		return Rx.Observable.create(function(observer) {
 			const downloadListener = {
 				oncompleted: function(id, fullPath) {
@@ -52,21 +46,24 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		});
 	};
 
+	/**
+	 * get resource by given URL
+	 * */
 	const getResourceByURLRx = function(url, timeout) {
-		const timeout = timeout || 30000;
+		const timeout = (timeout >= 0) ? timeout : 30000;
 
-		return Rx.Observable.create(function(observer) {
-			const listener = function(data, textStatus, xhr) {
-				if(xhr.status === 200) {
-					observer.onNext(data, textStatus, xhr);
-					observer.onCompleted();
-				} else {
-					observer.onError({code: xhr.status, message: xhr.statusText});
-				}
-			};
-
-			$.get(url, listener);
-		}).timeout(timeout);
+		return Rx.Observable.create(
+			function(observer) {
+				$.ajax({
+					url: url,
+					success:  function(data, textStatus, xhr) {
+						observer.onNext({data: data, textStatus: textStatus, xhr: xhr});
+						observer.onCompleted();
+					},
+					timeout: timeout,
+				});
+			}
+		);
 	};
 
 	return {

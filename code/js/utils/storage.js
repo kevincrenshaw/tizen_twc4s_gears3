@@ -219,13 +219,6 @@ define(['utils/fsutils'], function(fsutils) {
 		const LSIndex = key + '_ls_index';
 		const LSValue = key + '_ls_value_';
 
-		/**
-		 * returns specified for current storage keyname
-		 * */
-		const getIndexKey = function() {
-			return LSIndex;
-		};
-
 		const get = function() {
 			const index = getIndex(LSIndex);
 			try {
@@ -234,7 +227,7 @@ define(['utils/fsutils'], function(fsutils) {
 				return null;
 			}
 		};
-		
+
 		const add = function(value) {
 			const index = getIndex(LSIndex);
 			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
@@ -249,14 +242,27 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 		};
 
+		const setChangeListener = function(changeListener) {
+			if(changeListener) {
+				tizen.preference.setChangeListener(LSIndex, changeListener);
+			}
+		};
+
+		const unsetChangeListener = function(changeListener) {
+			if(changeListener) {
+			 tizen.preference.unsetChangeListener(LSIndex, changeListener);
+			}
+		};
+
 		return {
-			getIndexKey: getIndexKey,
 			get: get,
 			add: add,
 			remove: remove,
+			setChangeListener: setChangeListener,
+			unsetChangeListener: unsetChangeListener,
 		};
 	};
-	
+
 	const createFileStorage = function(key, maxSize) {
 
 		const rootDirName = 'wgt-private';
