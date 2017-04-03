@@ -131,7 +131,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				alert: {
 					button: dom.queryWrappedElement(root, '#footer #alerts'),
 					counter: {
-						container: dom.queryWrappedElement(root, '#footer #alerts #counter-container'),
 						value: dom.queryWrappedElement(root, '#footer #alerts #counter-value'),
 					}
 				},
@@ -208,22 +207,26 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			},
 			
 			footer: {
-				visible: visibilityImpl(element.footer.container),
 				alert: {
 					onClick: onClickImpl(element.footer.alert.button),
-					counter: {
-						visible: visibilityImpl(element.footer.alert.counter.container),
-						value: function(number) {
-							element.footer.alert.counter.value.apply(function(el) {
-								const value = parseInt(number);
-								
+					
+					counter: function(number) {
+						const value = Math.max(0, parseInt(number));
+						const containerVisibility = visibilityImpl(element.footer.container);
+						
+						if (value > 0) {
+							element.footer.alert.counter.value.apply(function(el) {								
 								const text = value >= consts.RADAR_ALERTS_MAX_NBR
 									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
 									: value; 
 								
 								el.innerHTML = text;
 							});
-						},
+							
+							containerVisibility(true);
+						} else {
+							containerVisibility(false);
+						}
 					}
 				},
 			}
@@ -260,10 +263,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				ui.header.temperature.time(this.snapshotTimeRepr[0]);
 				ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
 				ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
-				
-				ui.footer.alert.counter.value(0);
-				ui.footer.alert.counter.visible(true);
-				ui.footer.visible(true);
+				ui.footer.alert.counter(0);
 			}
         } else {
             console.warn('updateUI. there is no ui to update');

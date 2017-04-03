@@ -237,7 +237,6 @@ body {
 	line-height: 7px;
 	border-radius: 50%;
 	background: #d6202b;
-	visibility: hidden;
 }
 
 #radar.ui-page #alerts #counter-value {
