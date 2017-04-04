@@ -2,7 +2,6 @@
 define([], function() {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
-	var popupCancelBtn;
 	var popupHeader;
 	var popup;
 	
@@ -70,7 +69,7 @@ define([], function() {
 				console.warn('setupMainMenu: page element "#selector" not found"');
 				return;
 			}
-			
+
 			setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
 			setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
@@ -81,15 +80,7 @@ define([], function() {
 				console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
 				return;
 			}
-			
-			popupCancelBtn = popup.querySelector('#cancel');
-			if (!popupCancelBtn) {
-				console.warn('setupMainMenu: popup element "#cancel" not found"');
-				return;
-			}
-			
-			popupCancelBtn.addEventListener('click', popupCancelButtonClickHandler);
-			
+
 			popupHeader = popup.querySelector('#header');
 			if (!popupHeader) {
 				console.warn('setupMainMenu: popup element "#header" not found"');
@@ -117,10 +108,6 @@ define([], function() {
 			if (selectorWidget) {
 				selectorWidget.destroy();
 				selectorWidget = null;
-			}
-			
-			if (popupCancelBtn) {
-				popupCancelBtn.removeEventListener(popupCancelButtonClickHandler);
 			}
 		},
 	};

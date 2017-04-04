@@ -47,7 +47,7 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 			return subscription !== null;
 		},
 		activate: function() {
-			if(subscription === null){
+			if(subscription === null) {
 				fetchAndSaveData();
 			} else {
 				console.warn('module is in active state');

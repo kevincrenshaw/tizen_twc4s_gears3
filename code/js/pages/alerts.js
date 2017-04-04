@@ -2,15 +2,7 @@
 
 define(['utils/storage', 'utils/utils'], function(storage, utils) {
 
-	var deleteHandler = null;
 	var updateHandler = null;
-	
-	function createAlertsDeleter(page) {
-		return function() {
-			storage.alert.remove();
-			utils.modifyInnerHtml(page, 'span#status', '');
-		};
-	}
 
 	function createOnPrefsUpdater(page) {
 		return function() {
@@ -19,27 +11,28 @@ define(['utils/storage', 'utils/utils'], function(storage, utils) {
 				utils.modifyInnerHtml(page, 'span#status', savedAlerts);
 				var timestamp = new Date();
 				utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());
+			} else {
+				utils.modifyInnerHtml(page, 'span#status', '');
 			}
 		};
 	}
 
 	const alerts = {
 		onPageShow: function(page) {
-			deleteHandler = createAlertsDeleter(page);
 			updateHandler = createOnPrefsUpdater(page);
 
 			const savedAlerts = storage.alert.get();
+			console.log('storage.alert.get() returns: ' + savedAlerts);
 			if(savedAlerts) {
 				utils.modifyInnerHtml(page, 'span#status', savedAlerts);
 			}
-			page.querySelector('#delete-button').addEventListener("click", deleteHandler);
+			page.querySelector('#delete-button').addEventListener("click", storage.alert.remove);
 			storage.alert.setChangeListener(updateHandler);
 		},
 
 		onPageHide: function(page) {
-			page.querySelector('#delete-button').removeEventListener("click", deleteHandler);
+			page.querySelector('#delete-button').removeEventListener("click", storage.alert.remove);
 			storage.alert.unsetChangeListener(updateHandler);
-			deleteHandler = null;
 			updateHandler = null;
 		},
 	};

@@ -200,4 +200,10 @@ define(modules, function(require, utils) {
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
 	}
+
+	//called for a first app launch. because "focus" event triggers only by home button.
+	const module = require('utils/alert_updater');
+	if(module.active() === false) {
+		module.activate();
+	}
 });
