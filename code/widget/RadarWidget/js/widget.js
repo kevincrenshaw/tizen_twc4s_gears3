@@ -20,6 +20,7 @@ window.onload = function() {
 		ui = createUi(document);
 		
 		ui.map.addEventListener('click', launchApp);
+		ui.footer.alert.container.addEventListener('click', launchAlerts);
 		
 		if(tizen.preference.exists('time_ampm')) {
 			ampm = tizen.preference.getValue('time_ampm');
@@ -46,6 +47,7 @@ window.onload = function() {
 		console.log('on page hide');
 		if(ui) {
 			ui.map.removeEventListener('click', launchApp);
+			ui.footer.alert.container.removeEventListener('click', launchAlerts);
 			ui.map = null;
 			ui = null;
 		}
@@ -140,6 +142,10 @@ window.onload = function() {
 			},
 			null);
 	}
+
+	function launchAlerts() {
+		console.log('launch alerts');
+	}
 	
 	function createUi(root) {
 		var footer = root.getElementById('footer');
@@ -164,6 +170,7 @@ window.onload = function() {
 
 			footer: {
 				alert: {
+					container: footer,
 					value: function(value) {
 						value = Math.max(0, parseInt(value));
 

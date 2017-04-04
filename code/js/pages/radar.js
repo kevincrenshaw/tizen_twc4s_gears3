@@ -263,7 +263,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				ui.header.temperature.time(this.snapshotTimeRepr[0]);
 				ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
 				ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
-				ui.footer.alert.counter(0);
 			}
         } else {
             console.warn('updateUI. there is no ui to update');
@@ -505,6 +504,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			ui = createUiManager(page);
+			ui.footer.alert.counter(0);
 
 			document.addEventListener('visibilitychange', visibilitychange);
 
