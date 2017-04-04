@@ -4,26 +4,9 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 
 	var subscription = null;
 
-	//this function uses to obtain test coords
-	const obtainTestCoords = function() {
+	const constructURL = function(lat, lon) {
 		const params = {
-			countryCode: 'US',
-			format: 'json',
-			language: 'en-US',
-			apiKey: consts.API_KEY,
-		};
-
-		const url = utils.createUri(consts.ALERTS_URL, params);
-		return network.getResourceByURLRx(url).map(
-			function(result) {
-				return [result.data.alerts[0].latitude, result.data.alerts[0].longitude];
-			}
-		);
-	};
-
-	const constructURL = function(coords) {
-		const params = {
-			geocode: [coords[0], coords[1]].join(','),
+			geocode: [lat, lon].join(','),
 			format: 'json',
 			language: 'en-US',
 			apiKey: consts.API_KEY,
@@ -31,26 +14,32 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 		return utils.createUri(consts.ALERTS_URL, params);
 	};
 
-	const fetchAndSaveData = function() {
+	const getAlertDataByCoords = function(coords) {
+		const url = constructURL(coords[0], coords[1]);
+		console.log('request alerts, url: ' + url);
+		return network.getResourceByURLRx(url, consts.ALERT_TIMEOUT_IN_MS);
+	};
 
-		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).subscribe(
-			function(pos) {
-				const url = constructURL([pos.coords.latitude, pos.coords.longitude]);
-				console.log('request alerts, url: ' + url);
-				network.getResourceByURLRx(url, consts.ALERT_TIMEOUT_IN_MS).subscribe(
-						//on success
-						function(result) {
-							storage.alert.add(JSON.stringify(result.data));
-						},
-						//error
-						function(err) {
-							console.error('cant fetch resource, response:' + JSON.stringify(err));
-						}
-					);
+	function filterResponse(result) {
+		return result != null && result.data != null && result.data != undefined;
+	};
+
+	const fetchAndSaveData = function() {
+		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+			return [pos.coords.latitude, pos.coords.longitude];
+		})
+		.flatMap(getAlertDataByCoords)
+		.filter(filterResponse)
+		.subscribe(
+			//on success
+			function(result) {
+				storage.alert.add(JSON.stringify(result.data));
 			},
+			//error
 			function(err) {
-				console.warn('alerts updater. cant get current location' + JSON.stringify(err));
-			});
+				console.error('cant fetch resource, response:' + JSON.stringify(err));
+			}
+		);
 	};
 
 	return {
@@ -61,7 +50,7 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 			if(subscription === null){
 				fetchAndSaveData();
 			} else {
-				console.error('module is in active state');
+				console.warn('module is in active state');
 			}
 		},
 		deactivate: function() {

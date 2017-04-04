@@ -23,45 +23,24 @@ define([], function() {
 		case 'settings':
 			tau.changePage("html/settings.html");
 			break;
-			
+
 		case 'radar':
 			tau.changePage("html/radar.html");
 			break;
-			
+
 		case 'weather':
 			tau.changePage("html/weather.html");
 			break;
-			
+
 		case 'alerts':
 			tau.changePage("html/alerts.html");
 			break;
-			
+
 		default:
-			//By default show popup with localized option title
-			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
-			if (!dataTitleAttribute) {
-				console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
-				return;
-			}
-			
-			const activeItemDataTitleValue = dataTitleAttribute.value;
-			if (!activeItemDataTitleValue) {
-				console.warn('setupMainMenu::selectorClickHandler: missing activeItemDataTitleValue');
-				return;
-			}
-			
-			console.log('setupMainMenu::selectorClickHandler: default item handler, activeItem={id="' + activeItem.id + '", data-title="' + activeItemDataTitleValue +  '"}');
-			
-			if (!popupHeader) {
-				console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
-				return;
-			}
-			
-			popupHeader.innerHTML = activeItemDataTitleValue;
-			tau.openPopup(popup);
+			console.warn('setupMainMenu::selectorClickHandler: missing menu element');
 		}
 	};
-	
+
 	const setDataTitleAttributeValue = function(root, selector, value) {
 		const element = root.querySelector(selector);
 		

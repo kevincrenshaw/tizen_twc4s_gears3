@@ -215,7 +215,7 @@ define(['utils/fsutils'], function(fsutils) {
     };
 	
     
-	const createLocalStorage = function(key, maxSize) {
+	const createPersistentStorage = function(key, maxSize) {
 		const LSIndex = key + '_ls_index';
 		const LSValue = key + '_ls_value_';
 
@@ -243,14 +243,22 @@ define(['utils/fsutils'], function(fsutils) {
 		};
 
 		const setChangeListener = function(changeListener) {
-			if(changeListener) {
-				tizen.preference.setChangeListener(LSIndex, changeListener);
+			try {
+				if(changeListener) {
+					tizen.preference.setChangeListener(LSIndex, changeListener);
+				}
+			} catch(err) {
+				console.error('setChangeListener cant set listener to "' + LSIndex +'" key');
 			}
 		};
 
 		const unsetChangeListener = function(changeListener) {
-			if(changeListener) {
-			 tizen.preference.unsetChangeListener(LSIndex, changeListener);
+			try {
+				if(changeListener) {
+					 tizen.preference.unsetChangeListener(LSIndex, changeListener);
+				}
+			} catch(err) {
+				console.error('unsetChangeListener cant unset listener from "' + LSIndex +'" key');
 			}
 		};
 
@@ -452,10 +460,9 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		json : createLocalStorage('json', 4),
+		json : createPersistentStorage('json', 4),
 		file : createFileStorage('file', 4),
-		compass: createFileStorage('compass', 4),
-		alert: createLocalStorage('alert', 4),
+		alert: createPersistentStorage('alert', 1),
 	};
 	
 	return storage;

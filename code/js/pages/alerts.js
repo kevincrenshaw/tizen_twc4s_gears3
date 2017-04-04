@@ -7,12 +7,7 @@ define(['utils/storage', 'utils/utils'], function(storage, utils) {
 	
 	function createAlertsDeleter(page) {
 		return function() {
-			//we dont want to catch events after manual deleting entry, unsubscribe first
-			storage.alert.unsetChangeListener(updateHandler);
-			//then delete item
 			storage.alert.remove();
-			//and subscribe again for catching events again
-			storage.alert.setChangeListener(updateHandler);
 			utils.modifyInnerHtml(page, 'span#status', '');
 		};
 	}
@@ -44,6 +39,8 @@ define(['utils/storage', 'utils/utils'], function(storage, utils) {
 		onPageHide: function(page) {
 			page.querySelector('#delete-button').removeEventListener("click", deleteHandler);
 			storage.alert.unsetChangeListener(updateHandler);
+			deleteHandler = null;
+			updateHandler = null;
 		},
 	};
 

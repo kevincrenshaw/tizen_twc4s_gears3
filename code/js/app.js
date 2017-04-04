@@ -36,7 +36,9 @@ define(modules, function(require, utils) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
-		const moduleName = 'pages/' + ev.target.id;
+		const page = ev.target;
+		const moduleName = 'pages/' + page.id;
+
 		const pageModule = require(moduleName);
 
 		if (pageModule) {
@@ -48,21 +50,6 @@ define(modules, function(require, utils) {
 			}
 		} else {
 			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
-		}
-	};
-
-	//Call event handler for module
-	const setModuleToAciveState = function(moduleName, active) {
-		const module = require(moduleName);
-
-		if(module !== null) {
-			if(active === true && module.hasOwnProperty('activate')) {
-				module.activate();
-			} else if(module.hasOwnProperty('deactivate')) {
-				module.deactivate();
-			} else {
-				console.warn('module: ' + moduleName + ' doesnt support active state. make sure that module has activate() & deactivate() public api');
-			}
 		}
 	};
 
@@ -132,11 +119,15 @@ define(modules, function(require, utils) {
 	};
 
 	window.addEventListener('blur', function(ev) {
-		setModuleToAciveState('utils/alert_updater', false);
+		const module = require('utils/alert_updater');
+		module.deactivate();
 	});
 	
 	window.addEventListener('focus', function(ev) {
-		setModuleToAciveState('utils/alert_updater', true);
+		const module = require('utils/alert_updater');
+		if(module.active() === false) {
+			module.activate();
+		}
 	});
 	
 	document.addEventListener('pagebeforeshow', function(ev) {
@@ -209,7 +200,4 @@ define(modules, function(require, utils) {
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
 	}
-	
-	//for a first launching app
-	setModuleToAciveState('utils/alert_updater', true);
 });
