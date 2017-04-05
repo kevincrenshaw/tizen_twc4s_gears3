@@ -202,6 +202,14 @@ define(modules, function(require, utils) {
 	}
 
 	//called for a first app launch. because "focus" event triggers only by home button.
+	
+	//TODO This is only workaround for a problem. To fix root cause we need:
+	//	catch all focus events (event those fired before module been loaded)
+	//Possible solutions:
+	//		add event listener "focus" & "blur" at the very beggining of app launching.
+	//		handle cases when storage (implemented with tizen.preference) has no value yet but we would like to subscribe on change
+	// now, because we cant be sure in correct sequence of module launching & subscribtion on window events
+	// lets left this temporary workaround
 	const module = require('utils/alert_updater');
 	if(module.active() === false) {
 		module.activate();
