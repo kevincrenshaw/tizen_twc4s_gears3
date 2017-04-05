@@ -131,7 +131,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				alert: {
 					button: dom.queryWrappedElement(root, '#footer #alerts'),
 					counter: {
-						value: dom.queryWrappedElement(root, '#footer #alerts #counter-value'),
+						container: dom.queryWrappedElement(root, '#alerts-counter-container'),
+						value: dom.queryWrappedElement(root, '#alerts-counter-container #alerts-counter-value'),
 					}
 				},
 			},
@@ -177,6 +178,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			};
 		};
 		
+		const footerContainerVisibility = visibilityImpl(element.footer.container);
+		const alertCounterContainerVisibility = visibilityImpl(element.footer.alert.counter.container);
+		
 		return {
 			map: {
 				visible: visibilityImpl(element.map),
@@ -212,7 +216,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					
 					counter: function(number) {
 						const value = Math.max(0, parseInt(number));
-						const containerVisibility = visibilityImpl(element.footer.container);
 						
 						if (value > 0) {
 							element.footer.alert.counter.value.apply(function(el) {								
@@ -223,9 +226,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 								el.innerHTML = text;
 							});
 							
-							containerVisibility(true);
+							footerContainerVisibility(true);
+							alertCounterContainerVisibility(true);
 						} else {
-							containerVisibility(false);
+							alertCounterContainerVisibility(false);
+							footerContainerVisibility(false);
 						}
 					}
 				},
@@ -470,24 +475,53 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		
 		//Store information for widget
 		tizen.preference.setValue('weather_data', JSON.stringify(weatherData));
-
+		
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);
 		ui.header.refresh.btn.enable(true);
 		ui.map.visible(true);
 		ui.header.visible(true);
+		ui.footer.alert.counter(getNbrOfAlerts());
 	};
 
+	const getNbrOfAlerts = function() {
+		const alertsObj = getAlertsObjectOrUndefined();
+		return alertsObj && alertsObj.alerts ? alertsObj.alerts.length : 0;
+	};
 
 	const visibilitychange = function() {
 		if(document.hidden !== true) {
 			tryGetNewData();
 		}
 	};
+	
+	const getAlertsObjectOrUndefined = function() {
+		return convertAlertsTextToObjectOrUndefined(storage.alert.get());
+	};
+	
+	const convertAlertsTextToObjectOrUndefined = function(alertsText) {		
+		if (alertsText) {
+			try {
+				return JSON.parse(alertsText);
+			} catch (err) {
+				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+			}
+		}
+		
+		return undefined;
+	};
+	
+	const alertDataChange = function(data) {
+		const alertsObj = convertAlertsTextToObjectOrUndefined(data.value);		
+		const nbrOfAlerts = alertsObj ? alertsObj.alerts.length : 0;
+		ui.footer.alert.counter(nbrOfAlerts);
+	};
 
 	return {
 		pagebeforehide: function(ev) {
+			storage.alert.unsetChangeListener(alertDataChange);
+			
 			if (currentPositionSubscription) {
 				currentPositionSubscription.dispose();
 				currentPositionSubscription = null;
@@ -504,7 +538,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			ui = createUiManager(page);
-			ui.footer.alert.counter(0);
 
 			document.addEventListener('visibilitychange', visibilitychange);
 
@@ -525,6 +558,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			ui.footer.alert.onClick(function() {
 				console.log('Alert click!');
 			});
+			
+			storage.alert.setChangeListener(alertDataChange);
 		},
 	};
 });

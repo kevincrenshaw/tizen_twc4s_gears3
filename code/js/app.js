@@ -11,12 +11,12 @@ requirejs.config({
 const modules = [
 	'require',
 	'utils/utils',
+	'utils/alert_updater',
 	'utils/storage',
 	'utils/network',
 	'utils/back',
 	'utils/lowBatteryCheck',
 	'utils/dom',
-	'utils/alert_updater',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
@@ -32,7 +32,7 @@ const modules = [
 	'pages/alerts'
 ];
 
-define(modules, function(require, utils) {
+define(modules, function(require, utils, alertUpdater) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
@@ -119,14 +119,12 @@ define(modules, function(require, utils) {
 	};
 
 	window.addEventListener('blur', function(ev) {
-		const module = require('utils/alert_updater');
-		module.deactivate();
+		alertUpdater.deactivate();
 	});
 	
 	window.addEventListener('focus', function(ev) {
-		const module = require('utils/alert_updater');
-		if(module.active() === false) {
-			module.activate();
+		if(!alertUpdater.active()) {
+			alertUpdater.activate();
 		}
 	});
 	
@@ -210,8 +208,7 @@ define(modules, function(require, utils) {
 	//		handle cases when storage (implemented with tizen.preference) has no value yet but we would like to subscribe on change
 	// now, because we cant be sure in correct sequence of module launching & subscribtion on window events
 	// lets left this temporary workaround
-	const module = require('utils/alert_updater');
-	if(module.active() === false) {
-		module.activate();
+	if(!alertUpdater.active()) {
+		alertUpdater.activate();
 	}
 });

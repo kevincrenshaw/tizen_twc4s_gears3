@@ -19,22 +19,20 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 		console.log('request alerts, url: ' + url);
 		return network.getResourceByURLRx(url, consts.ALERT_TIMEOUT_IN_MS);
 	};
-
-	function filterResponse(result) {
-		return result != null && result.data != null && result.data != undefined;
-	};
-
+	
 	const fetchAndSaveData = function() {
 		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
 		.flatMap(getAlertDataByCoords)
-		.filter(filterResponse)
+		.map(function (result) {
+			return JSON.stringify(result.data || '');
+		})
+
 		.subscribe(
 			//on success
-			function(result) {
-				storage.alert.add(JSON.stringify(result.data));
-			},
+			storage.alert.set,
+			
 			//error
 			function(err) {
 				console.error('cant fetch resource, response:' + JSON.stringify(err));
@@ -46,13 +44,15 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 		active: function() {
 			return subscription !== null;
 		},
+		
 		activate: function() {
-			if(subscription === null) {
+			if(!this.active()) {
 				fetchAndSaveData();
 			} else {
 				console.warn('module is in active state');
 			}
 		},
+		
 		deactivate: function() {
 			if (subscription) {
 				subscription.dispose();

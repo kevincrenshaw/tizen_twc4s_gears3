@@ -228,18 +228,21 @@ body {
 	background-size: contain;
 }
 
-#radar.ui-page #footer #alerts #counter-container {
+#radar.ui-page #alerts-counter-container {
+	visibility: hidden;
 	position: absolute;
 	left: 191px;
-	top: 48px;
+	top: 311px;
 	width: 20px;
 	height: 20px;
-	line-height: 7px;
+	line-height: 5px;
 	border-radius: 50%;
 	background: #d6202b;
+	text-align: center;
 }
 
-#radar.ui-page #footer #alerts #counter-value {
+#radar.ui-page #alerts-counter-value {
 	display:inline;
 	font-size: 12px;
+	color: white;
 }

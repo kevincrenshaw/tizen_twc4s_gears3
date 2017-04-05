@@ -37,7 +37,7 @@ window.onload = function() {
 			weatherData = JSON.parse(weatherData);
 		}
 
-		ui.footer.alert.value(0);
+		ui.footer.alert.value(getNbrOfAlerts());
 	}
 	
 	/**
@@ -187,6 +187,30 @@ window.onload = function() {
 		};
 		
 		return element;
+	}
+	
+	function getNbrOfAlerts() {
+		var key = 'alerts';
+		var value;
+		var alertsObj;
+		
+		if (tizen.preference.exists(key)) {
+			value = tizen.preference.getValue(key);
+			
+			if (value) {
+				try {
+					alertsObj = JSON.parse(value);
+					
+					if (alertsObj && alertsObj.alerts) {
+						return alertsObj.alerts.length;						
+					}					
+				} catch (err) {
+					console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+				}
+			}
+		}
+		
+		return 0;
 	}
 	
 	document.addEventListener('visibilitychange', handleVisibilityChange);
