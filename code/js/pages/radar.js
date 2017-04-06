@@ -7,10 +7,11 @@ const radarModules = [
 	'utils/const',
 	'utils/utils',
 	'utils/dom',
+	'utils/alert_updater',
 	'rx'
 ];
 
-define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
+define(radarModules, function(storage, map, network, consts, utils, dom, alertUpdater, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
 	var ui;
@@ -478,6 +479,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				valueInCelsius: tempInCelsius,
 			}
 		};
+		
+		alertUpdater.deactivate();
+		alertUpdater.activate();
 		
 		//Store information for widget
 		tizen.preference.setValue('weather_data', JSON.stringify(weatherData));
