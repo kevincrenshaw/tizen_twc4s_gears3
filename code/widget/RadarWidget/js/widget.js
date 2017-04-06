@@ -172,8 +172,6 @@ window.onload = function() {
 				alert: {
 					container: footer,
 					value: function(value) {
-						value = Math.max(0, parseInt(value));
-
 						if (value > 0) {
 							value = value > 99 ? '99+' : value;
 							footer_alerts_value.textContent = value;
@@ -194,19 +192,16 @@ window.onload = function() {
 		var value;
 		var alertsObj;
 		
-		if (tizen.preference.exists(key)) {
-			value = tizen.preference.getValue(key);
-			
-			if (value) {
-				try {
-					alertsObj = JSON.parse(value);
-					
-					if (alertsObj && alertsObj.alerts) {
-						return alertsObj.alerts.length;						
-					}					
-				} catch (err) {
-					console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
-				}
+		value = getFromStore(key);
+		if (value) {
+			try {
+				alertsObj = JSON.parse(value);
+				
+				if (alertsObj && alertsObj.alerts) {
+					return alertsObj.alerts.length;						
+				}					
+			} catch (err) {
+				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
 			}
 		}
 		

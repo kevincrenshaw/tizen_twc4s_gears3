@@ -215,7 +215,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					onClick: onClickImpl(element.footer.alert.button),
 					
 					counter: function(number) {
-						const value = Math.max(0, parseInt(number));
+						const value = parseInt(number);
 						
 						if (value > 0) {
 							element.footer.alert.counter.value.apply(function(el) {								
