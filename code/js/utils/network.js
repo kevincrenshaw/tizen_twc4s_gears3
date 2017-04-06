@@ -1,32 +1,7 @@
 /* jshint esversion: 6 */
 
-//	var urls = [
-//			'http://jsonplaceholder.typicode.com/posts/1',
-//			'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json',
-//			'http://jsonplaceholder.typicode.com/posts/3',
-//			'https://splashbase.s3.amazonaws.com/unsplash/regular/tumblr_mnh0n9pHJW1st5lhmo1_1280.jpg' ];
-
 define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
-	
-	const getResourcesByURL = function(urls, options) {
-		options = options || {};
 
-		const timeout = options.timeout || 30000;
-		const delay = options.delay || 0;
-		
-		var requestedStream = Rx.Observable
-			.from(urls)
-			.delay(new Date(Date.now() + delay));
-
-		var response = requestedStream.flatMap(function(requestedUrl) {
-			return Rx.Observable
-				.fromPromise($.get(requestedUrl))
-				.timeout(timeout);
-		});
-
-		return response;
-	};
-	
 	/**
 	 * download file by given url
 	 * Params:
@@ -53,7 +28,7 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	};
 
 	
-	const downloadFileRx = function(url, dest) {		
+	const downloadFileRx = function(url, dest) {
 		return Rx.Observable.create(function(observer) {
 			const downloadListener = {
 				oncompleted: function(id, fullPath) {
@@ -71,9 +46,29 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 		});
 	};
 
+	/**
+	 * get resource by given URL
+	 * */
+	const getResourceByURLRx = function(url, timeout) {
+		const timeout = (timeout >= 0) ? timeout : 30000;
+
+		return Rx.Observable.create(
+			function(observer) {
+				$.ajax({
+					url: url,
+					success:  function(data, textStatus, xhr) {
+						observer.onNext({data: data, textStatus: textStatus, xhr: xhr});
+						observer.onCompleted();
+					},
+					timeout: timeout,
+				});
+			}
+		);
+	};
+
 	return {
-		getResourcesByURL: getResourcesByURL,
 		downloadImageFile: downloadImageFile,
 		downloadFileRx: downloadFileRx,
+		getResourceByURLRx: getResourceByURLRx,
 	};
 });

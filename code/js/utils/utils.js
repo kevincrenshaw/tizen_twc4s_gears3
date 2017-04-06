@@ -223,7 +223,51 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		const app = window.tizen.application.getCurrentApplication();
 		return app.getRequestedAppControl().appControl;
 	};
-	
+
+	/**
+	 * Construct url from base url part and params
+	 * Params:
+	 * 		base - base part of url
+	 * 		params - object of params
+	 * 
+	 * Returns:
+	 * 		full url as a string
+	 * */
+	const createUri = function(base, params) {
+		params = params || {};
+		const paramsArr = [];
+		
+		Object.keys(params).forEach(function(key) {
+			paramsArr.push([key, params[key]].join('='));
+		});
+		
+		return base + (paramsArr.length > 0 ? '?' + paramsArr.join('&') : '');
+	};
+
+	/**
+	 * Get current position
+	 * */
+	const getCurrentPositionRx = function(timeout) {
+		return Rx.Observable.create(function(observer) {
+			const onSuccess = function(pos) {
+				observer.onNext(pos);
+				observer.onCompleted();
+			};
+
+			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
+			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
+			const onError = function(err) {
+				observer.onError(err);
+			};
+
+			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
+			//1: 'PERMISSION_DENIED',
+			//2: 'POSITION_UNAVAILABLE',
+			//3: 'TIMEOUT',
+			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: timeout });
+		});
+	};
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -238,5 +282,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getCategoryForTimeDiff: getCategoryForTimeDiff,
 		formatTimeDiffValue: formatTimeDiffValue,
 		getAppControl: getAppControl,
+		createUri: createUri,
+		getCurrentPositionRx: getCurrentPositionRx,
 	};
 });

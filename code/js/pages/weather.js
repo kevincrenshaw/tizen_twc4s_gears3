@@ -1,7 +1,7 @@
 /* jshint esversion: 6 */
 
 define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network, utils, storage, Rx) {
-	const url = ['http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json'];
+	const url = 'http://api.wunderground.com/api/abf91b89f554facf/conditions/q/CA/San_Francisco.json';
 	const waitForMillis = 5000; 
 	var subscription = null;
 	
@@ -28,23 +28,22 @@ define(['utils/network', 'utils/utils', 'utils/storage', 'rx'], function(network
 			subscription = Rx.Observable.interval(waitForMillis).subscribe(
 				function(x) {
 					//perform request
-					network.getResourcesByURL(url, { timeout: 0, delay: 0}).subscribe(
-						function(response) {
+					network.getResourceByURLRx(url, 0).subscribe(
+						function(data, textStatus, xhr) {
 							if(subscription) {
 								console.log('response fetched and saved');
 								utils.modifyInnerHtml(page, 'span#status', '');
-								const result = JSON.stringify(response);
+								const result = JSON.stringify(data);
 								utils.modifyInnerHtml(page, 'span#status', result);
 								storage.json.add(result);
 							} else {
 								console.log('response fetched but no listener found - exit');
 							}
 						},
-						function(error) {
-							console.error("error: " + error.status);
+						function(err) {
+							console.error("error: " + JSON.stringigfy(err));
 							if(subscription) {
-								const result = JSON.stringify(error.status);
-								utils.modifyInnerHtml(page, 'span#status', result);
+								utils.modifyInnerHtml(page, 'span#status', JSON.stringigfy(err));
 							}
 						},
 						function() {

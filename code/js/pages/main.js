@@ -2,7 +2,6 @@
 define([], function() {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
-	var popupCancelBtn;
 	var popupHeader;
 	var popup;
 	
@@ -23,41 +22,24 @@ define([], function() {
 		case 'settings':
 			tau.changePage("html/settings.html");
 			break;
-			
+
 		case 'radar':
 			tau.changePage("html/radar.html");
 			break;
-			
+
 		case 'weather':
 			tau.changePage("html/weather.html");
 			break;
-			
+
+		case 'alerts':
+			tau.changePage("html/alerts.html");
+			break;
+
 		default:
-			//By default show popup with localized option title
-			const dataTitleAttribute = activeItem.attributes.getNamedItem('data-title');
-			if (!dataTitleAttribute) {
-				console.warn('setupMainMenu::selectorClickHandler: missing "data-title" attribute');
-				return;
-			}
-			
-			const activeItemDataTitleValue = dataTitleAttribute.value;
-			if (!activeItemDataTitleValue) {
-				console.warn('setupMainMenu::selectorClickHandler: missing activeItemDataTitleValue');
-				return;
-			}
-			
-			console.log('setupMainMenu::selectorClickHandler: default item handler, activeItem={id="' + activeItem.id + '", data-title="' + activeItemDataTitleValue +  '"}');
-			
-			if (!popupHeader) {
-				console.warn('setupMainMenu::selectorClickHandler: missing popupHeader');
-				return;
-			}
-			
-			popupHeader.innerHTML = activeItemDataTitleValue;
-			tau.openPopup(popup);
+			console.warn('setupMainMenu::selectorClickHandler: missing menu element');
 		}
 	};
-	
+
 	const setDataTitleAttributeValue = function(root, selector, value) {
 		const element = root.querySelector(selector);
 		
@@ -87,7 +69,7 @@ define([], function() {
 				console.warn('setupMainMenu: page element "#selector" not found"');
 				return;
 			}
-			
+
 			setDataTitleAttributeValue(selector, '#radar',    TIZEN_L10N.MAIN_MENU_RADAR);
 			setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
@@ -98,15 +80,7 @@ define([], function() {
 				console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
 				return;
 			}
-			
-			popupCancelBtn = popup.querySelector('#cancel');
-			if (!popupCancelBtn) {
-				console.warn('setupMainMenu: popup element "#cancel" not found"');
-				return;
-			}
-			
-			popupCancelBtn.addEventListener('click', popupCancelButtonClickHandler);
-			
+
 			popupHeader = popup.querySelector('#header');
 			if (!popupHeader) {
 				console.warn('setupMainMenu: popup element "#header" not found"');
@@ -134,10 +108,6 @@ define([], function() {
 			if (selectorWidget) {
 				selectorWidget.destroy();
 				selectorWidget = null;
-			}
-			
-			if (popupCancelBtn) {
-				popupCancelBtn.removeEventListener(popupCancelButtonClickHandler);
 			}
 		},
 	};

@@ -16,6 +16,7 @@ const modules = [
 	'utils/back',
 	'utils/lowBatteryCheck',
 	'utils/dom',
+	'utils/alert_updater',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
@@ -28,6 +29,7 @@ const modules = [
 	'pages/information',
 	'pages/radar',
 	'pages/weather',
+	'pages/alerts'
 ];
 
 define(modules, function(require, utils) {
@@ -36,9 +38,9 @@ define(modules, function(require, utils) {
 	const dispatchEventToPage = function(ev) {
 		const page = ev.target;
 		const moduleName = 'pages/' + page.id;
-		
-		pageModule = require(moduleName);
-		
+
+		const pageModule = require(moduleName);
+
 		if (pageModule) {
 			if (pageModule.hasOwnProperty(ev.type)) {
 				console.info('Calling event handler for ' + moduleName + ':' + ev.type);
@@ -50,7 +52,7 @@ define(modules, function(require, utils) {
 			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 		}
 	};
-	
+
 	//Creates object that manages array of destroyables.
 	const createDestroyableManager = function() {
 		const destroyableArr = [];
@@ -115,18 +117,30 @@ define(modules, function(require, utils) {
 	const listItemScrollStartEventListener = function(ev) {
 		activeMaruqeeWidget.destroy();
 	};
+
+	window.addEventListener('blur', function(ev) {
+		const module = require('utils/alert_updater');
+		module.deactivate();
+	});
+	
+	window.addEventListener('focus', function(ev) {
+		const module = require('utils/alert_updater');
+		if(module.active() === false) {
+			module.activate();
+		}
+	});
 	
 	document.addEventListener('pagebeforeshow', function(ev) {
 		const page = ev.target;
-		
+
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
-		
+
 		const title = page.querySelector(".ui-title");
 		if (title) {
 			destroyables.add(createMarqueWidget(title));
 		}
-		
+
 		//Find every circle helper on current page, create widget for it and save it for later destruction
 		const selector = '.ui-listview.circle-helper-snap-list';
 		const snapListNodeList = page.querySelectorAll(selector);
@@ -162,17 +176,14 @@ define(modules, function(require, utils) {
 		}
 	});
 	
-	document.addEventListener('pagebeforehide', function(ev) {	
+	document.addEventListener('pagebeforehide', function(ev) {
 		//Cleanup destroyable objects
 		destroyables.destroy();
-		
+
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
 	});
-	
-	//From now on tau engine starts automatically
-	//tau.engine.run();
-	
+
 	const appCtrl = utils.getAppControl();
 	const operation = appCtrl.operation;
 	const uri = appCtrl.uri;
@@ -188,5 +199,19 @@ define(modules, function(require, utils) {
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
+	}
+
+	//called for a first app launch. because "focus" event triggers only by home button.
+	
+	//TODO This is only workaround for a problem. To fix root cause we need:
+	//	catch all focus events (event those fired before module been loaded)
+	//Possible solutions:
+	//		add event listener "focus" & "blur" at the very beggining of app launching.
+	//		handle cases when storage (implemented with tizen.preference) has no value yet but we would like to subscribe on change
+	// now, because we cant be sure in correct sequence of module launching & subscribtion on window events
+	// lets left this temporary workaround
+	const module = require('utils/alert_updater');
+	if(module.active() === false) {
+		module.activate();
 	}
 });

@@ -154,7 +154,7 @@ define(['utils/fsutils'], function(fsutils) {
 	};
 
 	/**
-	 * get saved index by key in a localStorage
+	 * get saved index by key in a tizen.preference
 	 * Params:
 	 * 		sessionStorageKey - key for getting index data from locale storage
 	 * 
@@ -162,26 +162,30 @@ define(['utils/fsutils'], function(fsutils) {
 	 * 		index stored by sessionStorageKey, or 0
 	 * */
 	const getIndex = function(sessionStorageKey) {
-		return parseInt(localStorage.getItem(sessionStorageKey)) || 0;
+		try {
+			return parseInt(tizen.preference.getValue(sessionStorageKey));
+		} catch(err) {
+			return 0;
+		}
 	};
 	
 	/**
-	 * set and save index by key in a localStorage
+	 * set and save index by key in a tizen.preference
 	 * Params:
-	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		sessionStorageKey - key for setting index data to a tizen.preference
 	 * 		index - index value to save
 	 * 
 	 * Returns:
 	 * 		nothing
 	 * */
 	const setIndex = function(sessionStorageKey, index) {
-		localStorage.setItem(sessionStorageKey, index);
+		tizen.preference.setValue(sessionStorageKey, index);
 	};
 	
 	/**
 	 * increase and save index value
 	 * Params:
-	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		sessionStorageKey - key for setting index data to a tizen.preference
 	 * 		oldIndexVal - old index value
 	 * 		maxIndexVal - max for an index value
 	 * 
@@ -197,7 +201,7 @@ define(['utils/fsutils'], function(fsutils) {
 	/**
 	 * decrease and save index value
 	 * Params:
-	 * 		sessionStorageKey - key for setting index data to a localStorage
+	 * 		sessionStorageKey - key for setting index data to a tizen.preference
 	 * 		oldIndexVal - old index value
 	 * 		maxIndexVal - max for an index value
 	 * 
@@ -211,34 +215,62 @@ define(['utils/fsutils'], function(fsutils) {
     };
 	
     
-	const createLocalStorage = function(key, maxSize) {
+	const createPersistentStorage = function(key, maxSize) {
 		const LSIndex = key + '_ls_index';
 		const LSValue = key + '_ls_value_';
 
 		const get = function() {
 			const index = getIndex(LSIndex);
-			return localStorage.getItem(LSValue + index);
+			try {
+				return tizen.preference.getValue(LSValue + index);
+			} catch(err) {
+				return null;
+			}
 		};
-		
+
 		const add = function(value) {
 			const index = getIndex(LSIndex);
 			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
-			localStorage.setItem(LSValue + newIndex, value);
+			tizen.preference.setValue(LSValue + newIndex, value);
 		};
-		
+
 		const remove = function() {
 			const index = getIndex(LSIndex);
-			localStorage.removeItem(LSValue + index);
-			decreaseAndStoreIndex(LSIndex, index, maxSize);
+			if(tizen.preference.exists(LSValue + index)) {
+				tizen.preference.remove(LSValue + index);
+				decreaseAndStoreIndex(LSIndex, index, maxSize);
+			}
 		};
-		
+
+		const setChangeListener = function(changeListener) {
+			try {
+				if(changeListener) {
+					tizen.preference.setChangeListener(LSIndex, changeListener);
+				}
+			} catch(err) {
+				console.error('setChangeListener cant set listener to "' + LSIndex +'" key');
+			}
+		};
+
+		const unsetChangeListener = function(changeListener) {
+			try {
+				if(changeListener) {
+					 tizen.preference.unsetChangeListener(LSIndex, changeListener);
+				}
+			} catch(err) {
+				console.error('unsetChangeListener cant unset listener from "' + LSIndex +'" key');
+			}
+		};
+
 		return {
 			get: get,
 			add: add,
 			remove: remove,
+			setChangeListener: setChangeListener,
+			unsetChangeListener: unsetChangeListener,
 		};
 	};
-	
+
 	const createFileStorage = function(key, maxSize) {
 
 		const rootDirName = 'wgt-private';
@@ -246,8 +278,15 @@ define(['utils/fsutils'], function(fsutils) {
 		
 		const FSIndex = key + '_fs_index';
 		const FSFileName = key + '_fs_filename_';
-		
-		
+
+		const getSavedFileNameAtIndex = function(index) {
+			try {
+				return tizen.preference.getValue(FSFileName + index);
+			} catch(err) {
+				return null;
+			}
+		};
+
 		/**
 		 * get file from FS storage
 		 * Params:
@@ -258,12 +297,13 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const get = function(onSuccess, onError) {
 			const index = getIndex(FSIndex);
-			const savedFileName = localStorage.getItem(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			if(savedFileName) {
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				fsutils.hasSuchFile(pathName, onSuccess, onError);
 			} else {
-				onError('cant get resolve file');
+				onError('get::cant resolve file');
 			}
 		};
 		
@@ -275,7 +315,8 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const empty = function() {
 			const index = getIndex(FSIndex);
-			const savedFileName = localStorage.getItem(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			return (!savedFileName);
 		};
 
@@ -296,7 +337,7 @@ define(['utils/fsutils'], function(fsutils) {
 			const proceed = function() {
 				//extract filename form file path
 				const fileName = fsutils.getFileNameFromPath(filePath);
-				localStorage.setItem(FSFileName + newIndex, fileName);
+				tizen.preference.setValue(FSFileName + newIndex, fileName);
 				//create data file directory if its not exist
 		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
 		    		function(result) {
@@ -307,7 +348,7 @@ define(['utils/fsutils'], function(fsutils) {
 		    		onError
 		    	);
 			};
-			
+
 			//at first we have to remove old file saved by current + 1 position
 			removeAtIndex(newIndex, 
 				function() {
@@ -330,7 +371,8 @@ define(['utils/fsutils'], function(fsutils) {
 		 * */
 		const removeAtIndex = function(index, onSuccess, onError) {
 			//get name of saved file at index
-			const savedFileName = localStorage.getItem(FSFileName + index);
+			const savedFileName = getSavedFileNameAtIndex(index);
+
 			if(savedFileName) {
 				//create full path to a file
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
@@ -340,7 +382,7 @@ define(['utils/fsutils'], function(fsutils) {
 				onSuccess();
 			}
 		};
-		
+
 		const remove = function(options) {
 			options = options || {};
 			const onSuccess = options.onSuccess || function() {
@@ -353,11 +395,15 @@ define(['utils/fsutils'], function(fsutils) {
 			
 			const index = getIndex(FSIndex);
 			//get name of last saved file
-			const savedFileName = localStorage.getItem(FSFileName + index);
-			//if we have a record of this file in localStorage
+
+			const savedFileName = getSavedFileNameAtIndex(index);
+			//if we have a record of this file in tizen.preference
 			if(savedFileName) {
-				//remove a name of file from localStorage
-				localStorage.removeItem(FSFileName + index);
+				//remove a name of file from tizen.preference
+				if(tizen.preference.exists(FSFileName + index)) {
+					tizen.preference.remove(FSFileName + index);
+				}
+
 				const pathName = fsutils.createFullPath(rootDirName, fileDataDirName, savedFileName);
 				//remove file
 				fsutils.removeFile(pathName, onSuccess, onError);
@@ -394,7 +440,7 @@ define(['utils/fsutils'], function(fsutils) {
 						'settings_units_mapzoom_key',
 						'1',
 						createMapZoomMappingObject()),
-	            
+
 				temperature: createGetterAndSetterForStorageImpl(
 						'settings_units_temperature_key', 
 						'1',
@@ -414,9 +460,9 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		json : createLocalStorage('json', 4),
+		json : createPersistentStorage('json', 4),
 		file : createFileStorage('file', 4),
-		compass: createFileStorage('compass', 4),
+		alert: createPersistentStorage('alert', 1),
 	};
 	
 	return storage;
