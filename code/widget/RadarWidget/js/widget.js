@@ -86,9 +86,8 @@ window.onload = function() {
 				}
 			}
 			
-			if (tizen.preference.exists('current_map_image_path')) {
-				currentMapImagePath = tizen.preference.getValue('current_map_image_path');
-				ui.map.style['background-image'] = 'url("' + currentMapImagePath + '")';
+			if (weatherData && weatherData.map) {
+				ui.map.style['background-image'] = 'url("' + weatherData.map + '")';
 			}
 		}
 	}
