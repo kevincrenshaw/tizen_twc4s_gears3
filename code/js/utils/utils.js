@@ -268,6 +268,20 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		});
 	};
 
+	/**
+	 * Converts json text to an object
+	 * */
+	const convertAlertsTextToObjectOrUndefined = function(alertsText) {		
+		if (alertsText) {
+			try {
+				return JSON.parse(alertsText);
+			} catch (err) {
+				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+			}
+		}
+		return undefined;
+	};
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -284,5 +298,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getAppControl: getAppControl,
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
+		convertAlertsTextToObjectOrUndefined: convertAlertsTextToObjectOrUndefined,
 	};
 });
