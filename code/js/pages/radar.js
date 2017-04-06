@@ -146,6 +146,14 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			};
 		};
 		
+		const isVisibileImpl = function(wrappedElement) {
+			return function() {
+				return wrappedElement.apply(function(el) {
+					return el.style.visibility === 'visible';
+				}) || false;
+			};
+		};
+		
 		const setSrcImpl = function(wrappedElement) {
 			return function(uri) {
 				wrappedElement.apply(function(el) {
@@ -184,6 +192,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		return {
 			map: {
 				visible: visibilityImpl(element.map),
+				isVisible: isVisibileImpl(element.map),
 				src: setSrcImpl(element.map),
 			},
 			
@@ -515,7 +524,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 	const alertDataChange = function(data) {
 		const alertsObj = convertAlertsTextToObjectOrUndefined(data.value);		
 		const nbrOfAlerts = alertsObj ? alertsObj.alerts.length : 0;
-		ui.footer.alert.counter(nbrOfAlerts);
+		
+		if (nbrOfAlerts === 0 || ui.map.isVisible()) {
+			ui.footer.alert.counter(nbrOfAlerts);
+		}
 	};
 
 	return {
