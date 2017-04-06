@@ -37,4 +37,5 @@ TIZEN_L10N=
 	"DAY_AGO" : "dzień temu",
 	"DAYS_AGO" : "dni temu",
 	"RADAR_AT": "o",
+	"ALERTS": "Alarmy"
 };

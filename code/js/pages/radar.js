@@ -569,7 +569,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			
 			ui.header.refresh.btn.onClick(tryGetNewData);
 			ui.footer.alert.onClick(function() {
-				console.log('Alert click!');
+				tau.changePage("alerts.html");
 			});
 			
 			storage.alert.setChangeListener(alertDataChange);
