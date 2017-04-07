@@ -11,12 +11,12 @@ requirejs.config({
 const modules = [
 	'require',
 	'utils/utils',
+	'utils/alert_updater',
 	'utils/storage',
 	'utils/network',
 	'utils/back',
 	'utils/lowBatteryCheck',
 	'utils/dom',
-	'utils/alert_updater',
 	'data/buildInfo',
 	'pages/main',
 	'pages/settings',
@@ -32,7 +32,7 @@ const modules = [
 	'pages/alerts'
 ];
 
-define(modules, function(require, utils) {
+define(modules, function(require, utils, alertUpdater) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
@@ -118,17 +118,25 @@ define(modules, function(require, utils) {
 		activeMaruqeeWidget.destroy();
 	};
 
+	const onFocus = function(ev) {
+		if(!alertUpdater.active()) {
+			alertUpdater.activate();
+		}
+	};
+	
 	window.addEventListener('blur', function(ev) {
-		const module = require('utils/alert_updater');
-		module.deactivate();
+		alertUpdater.deactivate();
 	});
 	
-	window.addEventListener('focus', function(ev) {
-		const module = require('utils/alert_updater');
-		if(module.active() === false) {
-			module.activate();
-		}
-	});
+	//Handle on focus event that happen before app module up & running
+	window.removeEventListener(focusEventListener);
+	window.addEventListener('focus', onFocus);
+	
+	console.log('Focus events missed since app startup: ' + focusEventArr.length);
+	for (var i=0; i<focusEventArr.length; ++i) {
+		onFocus(focusEventArr[i]);
+	}
+	focusEventArr.length = 0;
 	
 	document.addEventListener('pagebeforeshow', function(ev) {
 		const page = ev.target;
@@ -199,19 +207,5 @@ define(modules, function(require, utils) {
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
 		//To maintain backward comatibility send this event manually.
 		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
-	}
-
-	//called for a first app launch. because "focus" event triggers only by home button.
-	
-	//TODO This is only workaround for a problem. To fix root cause we need:
-	//	catch all focus events (event those fired before module been loaded)
-	//Possible solutions:
-	//		add event listener "focus" & "blur" at the very beggining of app launching.
-	//		handle cases when storage (implemented with tizen.preference) has no value yet but we would like to subscribe on change
-	// now, because we cant be sure in correct sequence of module launching & subscribtion on window events
-	// lets left this temporary workaround
-	const module = require('utils/alert_updater');
-	if(module.active() === false) {
-		module.activate();
 	}
 });

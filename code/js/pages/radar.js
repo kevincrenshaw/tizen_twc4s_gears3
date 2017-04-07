@@ -7,10 +7,11 @@ const radarModules = [
 	'utils/const',
 	'utils/utils',
 	'utils/dom',
+	'utils/alert_updater',
 	'rx'
 ];
 
-define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
+define(radarModules, function(storage, map, network, consts, utils, dom, alertUpdater, rx) {
 	var currentPositionSubscription;
 	var intervalUpdaterId = null;
 	var ui;
@@ -126,6 +127,16 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					text: dom.queryWrappedElement(root, '#refreshBox #text'),
 				},
 			},
+			footer: {
+				container: dom.queryWrappedElement(root, '#footer'),
+				alert: {
+					button: dom.queryWrappedElement(root, '#footer #alerts'),
+					counter: {
+						container: dom.queryWrappedElement(root, '#alerts-counter-container'),
+						value: dom.queryWrappedElement(root, '#alerts-counter-container #alerts-counter-value'),
+					}
+				},
+			},
 		};
 		
 		const visibilityImpl = function(wrappedElement) {
@@ -133,6 +144,14 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 				wrappedElement.apply(function(el) {
 					el.style.visibility = isVisible ? 'visible' : 'hidden';
 				});
+			};
+		};
+		
+		const isVisibileImpl = function(wrappedElement) {
+			return function() {
+				return wrappedElement.apply(function(el) {
+					return el.style.visibility === 'visible';
+				}) || false;
 			};
 		};
 		
@@ -168,9 +187,13 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			};
 		};
 		
+		const footerContainerVisibility = visibilityImpl(element.footer.container);
+		const alertCounterContainerVisibility = visibilityImpl(element.footer.alert.counter.container);
+		
 		return {
 			map: {
 				visible: visibilityImpl(element.map),
+				isVisible: isVisibileImpl(element.map),
 				src: setSrcImpl(element.map),
 			},
 			
@@ -196,6 +219,32 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 					unit: setInnerHtmlImpl(element.header.time.unit),
 				},
 			},
+			
+			footer: {
+				alert: {
+					onClick: onClickImpl(element.footer.alert.button),
+					
+					counter: function(number) {
+						const value = parseInt(number);
+						
+						if (value > 0) {
+							element.footer.alert.counter.value.apply(function(el) {								
+								const text = value > consts.RADAR_ALERTS_MAX_NBR
+									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
+									: value; 
+								
+								el.innerHTML = text;
+							});
+							
+							footerContainerVisibility(true);
+							alertCounterContainerVisibility(true);
+						} else {
+							alertCounterContainerVisibility(false);
+							footerContainerVisibility(false);
+						}
+					}
+				},
+			}
 		};
 	};
 	
@@ -374,9 +423,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 		const tempText = [tempTextualRepr[0], '°'].join('');
 		const unitText = tempTextualRepr[1];
 
-		//Store path to map file for widget
-		tizen.preference.setValue('current_map_image_path', mapFilePath);
-
 		const weatherDownloadTimeUpdater = function() {
 			const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
 			const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
@@ -434,26 +480,61 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			}
 		};
 		
+		alertUpdater.deactivate();
+		alertUpdater.activate();
+		
 		//Store information for widget
 		tizen.preference.setValue('weather_data', JSON.stringify(weatherData));
-
+		
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);
 		ui.header.refresh.btn.enable(true);
 		ui.map.visible(true);
 		ui.header.visible(true);
+		ui.footer.alert.counter(getNbrOfAlerts());
 	};
 
+	const getNbrOfAlerts = function() {
+		const alertsObj = getAlertsObjectOrUndefined();
+		return alertsObj && alertsObj.alerts ? alertsObj.alerts.length : 0;
+	};
 
 	const visibilitychange = function() {
 		if(document.hidden !== true) {
 			tryGetNewData();
 		}
 	};
+	
+	const getAlertsObjectOrUndefined = function() {
+		return convertAlertsTextToObjectOrUndefined(storage.alert.get());
+	};
+	
+	const convertAlertsTextToObjectOrUndefined = function(alertsText) {		
+		if (alertsText) {
+			try {
+				return JSON.parse(alertsText);
+			} catch (err) {
+				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+			}
+		}
+		
+		return undefined;
+	};
+	
+	const alertDataChange = function(data) {
+		const alertsObj = convertAlertsTextToObjectOrUndefined(data.value);		
+		const nbrOfAlerts = alertsObj ? alertsObj.alerts.length : 0;
+		
+		if (nbrOfAlerts === 0 || ui.map.isVisible()) {
+			ui.footer.alert.counter(nbrOfAlerts);
+		}
+	};
 
 	return {
 		pagebeforehide: function(ev) {
+			storage.alert.unsetChangeListener(alertDataChange);
+			
 			if (currentPositionSubscription) {
 				currentPositionSubscription.dispose();
 				currentPositionSubscription = null;
@@ -487,6 +568,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, rx) {
 			}, tryGetNewData);
 			
 			ui.header.refresh.btn.onClick(tryGetNewData);
+			ui.footer.alert.onClick(function() {
+				console.log('Alert click!');
+			});
+			
+			storage.alert.setChangeListener(alertDataChange);
 		},
 	};
 });

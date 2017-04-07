@@ -27,5 +27,6 @@ define([], function() {
 		ALERT_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		ALERTS_URL: BASE_V3_URL + 'alerts/headlines',
 		MAPS_URL: BASE_V2_URL + 'maps/dynamic',
+		RADAR_ALERTS_MAX_NBR: 99,
 	};
 });

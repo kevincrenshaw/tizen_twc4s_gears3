@@ -215,7 +215,7 @@ define(['utils/fsutils'], function(fsutils) {
     };
 	
     
-	const createPersistentStorage = function(key, maxSize) {
+	const createCircularStorage = function(key, maxSize) {
 		const LSIndex = key + '_ls_index';
 		const LSValue = key + '_ls_value_';
 
@@ -242,32 +242,10 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 		};
 
-		const setChangeListener = function(changeListener) {
-			try {
-				if(changeListener) {
-					tizen.preference.setChangeListener(LSIndex, changeListener);
-				}
-			} catch(err) {
-				console.error('setChangeListener cant set listener to "' + LSIndex +'" key');
-			}
-		};
-
-		const unsetChangeListener = function(changeListener) {
-			try {
-				if(changeListener) {
-					 tizen.preference.unsetChangeListener(LSIndex, changeListener);
-				}
-			} catch(err) {
-				console.error('unsetChangeListener cant unset listener from "' + LSIndex +'" key');
-			}
-		};
-
 		return {
 			get: get,
 			add: add,
 			remove: remove,
-			setChangeListener: setChangeListener,
-			unsetChangeListener: unsetChangeListener,
 		};
 	};
 
@@ -419,6 +397,30 @@ define(['utils/fsutils'], function(fsutils) {
 		};
 	};
 	
+	const createSimpleStorage = function(key, initialValue) {
+		if (!tizen.preference.exists(key)) {
+			tizen.preference.setValue(key, initialValue);
+		}
+		
+		return {
+			get: function() {
+				return tizen.preference.getValue(key); 
+			},
+			
+			set: function(value) {
+				tizen.preference.setValue(key, value);
+			},
+			
+			setChangeListener: function(listener) {
+				tizen.preference.setChangeListener(key, listener);				
+			},
+			
+			unsetChangeListener: function(listener) {
+				tizen.preference.unsetChangeListener(key);
+			},
+		}
+	};
+	
 	const storage = {
 		settings: {
 			units: {
@@ -460,9 +462,9 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		json : createPersistentStorage('json', 4),
+		json : createCircularStorage('json', 4),
 		file : createFileStorage('file', 4),
-		alert: createPersistentStorage('alert', 1),
+		alert: createSimpleStorage('alerts', ''),
 	};
 	
 	return storage;
