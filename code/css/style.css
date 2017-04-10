@@ -246,3 +246,19 @@ body {
 	font-size: 12px;
 	color: white;
 }
+
+#radar.ui-page #more {
+	visibility: hidden;
+	position: absolute;
+	left: 290px;
+	top: 155px;
+	background-color: black;
+	border-radius: 50%;
+}
+
+#radar.ui-page #more #btn {
+	width: 40px;
+	height: 40px;
+	margin: 10px;
+	vertical-align: middle;
+}
