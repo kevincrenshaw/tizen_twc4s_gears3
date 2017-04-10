@@ -12,6 +12,14 @@ window.onload = function() {
 	//run for first time when widget is added to a widget board
 	handleVisibilityChange();
 	
+	function launchRadar() {
+		launchApp('radar');
+	}
+	
+	function launchAlerts() {
+		launchApp('alerts');
+	}
+	
 	/**
 	 * triggered on page visible state 
 	 * */
@@ -19,7 +27,7 @@ window.onload = function() {
 		console.log('on page show');
 		ui = createUi(document);
 		
-		ui.map.addEventListener('click', launchApp);
+		ui.map.addEventListener('click', launchRadar);
 		ui.footer.alert.container.addEventListener('click', launchAlerts);
 		
 		if(tizen.preference.exists('time_ampm')) {
@@ -46,7 +54,7 @@ window.onload = function() {
 	function onpagehide() {
 		console.log('on page hide');
 		if(ui) {
-			ui.map.removeEventListener('click', launchApp);
+			ui.map.removeEventListener('click', launchRadar);
 			ui.footer.alert.container.removeEventListener('click', launchAlerts);
 			ui.map = null;
 			ui = null;
@@ -128,10 +136,10 @@ window.onload = function() {
 		}
 	}
 
-	function launchApp() {
+	function launchApp(page) {
 		var app = window.tizen.application.getCurrentApplication();
 		var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
-		var appControl = new window.tizen.ApplicationControl('navigate', 'radar', null, null, null, null);
+		var appControl = new window.tizen.ApplicationControl('navigate', page, null, null, null, null);
 		window.tizen.application.launchAppControl(appControl, appId,
 			function() {
 				console.log("application has been launched successfully");
@@ -140,10 +148,6 @@ window.onload = function() {
 				console.error("application launch has been failed. reason: " + e.message);
 			},
 			null);
-	}
-
-	function launchAlerts() {
-		console.log('launch alerts');
 	}
 	
 	function createUi(root) {
