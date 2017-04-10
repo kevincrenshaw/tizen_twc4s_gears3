@@ -1,51 +1,46 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/utils'], function(storage, utils) {
-
-	var updateHandler = null;
-
-	function createOnPrefsUpdater(page) {
-		return function() {
-			const savedAlerts = storage.alert.get();
-			if(savedAlerts) {
-				utils.modifyInnerHtml(page, 'span#status', savedAlerts);
-				var timestamp = new Date();
-				utils.modifyInnerHtml(page, 'span#fetch-indicator', 'updated at: ' + timestamp.getHours() + ':' + timestamp.getMinutes() + ':' + timestamp.getSeconds());
-			} else {
-				utils.modifyInnerHtml(page, 'span#status', '');
-			}
+define(['utils/dom'], function(dom) {
+	var ui;
+	
+	const createUiManager = function(page) {
+		const element = {
+			title: dom.queryWrappedElement(page, '.ui-title'),	
 		};
-	}
-
-	const alerts = {
-		onPageShow: function(page) {
-			updateHandler = createOnPrefsUpdater(page);
-
-			const savedAlerts = storage.alert.get();
-			console.log('storage.alert.get() returns: ' + savedAlerts);
-			if(savedAlerts) {
-				utils.modifyInnerHtml(page, 'span#status', savedAlerts);
-			}
-			page.querySelector('#delete-button').addEventListener("click", storage.alert.remove);
-			storage.alert.setChangeListener(updateHandler);
-		},
-
-		onPageHide: function(page) {
-			page.querySelector('#delete-button').removeEventListener("click", storage.alert.remove);
-			storage.alert.unsetChangeListener(updateHandler);
-			updateHandler = null;
-		},
+		
+		//TODO remove duplicate (radar.js)
+		const setInnerHtmlImpl = function(wrappedElement) {
+			return function(text) {
+				wrappedElement.apply(function(el) {
+					el.innerHTML = text;
+				});
+			};
+		};
+		
+		return {
+			title: setInnerHtmlImpl(element.title),
+		};
 	};
-
+	
+	const createTranslator = function(ui) {
+		const translate = function() {
+			ui.title(TIZEN_L10N.ALERTS);
+		}
+		
+		return {
+			translate: translate,
+		};
+	};
+	
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
-			alerts.onPageShow(page);
+			ui = createUiManager(page);
+			createTranslator(ui).translate();
 		},
-
+		
 		pagebeforehide: function(ev) {
-			const page = ev.target;
-			alerts.onPageHide(page);
+			ui = null;
 		},
 	};
 });
