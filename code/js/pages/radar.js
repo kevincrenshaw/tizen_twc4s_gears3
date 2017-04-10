@@ -146,6 +146,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		return {
 			map: {
 				visible: dom.createVisibilityHandler(element.map),
+				isVisible: dom.createIsVisibileHandler(element.map),
 				src: dom.createSetSrcHandler(element.map),
 			},
 			

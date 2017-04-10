@@ -54,6 +54,14 @@ define([], function() {
 		};
 	};
 
+	const createIsVisibileHandler = function(wrappedElement) {
+		return function() {
+			return wrappedElement.apply(function(el) {
+				return el.style.visibility === 'visible';
+			}) || false;
+		};
+	};
+
 	/**
 	 * Creates simplified visibility state changer (using style.visibility property)
 	 * Params
@@ -137,6 +145,7 @@ define([], function() {
 	return {
 		queryWrappedElement: queryWrappedElement,
 		createDisplayHandler: createDisplayHandler,
+		createIsVisibileHandler: createIsVisibileHandler,
 		createVisibilityHandler: createVisibilityHandler,
 		createOnClickHandler: createOnClickHandler,
 		createSetSrcHandler: createSetSrcHandler,
