@@ -29,11 +29,11 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 			alerts: {
 				display: dom.createDisplayHandler(holder.alerts.page),
 				addItem: dom.createAddListItemHandler(holder.alerts.list),
+				clear: dom.createDeleteAllChildrenHolder(holder.alerts.list),
 			},
 		};
 
 		const createListItem = function(text) {
-			console.log('page' + page);
 			const listItem = document.createElement('li');
 			const listItemLabel = document.createTextNode(text);
 			listItem.appendChild(listItemLabel);
@@ -50,6 +50,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 				if(numberOfAlerts > 0) {
 					binder.noalerts.display('none');
 					binder.alerts.display('inline');
+					binder.alerts.clear();
 				} else {
 					binder.noalerts.display('inline');
 					binder.alerts.display('none');
@@ -58,7 +59,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 
 				for(var index = 0; index < numberOfAlerts; ++index) {
 					const itemData = alertObject.alerts[index];
-					console.log('entry: ' + JSON.stringify(itemData));
 					binder.alerts.addItem(createListItem(itemData.eventTrackingNumber + ' : ' + itemData.eventDescription));
 				}
 			},

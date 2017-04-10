@@ -119,6 +119,21 @@ define([], function() {
 		}
 	};
 
+	/**
+	 * Creates remove-all-elements-from-listview handler
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createDeleteAllChildrenHolder = function(wrappedElement) {
+		return function() {
+			wrappedElement.apply(function(el) {
+				while(el.hasChildNodes()) {
+					el.removeChild(el.firstChild);
+				}
+			});
+		};
+	};
+
 	return {
 		queryWrappedElement: queryWrappedElement,
 		createDisplayHandler: createDisplayHandler,
@@ -128,5 +143,6 @@ define([], function() {
 		createSetInnerHtmlHandler: createSetInnerHtmlHandler,
 		createEnableHandler: createEnableHandler,
 		createAddListItemHandler: createAddListItemHandler,
+		createDeleteAllChildrenHolder: createDeleteAllChildrenHolder,
 	};
 });
