@@ -459,12 +459,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		return alertsObj && alertsObj.alerts ? alertsObj.alerts.length : 0;
 	};
 
-	const visibilitychange = function() {
-		if(document.hidden !== true) {
-			tryGetNewData();
-		}
-	};
-	
+
 	const getAlertsObjectOrUndefined = function() {
 		return convertAlertsTextToObjectOrUndefined(storage.alert.get());
 	};
@@ -503,15 +498,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 				clearInterval(intervalUpdaterId);
 				intervalUpdaterId = null;
 			}
-			document.removeEventListener('visibilitychange', visibilitychange);
 			ui = null;
 		},
 
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			ui = createUiManager(page);
-
-			document.addEventListener('visibilitychange', visibilitychange);
 
 			lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
 
@@ -536,6 +528,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			});
 			
 			storage.alert.setChangeListener(alertDataChange);
+		},
+		
+		visibilitychange: function() {
+			if(document.hidden !== true) {
+				tryGetNewData();
+			}
 		},
 	};
 });
