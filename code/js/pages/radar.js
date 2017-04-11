@@ -109,6 +109,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 	const createUiManager = function(root) {
 		const element = {
 			map: dom.queryWrappedElement(root, '#map'),
+			more: dom.queryWrappedElement(root, '#more'),
 			header: {
 				container: dom.queryWrappedElement(root, '#header'),
 				temperature: {
@@ -195,6 +196,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 				visible: visibilityImpl(element.map),
 				isVisible: isVisibileImpl(element.map),
 				src: setSrcImpl(element.map),
+			},
+			
+			more: {
+				visible: visibilityImpl(element.more),
+				onClick: onClickImpl(element.more),
 			},
 			
 			header: {
@@ -493,6 +499,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		ui.map.visible(true);
 		ui.header.visible(true);
 		ui.footer.alert.counter(getNbrOfAlerts());
+		ui.more.visible(true);
 	};
 
 	const getNbrOfAlerts = function() {
@@ -570,6 +577,10 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			ui.header.refresh.btn.onClick(tryGetNewData);
 			ui.footer.alert.onClick(function() {
 				tau.changePage("alerts.html");
+			});
+			
+			ui.more.onClick(function() {
+				console.log('More click');
 			});
 			
 			storage.alert.setChangeListener(alertDataChange);
