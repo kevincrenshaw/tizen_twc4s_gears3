@@ -35,7 +35,7 @@ window.onload = function() {
 		}
 		
 		if(tizen.preference.exists('snapshot_time')) {
-			snapshotTimeRepr[0] = tizen.preference.getValue('snapshot_time');
+			snapshotTimeRepr[0] = getTimeAsText(new Date( tizen.preference.getValue('snapshot_time') ), !!ampm)[0];
 			snapshotTimeRepr[1] = ampm;
 		}
 		
