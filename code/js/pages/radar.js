@@ -20,13 +20,11 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 	var snapshotTimeRepr = null;
 	var currentTimeRepr = null;
 
-	const getMapImgUri = function(latitude, longitude, lod, options) {
+	const getMapImgUrl = function(latitude, longitude, lod, options) {
 		options = options || {};
 		
 		const latByLod = map.getAllowedPrecisionAccordingToLod(latitude, lod);
 		const longByLod = map.getAllowedPrecisionAccordingToLod(longitude, lod);
-		
-		console.log('getMapImgUri: lod={value=' + lod + ', lat:' + latitude + '->' + latByLod + ', long:' + longitude + '->' + longByLod + '}');
 		
 		const params = {
 			geocode: [latByLod, longByLod].join(','),
@@ -40,15 +38,26 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		return utils.createUri(consts.MAPS_URL, params);
 	};
 
-	const getCurrentConditionsUri = function(latitude, longitude) {
+	const getWeatherUrl = function(latitude, longitude) {
 		const options = {
 			language: 'en-US',
 			units: 'm', //'e' for imperial
 			apiKey: consts.API_KEY,
 		};
-		
+
 		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
 		return utils.createUri(uriBase, options);
+	};
+
+	const getAlertsUrl = function(latitude, longitude) {
+		const params = {
+			geocode: [latitude, longitude].join(','),
+			format: 'json',
+			language: 'en-US',
+			apiKey: consts.API_KEY,
+		};
+
+		return utils.createUri(consts.ALERTS_URL, params);
 	};
 	
 	/*
@@ -82,7 +91,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		return weather.observation.metric.temp;
 	};
 	
-	const storageFileAddRx = function(filePath) {
+	const storageFileAdd = function(filePath) {
 		return rx.Observable.create(function(observer) {
 			const onSuccess = function(fileUri) {
 		 		observer.onNext(fileUri);
@@ -93,7 +102,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		});
 	};
 	
-	const storageFileGetRx = function() {
+	const storageFileGet = function() {
 		return rx.Observable.create(function(observer) {
 			if (storage.file.empty()) {
 				observer.onCompleted();
@@ -221,9 +230,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		}
 	};
 	
-	/**
+	/*
 	 * update ui function. all periodic update UI processes should be place here
-	 * */
+	 */
 	const updateUI = function(ui) {
 		if(ui) {
 			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
@@ -250,7 +259,9 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		5: 'DAYS_AGO',
 	};
 	
-	//Attempts to get current location, fetch data for location and then display it
+	/*
+	 * Attempts to get current location, fetch data for location and then display it
+	 */
 	const tryGetNewData = function() {
 		console.log('getting current position...');
 
@@ -264,34 +275,51 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		currentPositionSubscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
-		.flatMap(downloadWeatherDataAndMap)
-		.flatMap(storeWeatherDataAndMap)
+		.flatMap(function(coords) {
+			return rx.Observable.zip(getWeatherObject(coords), getAlertObject(coords), rx.Observable.just(coords));
+		})
+		.flatMap(function(data) {
+			const weatherData = data[0];
+			const alertData = data[1];
+			const coords = data[2];
+
+			return rx.Observable.zip(getMap(coords),
+				rx.Observable.just(weatherData),
+				rx.Observable.just(alertData));
+		})
 		.subscribe(function(data) {
-			const currentWeatherData = data[0];
-			const mapFilePath = data[1];
-			console.log('Map and weather data downloaded successfully');
-			displayData(mapFilePath, currentWeatherData);
+			const mapFilePath = data[0];
+			const weatherData = data[1];
+			const alertData = data[2];
+
+			const newStorageObject = {
+				internal: {
+					downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
+					mapFilePath: mapFilePath, //store map file path for given weather data
+				},
+				external: weatherData,
+			};
+
+			storage.json.add(JSON.stringify(newStorageObject));
+			storage.alert.set(JSON.stringify(alertData));
+
+			displayData(mapFilePath, newStorageObject);
 		}, function(err) {
-			//It may happen download will fail, just warning
-			console.warn('Download/store problem: ' + JSON.stringify(err));
-			ui.header.refresh.btn.enable(true);
+			console.warn('download data failed: ' + JSON.stringify(err));
 		});
 	};
 
 	/*
-	 * For given coords tries to get current condition data (json) and download map (without stroing it
-	 * in storage)
+	 * For given coords tries to get current weather data object
 	 *
 	 * Parameters:
 	 * 		coords - array of exactly two elements [latitude, longitude]
 	 *
 	 * Result:
-	 * 		Returns observable that emits array of exactly two elements:
-	 * 			- current weather respresented as object (json returned by TWC API described
-	 * 				here http://goo.gl/TO9kYm)
-	 * 			- path to downloaded map (_not_ stored in our storage)
+	 *		Returns observable that emits current weather respresented as object (json returned by TWC API described
+	 *		http://goo.gl/TO9kYm)
 	 */
-	const downloadWeatherDataAndMap = function(coords) {
+	const getWeatherObject = function(coords) {
 		const latitude = coords[0];
 		const longitude = coords[1];
 
@@ -299,61 +327,57 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		const distance = parseInt(storage.settings.units.distance.get());
 		const lod = map.getMapLod(mapZoom, distance);
 
-		console.log('downloadWeatherDataAndMap: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
+		console.log('weather data: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
 
-		const currentConditionsUri = getCurrentConditionsUri(latitude, longitude);
-		console.log('currentConditionsUri: ' + currentConditionsUri);
+		const weatherUrl = getWeatherUrl(latitude, longitude);
+		console.log('weatherUrl=' + weatherUrl);
 
-		const mapImgUri = getMapImgUri(latitude, longitude, lod);
-		console.log('mapImgUri: ' + mapImgUri);
+		return network.getResourceByURLRx(weatherUrl)
+			.filter(function(result) {
+				return result.data && result.data.metadata && result.xhr.status === 200;
+			})
+			.map(function(result) {
+				return result.data;
+			});
+	};
+
+	/*
+	 * For given coords tries to get alert data object
+	 *
+	 * Parameters:
+	 * 		coords - array of exactly two elements [latitude, longitude]
+	 *
+	 * Result:
+	 *		Returns observable that emits current weather respresented as object (json returned by TWC API described
+	 *		http://goo.gl/TO9kYm)
+	 */
+	const getAlertObject = function(coords) {
+		const alertsUrl = getAlertsUrl(coords[0], coords[1]);
+		console.log('alertsUrl=' + alertsUrl);
+
+		return network.getResourceByURLRx(alertsUrl, consts.ALERT_TIMEOUT_IN_MS)
+			.map(function(result) {
+				return result.data || '';
+			});
+	};
+
+	const getMap = function(coords) {
+		const latitude = coords[0];
+		const longitude = coords[1];
+
+		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
+		const distance = parseInt(storage.settings.units.distance.get());		
+		const lod = map.getMapLod(mapZoom, distance);
+		
+		const mapImgUrl = getMapImgUrl(latitude, longitude, lod);
+		console.log('lat=' + latitude + ', lon=' + longitude + ', lod=' + lod + ', mapImgUrl=' + mapImgUrl);
 
 		const epoch = utils.getNowAsEpochInMiliseconds();
 		const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
 		console.log('uniqueFileName: ' + uniqueFileName);
 
-		return network.getResourceByURLRx(currentConditionsUri)
-			.filter(function(result) {
-				return result.data && result.data.metadata && result.xhr.status === 200;
-			})
-			.flatMap(function(result) {
-				//By now we have current conditions json data
-				//Try to download map
-				return network.downloadFileRx(mapImgUri, uniqueFileName)
-					.map(function(mapFilePath) {
-						//Return both downloaded map file path and current weather data
-						return [result.data, mapFilePath];
-					});
-			});
-	};
-
-	/*
-	 * Stores given data (current weather object and map) in storage.json and storage.file.
-	 *
-	 * Parameters:
-	 * 		data - array of exactly two elements [weatherDataObjec, filePathToMap]
-	 *
-	 * Result:
-	 * 		Returns observable that emits array of exactly two elements:
-	 * 			- saved data from storage (current weather data stored in 'external' attribute)
-	 * 			- full file path to image data (map) in storage
-	 */
-	const storeWeatherDataAndMap = function(data) {
-		const weatherData = data[0];
-		const mapFilePath = data[1];
-
-		return storageFileAddRx(mapFilePath).map(function(mapFilePathInStorage) {
-			//Json storage for weather data does not have rx version. Just store it when map is stored
-			//successfully.
-			const newStorageObject = {
-				internal: {
-					downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
-					mapFilePath: mapFilePathInStorage, //store map file path for given weather data
-				},
-				external: weatherData,
-			};
-
-			storage.json.add(JSON.stringify(newStorageObject));
-			return [newStorageObject, mapFilePathInStorage];
+		return network.downloadFileRx(mapImgUrl, uniqueFileName).flatMap(function(downloadedFilePath) {
+			return storageFileAdd(downloadedFilePath);
 		});
 	};
 
@@ -459,7 +483,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		return alertsObj && alertsObj.alerts ? alertsObj.alerts.length : 0;
 	};
 
-
 	const getAlertsObjectOrUndefined = function() {
 		return convertAlertsTextToObjectOrUndefined(storage.alert.get());
 	};
@@ -513,8 +536,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			ui.header.visible(false);
 			ui.header.refresh.btn.enable(false);
 
-			storageFileGetRx().subscribe(displayCachedData, function(err) {
-				console.error('storeWeatherDataAndMap: ' + JSON.stringify(err));
+			storageFileGet().subscribe(displayCachedData, function(err) {
+				console.error('storageFileGet: ' + JSON.stringify(err));
 				ui.header.refresh.btn.enable(true);
 			}, tryGetNewData);
 			

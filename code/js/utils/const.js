@@ -17,7 +17,7 @@ define([], function() {
 	};
 	
 	const ONE_MINUTE_IN_MS = 1000 * 60;
-	const BASE_V2_URL ='https://api.weather.com/v2/';
+	const BASE_V2_URL = 'https://api.weather.com/v2/';
 	const BASE_V3_URL = 'https://api.weather.com/v3/';
 
 	return {

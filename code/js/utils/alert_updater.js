@@ -47,7 +47,8 @@ define(['utils/const', 'utils/utils', 'utils/network', 'utils/storage'], functio
 		
 		activate: function() {
 			if(!this.active()) {
-				fetchAndSaveData();
+				//Now alerts are downloaded with rest of the data
+				//fetchAndSaveData();
 			} else {
 				console.warn('module is in active state');
 			}
