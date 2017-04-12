@@ -191,7 +191,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		5: 'DAYS_AGO',
 	};
 
-	const displayData = function(mapFilePath, weather, alerts, lastRefreshEpochTime) {
+	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
 		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
 		const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
@@ -238,6 +238,8 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		saveSnapshotTime(this.snapshotTimeRepr[0]);
 		saveTimeAmPm(this.currentTimeRepr[1]);
 
+		//refresh time
+		lastRefreshEpochTime = downloadTimeEpochInSeconds;
 		weatherDownloadTimeUpdater();
 
 		if(intervalUpdaterId === null) {
@@ -294,17 +296,16 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 			tryDisplayData();
 
-			if (!updater.inProgress()) {
-				updater.start();
-			}
-			ui.header.refresh.btn.enable(!updater.inProgress());
+			updater.softUpdate();
+
+			const updateRunning = updater.updateInProgress();
+			ui.header.refresh.btn.enable(!updateRunning);
 			
 			ui.header.refresh.btn.onClick(function() {
-				if (!updater.inProgress()) {
-					updater.start();
+				if (updater.hardUpdate()) {
 					ui.header.refresh.btn.enable(false);
 				} else {
-					console.warn('Force update button cannot be available when update in progress');
+					console.warn('Force update button cannot be clickable when update in progress');
 				}
 			});
 
@@ -319,7 +320,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		
 		visibilitychange: function() {
 			if(document.hidden !== true) {
-				tryDisplayData();
+				updater.softUpdate();
 			}
 		},
 

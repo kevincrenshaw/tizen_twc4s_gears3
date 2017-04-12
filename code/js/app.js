@@ -119,13 +119,11 @@ define(modules, function(require, utils, updater) {
 	};
 
 	const onFocus = function(ev) {
-		if (!updater.inProgress()) {
-			updater.start();
-		}
+		updater.softUpdate();
 	};
 	
 	window.addEventListener('blur', function(ev) {
-		updater.stop();
+		updater.stopUpdate();
 	});
 	
 	//Handle on focus event that happen before app module up & running

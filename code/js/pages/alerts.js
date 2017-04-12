@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, dom) {
+define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(storage, utils, dom, updater) {
 
 	var updateHandler = null;
 	var ui = null;
@@ -43,7 +43,12 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 		return {
 			update: function(data) {
 				const alertObject = utils.convertAlertsTextToObjectOrUndefined(data);
-				const numberOfAlerts = alertObject && alertObject.alerts ? alertObject.alerts.length : 0;
+
+				const numberOfAlerts = alertObject &&
+					alertObject.external &&
+					alertObject.external.alerts &&
+					alertObject.external.alerts.alerts &&
+					Array.isArray(alertObject.external.alerts.alerts) ? alertObject.external.alerts.alerts.length : 0;
 
 				binder.title(TIZEN_L10N.ALERTS);
 				
@@ -62,7 +67,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 				}
 
 				for(var index = 0; index < numberOfAlerts; ++index) {
-					const itemData = alertObject.alerts[index];
+					const itemData = alertObject.external.alerts.alerts[index];
 					binder.alerts.addItem(createListItem(itemData.eventTrackingNumber + ' : ' + itemData.eventDescription));
 				}
 			},
@@ -70,9 +75,9 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 	};
 
 	function createOnPrefsUpdater() {
-		return function() {
+		return function(data) {
 			if(ui) {
-				ui.update(storage.alert.get())
+				ui.update(data);
 			}
 		};
 	}
@@ -83,15 +88,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 			
 			ui = createUIAdapter(page);
 			updateHandler = createOnPrefsUpdater();
-			storage.alert.setChangeListener(updateHandler);
-			ui.update(storage.alert.get());
-			//alerts.onPageShow(page);
+			storage.data.setChangeListener(updateHandler);
+			ui.update(storage.data.get());
+			updater.softUpdate();
 		},
 
 		pagebeforehide: function(ev) {
 			const page = ev.target;
-			//alerts.onPageHide(page);
-			storage.alert.unsetChangeListener(updateHandler);
+			storage.data.setChangeListener(updateHandler);
 			updateHandler = null;
 			ui = null;
 		},
