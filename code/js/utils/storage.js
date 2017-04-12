@@ -122,12 +122,12 @@ define(['utils/fsutils'], function(fsutils) {
 	
 	const createMapZoomMappingObject = function() {
 		//Do not use this var directly. Use: getRemappedDistanceLazily function
-	 	var distance = null;
-	 	
+		var distance = null;
+		
 		//It has to be lazy because createMapZoomLocalization function is used during creation of 'storage' object.
 		//	Function body uses 'storage' which do not exists at moment of calling createMapZoomLocalization. Thus remapping
 		//	has to be postponed until 'storage' exists.
-	 	const getRemappedDistanceLazily = function() {
+		const getRemappedDistanceLazily = function() {
 			if (!distance) {
 				const mapping = {
 					'1': 'SETTINGS_MENU_UNITS_MAP_ZOOM_MILES',
@@ -140,15 +140,15 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 			
 			return distance;
-	 	};
-	 	
-	 	const mapZoomMapping = createValueMapping({
-	 		'1' : '100',
-	 		'2' : '75',
-	 		'3' : '50',
-	 		'4' : '25'
-	 	});
-	 	
+		};
+		
+		const mapZoomMapping = createValueMapping({
+			'1' : '100',
+			'2' : '75',
+			'3' : '50',
+			'4' : '25'
+		});
+		
 		return createValueDecoratedMappingObject(mapZoomMapping, function(value) {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
@@ -209,45 +209,45 @@ define(['utils/fsutils'], function(fsutils) {
 	 * new index value (decreased)
 	 * */
 	const decreaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
-    	const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
-    	setIndex(sessionStorageKey, newValue);
-    	return newValue;
-    };
-	
-    
-	const createCircularStorage = function(key, maxSize) {
-		const LSIndex = key + '_ls_index';
-		const LSValue = key + '_ls_value_';
-
-		const get = function() {
-			const index = getIndex(LSIndex);
-			try {
-				return tizen.preference.getValue(LSValue + index);
-			} catch(err) {
-				return null;
-			}
-		};
-
-		const add = function(value) {
-			const index = getIndex(LSIndex);
-			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
-			tizen.preference.setValue(LSValue + newIndex, value);
-		};
-
-		const remove = function() {
-			const index = getIndex(LSIndex);
-			if(tizen.preference.exists(LSValue + index)) {
-				tizen.preference.remove(LSValue + index);
-				decreaseAndStoreIndex(LSIndex, index, maxSize);
-			}
-		};
-
-		return {
-			get: get,
-			add: add,
-			remove: remove,
-		};
+		const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
+		setIndex(sessionStorageKey, newValue);
+		return newValue;
 	};
+	
+	
+	// const createCircularStorage = function(key, maxSize) {
+	// 	const LSIndex = key + '_ls_index';
+	// 	const LSValue = key + '_ls_value_';
+
+	// 	const get = function() {
+	// 		const index = getIndex(LSIndex);
+	// 		try {
+	// 			return tizen.preference.getValue(LSValue + index);
+	// 		} catch(err) {
+	// 			return null;
+	// 		}
+	// 	};
+
+	// 	const add = function(value) {
+	// 		const index = getIndex(LSIndex);
+	// 		const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
+	// 		tizen.preference.setValue(LSValue + newIndex, value);
+	// 	};
+
+	// 	const remove = function() {
+	// 		const index = getIndex(LSIndex);
+	// 		if(tizen.preference.exists(LSValue + index)) {
+	// 			tizen.preference.remove(LSValue + index);
+	// 			decreaseAndStoreIndex(LSIndex, index, maxSize);
+	// 		}
+	// 	};
+
+	// 	return {
+	// 		get: get,
+	// 		add: add,
+	// 		remove: remove,
+	// 	};
+	// };
 
 	const createFileStorage = function(key, maxSize) {
 
@@ -317,14 +317,14 @@ define(['utils/fsutils'], function(fsutils) {
 				const fileName = fsutils.getFileNameFromPath(filePath);
 				tizen.preference.setValue(FSFileName + newIndex, fileName);
 				//create data file directory if its not exist
-		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
-		    		function(result) {
-		    			//if all are ready move file from src directory to private data storage
-		    			const dstPath = fsutils.createFullPath(result.fullPath, fileName);
-		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
-		    		},
-		    		onError
-		    	);
+				fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
+					function(result) {
+						//if all are ready move file from src directory to private data storage
+						const dstPath = fsutils.createFullPath(result.fullPath, fileName);
+						fsutils.moveFile(filePath, dstPath, onSuccess, onError);
+					},
+					onError
+				);
 			};
 
 			//at first we have to remove old file saved by current + 1 position
@@ -462,9 +462,8 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		json : createCircularStorage('json', 4),
-		file : createFileStorage('file', 4),
-		alert: createSimpleStorage('alerts', ''),
+		file: createFileStorage('file', 4),
+		data: createSimpleStorage('data', ''),
 	};
 	
 	return storage;

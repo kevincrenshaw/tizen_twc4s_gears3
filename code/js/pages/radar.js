@@ -2,17 +2,13 @@
 
 const radarModules = [
 	'utils/storage',
-	'utils/map',
-	'utils/network',
 	'utils/const',
 	'utils/utils',
 	'utils/dom',
-	'utils/alert_updater',
-	'rx'
+	'utils/updater'
 ];
 
-define(radarModules, function(storage, map, network, consts, utils, dom, alertUpdater, rx) {
-	var currentPositionSubscription;
+define(radarModules, function(storage, consts, utils, dom, updater) {
 	var intervalUpdaterId = null;
 	var ui;
 	var lastRefreshEpochTime;
@@ -20,46 +16,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 	var snapshotTimeRepr = null;
 	var currentTimeRepr = null;
 
-	const getMapImgUrl = function(latitude, longitude, lod, options) {
-		options = options || {};
-		
-		const latByLod = map.getAllowedPrecisionAccordingToLod(latitude, lod);
-		const longByLod = map.getAllowedPrecisionAccordingToLod(longitude, lod);
-		
-		const params = {
-			geocode: [latByLod, longByLod].join(','),
-			w: options.width || 400,
-			h: options.height || 400,
-			lod: lod,
-			product: options.product || 'satrad',
-			apiKey: consts.API_KEY,
-		};
-
-		return utils.createUri(consts.MAPS_URL, params);
-	};
-
-	const getWeatherUrl = function(latitude, longitude) {
-		const options = {
-			language: 'en-US',
-			units: 'm', //'e' for imperial
-			apiKey: consts.API_KEY,
-		};
-
-		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
-		return utils.createUri(uriBase, options);
-	};
-
-	const getAlertsUrl = function(latitude, longitude) {
-		const params = {
-			geocode: [latitude, longitude].join(','),
-			format: 'json',
-			language: 'en-US',
-			apiKey: consts.API_KEY,
-		};
-
-		return utils.createUri(consts.ALERTS_URL, params);
-	};
-	
 	/*
 	 * Converts temperature into textual representation.
 	 * Parameters:
@@ -89,30 +45,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 	
 	const extractTempertatureFromCurrentConditions = function(weather) {
 		return weather.observation.metric.temp;
-	};
-	
-	const storageFileAdd = function(filePath) {
-		return rx.Observable.create(function(observer) {
-			const onSuccess = function(fileUri) {
-		 		observer.onNext(fileUri);
-		 		observer.onCompleted();
-			};
-
-			storage.file.add(filePath, { onSuccess:onSuccess, onError:observer.onError });
-		});
-	};
-	
-	const storageFileGet = function() {
-		return rx.Observable.create(function(observer) {
-			if (storage.file.empty()) {
-				observer.onCompleted();
-			} else {
-				storage.file.get(function(file) {
-					observer.onNext(file);
-					observer.onCompleted();
-				}, observer.onError);
-			}
-		});
 	};
 
 	const createUiManager = function(root) {
@@ -258,143 +190,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		4: 'DAY_AGO',
 		5: 'DAYS_AGO',
 	};
-	
-	/*
-	 * Attempts to get current location, fetch data for location and then display it
-	 */
-	const tryGetNewData = function() {
-		console.log('getting current position...');
 
-		if (currentPositionSubscription) {
-			currentPositionSubscription.dispose();
-			currentPositionSubscription = null;
-		}
-
-		ui.header.refresh.btn.enable(false);
-
-		currentPositionSubscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
-			return [pos.coords.latitude, pos.coords.longitude];
-		})
-		.flatMap(function(coords) {
-			return rx.Observable.zip(getWeatherObject(coords), getAlertObject(coords), rx.Observable.just(coords));
-		})
-		.flatMap(function(data) {
-			const weatherData = data[0];
-			const alertData = data[1];
-			const coords = data[2];
-
-			return rx.Observable.zip(getMap(coords),
-				rx.Observable.just(weatherData),
-				rx.Observable.just(alertData));
-		})
-		.subscribe(function(data) {
-			const mapFilePath = data[0];
-			const weatherData = data[1];
-			const alertData = data[2];
-
-			const newStorageObject = {
-				internal: {
-					downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
-					mapFilePath: mapFilePath, //store map file path for given weather data
-				},
-				external: weatherData,
-			};
-
-			storage.json.add(JSON.stringify(newStorageObject));
-			storage.alert.set(JSON.stringify(alertData));
-
-			displayData(mapFilePath, newStorageObject);
-		}, function(err) {
-			console.warn('download data failed: ' + JSON.stringify(err));
-		});
-	};
-
-	/*
-	 * For given coords tries to get current weather data object
-	 *
-	 * Parameters:
-	 * 		coords - array of exactly two elements [latitude, longitude]
-	 *
-	 * Result:
-	 *		Returns observable that emits current weather respresented as object (json returned by TWC API described
-	 *		http://goo.gl/TO9kYm)
-	 */
-	const getWeatherObject = function(coords) {
-		const latitude = coords[0];
-		const longitude = coords[1];
-
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());
-		const lod = map.getMapLod(mapZoom, distance);
-
-		console.log('weather data: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
-
-		const weatherUrl = getWeatherUrl(latitude, longitude);
-		console.log('weatherUrl=' + weatherUrl);
-
-		return network.getResourceByURLRx(weatherUrl)
-			.filter(function(result) {
-				return result.data && result.data.metadata && result.xhr.status === 200;
-			})
-			.map(function(result) {
-				return result.data;
-			});
-	};
-
-	/*
-	 * For given coords tries to get alert data object
-	 *
-	 * Parameters:
-	 * 		coords - array of exactly two elements [latitude, longitude]
-	 *
-	 * Result:
-	 *		Returns observable that emits current weather respresented as object (json returned by TWC API described
-	 *		http://goo.gl/TO9kYm)
-	 */
-	const getAlertObject = function(coords) {
-		const alertsUrl = getAlertsUrl(coords[0], coords[1]);
-		console.log('alertsUrl=' + alertsUrl);
-
-		return network.getResourceByURLRx(alertsUrl, consts.ALERT_TIMEOUT_IN_MS)
-			.map(function(result) {
-				return result.data || '';
-			});
-	};
-
-	const getMap = function(coords) {
-		const latitude = coords[0];
-		const longitude = coords[1];
-
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());		
-		const lod = map.getMapLod(mapZoom, distance);
-		
-		const mapImgUrl = getMapImgUrl(latitude, longitude, lod);
-		console.log('lat=' + latitude + ', lon=' + longitude + ', lod=' + lod + ', mapImgUrl=' + mapImgUrl);
-
-		const epoch = utils.getNowAsEpochInMiliseconds();
-		const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
-		console.log('uniqueFileName: ' + uniqueFileName);
-
-		return network.downloadFileRx(mapImgUrl, uniqueFileName).flatMap(function(downloadedFilePath) {
-			return storageFileAdd(downloadedFilePath);
-		});
-	};
-
-	const displayCachedData = function(mapFile) {
-		const jsonStorageObject = JSON.parse(storage.json.get());
-
-		console.log('displayCachedData: mapFile=' + mapFile.toURI());
-
-		if (jsonStorageObject) {
-			displayData(mapFile.toURI(), jsonStorageObject);
-		} else {
-			console.warn('No weather data despite we have map file');
-		}
-	};
-
-	const displayData = function(mapFilePath, jsonStorageObject) {
-		const weather = jsonStorageObject.external;
+	const displayData = function(mapFilePath, weather, alerts, lastRefreshEpochTime) {
 		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
 		const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
@@ -441,8 +238,6 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		saveSnapshotTime(this.snapshotTimeRepr[0]);
 		saveTimeAmPm(this.currentTimeRepr[1]);
 
-		//refresh time
-		lastRefreshEpochTime = jsonStorageObject.internal.downloadTimeEpochInSeconds;
 		weatherDownloadTimeUpdater();
 
 		if(intervalUpdaterId === null) {
@@ -455,18 +250,7 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			);
 		}
 
-		const weatherData = {
-			map: mapFilePath,
-			temperature: {
-				valueInCelsius: tempInCelsius,
-			}
-		};
-		
-		alertUpdater.deactivate();
-		alertUpdater.activate();
-		
-		//Store information for widget
-		tizen.preference.setValue('weather_data', JSON.stringify(weatherData));
+		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
 		
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
@@ -474,89 +258,82 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 		ui.header.refresh.btn.enable(true);
 		ui.map.visible(true);
 		ui.header.visible(true);
-		ui.footer.alert.counter(getNbrOfAlerts());
+		ui.footer.alert.counter(nbrOfAlerts);
 		ui.more.visible(true);
 	};
 
-	const getNbrOfAlerts = function() {
-		const alertsObj = getAlertsObjectOrUndefined();
-		return alertsObj && alertsObj.alerts ? alertsObj.alerts.length : 0;
-	};
+	const tryDisplayData = function() {
+		const dataText = storage.data.get();
+		console.log('try display data');
 
-	const getAlertsObjectOrUndefined = function() {
-		return convertAlertsTextToObjectOrUndefined(storage.alert.get());
-	};
-	
-	const convertAlertsTextToObjectOrUndefined = function(alertsText) {		
-		if (alertsText) {
+		if (dataText) {
 			try {
-				return JSON.parse(alertsText);
-			} catch (err) {
-				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+				const data = JSON.parse(dataText);
+				const mapFilePath = data.internal.mapFilePath;
+				const weatherData = data.external.weather;
+				const alertsData = data.external.alerts;
+
+				displayData(mapFilePath, weatherData, alertsData, data.internal.downloadTimeEpochInSeconds);
+			} catch(err) {
+				console.error(JSON.stringify(err));
 			}
-		}
-		
-		return undefined;
-	};
-	
-	const alertDataChange = function(data) {
-		const alertsObj = convertAlertsTextToObjectOrUndefined(data.value);		
-		const nbrOfAlerts = alertsObj ? alertsObj.alerts.length : 0;
-		
-		if (nbrOfAlerts === 0 || ui.map.isVisible()) {
-			ui.footer.alert.counter(nbrOfAlerts);
+		} else {
+			ui.map.visible(false);
+			ui.header.visible(false);
+			ui.footer.alert.counter(0);
+			console.log('No data in storage');
 		}
 	};
 
 	return {
-		pagebeforehide: function(ev) {
-			storage.alert.unsetChangeListener(alertDataChange);
-			
-			if (currentPositionSubscription) {
-				currentPositionSubscription.dispose();
-				currentPositionSubscription = null;
+		pagebeforeshow: function(ev) {
+			const page = ev.target;
+			ui = createUiManager(page);
+
+			storage.data.setChangeListener(tryDisplayData);
+
+			tryDisplayData();
+
+			if (!updater.inProgress()) {
+				updater.start();
 			}
+			ui.header.refresh.btn.enable(!updater.inProgress());
+			
+			ui.header.refresh.btn.onClick(function() {
+				if (!updater.inProgress()) {
+					updater.start();
+					ui.header.refresh.btn.enable(false);
+				} else {
+					console.warn('Force update button cannot be available when update in progress');
+				}
+			});
+
+			ui.footer.alert.onClick(function() {
+				tau.changePage('alerts.html');
+			});
+
+			ui.more.onClick(function() {
+				console.log('More options');
+			});
+		},
+		
+		visibilitychange: function() {
+			if(document.hidden !== true) {
+				tryDisplayData();
+			}
+		},
+
+		pagebeforehide: function(ev) {
+			storage.data.unsetChangeListener(tryDisplayData);
+			ui.header.refresh.btn.onClick(null);
+			ui.footer.alert.onClick(null);
+			ui.more.onClick(null);
 
 			if(intervalUpdaterId) {
 				clearInterval(intervalUpdaterId);
 				intervalUpdaterId = null;
 			}
 			ui = null;
-		},
-
-		pagebeforeshow: function(ev) {
-			const page = ev.target;
-			ui = createUiManager(page);
-
-			lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
-
-			var lastRefreshEpochTime = utils.getNowAsEpochInSeconds();
-
-			ui.map.visible(false);
-			ui.header.visible(false);
-			ui.header.refresh.btn.enable(false);
-
-			storageFileGet().subscribe(displayCachedData, function(err) {
-				console.error('storageFileGet: ' + JSON.stringify(err));
-				ui.header.refresh.btn.enable(true);
-			}, tryGetNewData);
-			
-			ui.header.refresh.btn.onClick(tryGetNewData);
-			ui.footer.alert.onClick(function() {
-				tau.changePage("alerts.html");
-			});
-			
-			ui.more.onClick(function() {
-				console.log('More click');
-			});
-			
-			storage.alert.setChangeListener(alertDataChange);
-		},
-		
-		visibilitychange: function() {
-			if(document.hidden !== true) {
-				tryGetNewData();
-			}
 		},
 	};
 });
