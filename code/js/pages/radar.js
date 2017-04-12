@@ -151,8 +151,8 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 			},
 			
 			more: {
-				visible: visibilityImpl(element.more),
-				onClick: onClickImpl(element.more),
+				visible: dom.createVisibilityHandler(element.more),
+				onClick: dom.createOnClickHandler(element.more),
 			},
 			
 			header: {
