@@ -46,17 +46,20 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 				const numberOfAlerts = alertObject && alertObject.alerts ? alertObject.alerts.length : 0;
 
 				binder.title(TIZEN_L10N.ALERTS);
-				//TODO uncomment in US TWCGS3-85
+				
 
-//				if(numberOfAlerts > 0) {
-//					binder.noalerts.display('none');
+				if(numberOfAlerts > 0) {
+					binder.noalerts.display('none');
+					binder.alerts.display('none');
+					//TODO uncomment in US TWCGS3-85
+
 //					binder.alerts.display('inline');
 //					binder.alerts.clear();
-//				} else {
+				} else {
 					binder.noalerts.display('inline');
 					binder.alerts.display('none');
 					binder.noalerts.text(TIZEN_L10N.NO_ALERTS);
-//				}
+				}
 
 				for(var index = 0; index < numberOfAlerts; ++index) {
 					const itemData = alertObject.alerts[index];
