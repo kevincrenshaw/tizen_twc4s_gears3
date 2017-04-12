@@ -28,8 +28,29 @@ body {
 	height:320px;
 }
 
-.invisible {
+.display-none {
 	display: none;
+}
+
+.text-28px-white {
+	font-size: 28px;
+	color: #ffffff;
+}
+
+.text-24px-white {
+	font-size: 24px;
+	color: #ffffff;
+}
+
+.text-18px-lightgrey {
+	font-size: 18px;
+	color: #e0e0e0;
+}
+
+.text-18px-white {
+	font-size: 18px;
+	color: #ffffff;
+	vertical-align: middle;
 }
 
 .normal-text {
@@ -63,6 +84,52 @@ body {
     background-size: contain;  
 }
 
+.warning-icon:before {
+    height: 48px;
+    width: 48px;
+    background-image: url("../resources/gfx/warning-icon.svg");
+    background-repeat: no-repeat;
+    background-position: center; 
+}
+
+/* header ui */
+.semitransparent {
+	background-color: rgba(0,0,0,0.4);
+}
+
+.black {
+	background-color: black;
+}
+
+.header {
+	position: absolute;
+	top: 0%;
+	width: 100%;
+	height: 127px;
+	visibility: hidden;
+}
+
+.header-block-top {
+	position: absolute;
+	width: 100%;
+	bottom: 78px;
+	text-align: center;
+}
+
+.header-block-middle {
+	position: absolute;
+	width: 100%;
+	bottom: 42px;
+	text-align: center;
+}
+
+.header-block-bottom {
+	position: absolute;
+	bottom: 12px;
+	width: 100%;
+	text-align: center;
+}
+
 .test-content-text {
 	font-size:.5em;
 	color:#fff;
@@ -76,11 +143,6 @@ body {
 	top: 20%;
 	position: absolute;
 	font-size: .65em;
-}
-
-.test-image-preview {
-	width: 250px;
-	height: 140px;
 }
 
 .radar-temperature-normal-text {
@@ -106,22 +168,6 @@ body {
 	visibility:hidden;
 }
 
-#radar.ui-page #header {
-	position: absolute;
-	top: 0%;
-	width: 100%;
-	height: 127px;
-	background-color: rgba(0,0,0,0.4);
-	visibility: hidden;
-}
-
-#radar.ui-page #header #temperatureBox {
-	position: absolute;
-	width: 100%;
-	bottom: 42px;
-	text-align: center;
-}
-
 #radar.ui-page #header #temperatureBox #unit {
 	margin-left: 1px;
 }
@@ -138,35 +184,7 @@ body {
 	margin-left: 2px;
 }
 
-/*time*/
-#radar.ui-page #header #timeBox {
-	position: absolute;
-	width: 100%;
-	bottom: 78px;
-	text-align: center;
-	
-}
-
-#radar.ui-page #header #timeBox #value {
-	font-size: 24px;
-	font-family: BreezeSans;
-	color: #ffffff;
-}
-
-#radar.ui-page #header #timeBox #unit {
-	font-size: 18px;
-	font-family: BreezeSans;
-	color: #e0e0e0;
-}
-
-#radar.ui-page #refreshBox {
-	position: absolute;
-	bottom: 12px;
-	width: 100%;
-	text-align: center;
-}
-
-#radar.ui-page #refreshBox #btn {
+.refresh-button {
 	width: 25px;
 	height: 25px;
 	vertical-align: middle;
@@ -187,6 +205,13 @@ body {
 	font-size: 18px;
 	color: #ffffff;
 	vertical-align: middle;
+}
+
+.refresh-button {
+	width: 25px;
+	height: 25px;
+	vertical-align: middle;
+	-webkit-transform-origin: center center;
 }
 
 .ui-page .ui-selector .ui-selector-indicator-arrow {
@@ -249,23 +274,7 @@ body {
 	color: white;
 }
 
-#radar.ui-page #more {
-	visibility: hidden;
-	position: absolute;
-	left: 290px;
-	top: 155px;
-	background-color: black;
-	border-radius: 50%;
-}
-
-#radar.ui-page #more #btn {
-	width: 40px;
-	height: 40px;
-	margin: 10px;
-	vertical-align: middle;
-}
-
-#alerts .ui-page .ui-content .alert-page-container {
+.alert-page-container {
 	width: 100%;
 	height: 100%;
 	display: block;
@@ -276,3 +285,38 @@ body {
 	font-size: 30px;
 	color: white;
 }
+
+/* alerts list */
+.list-item-title {
+	text-align: left;
+	line-height: 28px;
+	font-size: 24px;
+	margin-top: 8px;
+	margin-bottom:5px;
+}
+
+.list-item-subtitle {
+	text-align: left;
+	line-height: 22px;
+	font-size: 18px;
+}
+
+.more-block {
+	position: absolute;
+	left: 290px;
+	top: 155px;
+	background-color: #009de8;
+	border-radius: 50%;
+	visibility: hidden;
+}
+
+.more-button {
+	width: 40px;
+	height: 40px;
+	margin: 10px;
+	vertical-align: middle;
+}
+
+/* style for playing infinity marquee styled elements 
+use it with standard ui-marquee style */
+.marquee-infinitive-autorun {}

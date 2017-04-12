@@ -98,18 +98,19 @@ define(modules, function(require, utils, updater) {
 	//There is only one acrive marquee widget at the moment
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
 
-	const createMarqueWidget = function(element) {
-		return tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'});
+	const createMarqueWidget = function(element, options) {
+		return tau.widget.Marquee(element, options);
 	};
-	
+
 	const createMarqueeWidgetForListElement = function(element) {
 		if (element) {
 			activeMaruqeeWidget.destroy();
-			activeMaruqeeWidget.set(createMarqueWidget(element));
+			activeMaruqeeWidget.set(createMarqueWidget(element, {marqueeStyle: 'endToEnd', delay: '1000'}));
 		}
 	};
 	
 	const listItemSelectedEventListener = function(ev) {
+		console.log('list item selected');
 		const page = ev.target;
 		createMarqueeWidgetForListElement(page.querySelector('.ui-marquee'));
 	};
@@ -144,7 +145,14 @@ define(modules, function(require, utils, updater) {
 
 		const title = page.querySelector(".ui-title");
 		if (title) {
-			destroyables.add(createMarqueWidget(title));
+			destroyables.add(createMarqueWidget(title, {marqueeStyle: 'endToEnd', delay: '1000'}));
+		}
+
+		const allElementsWithMarqueeStyle = page.querySelectorAll('.marquee-infinitive-autorun');
+		for(var i = 0; i < allElementsWithMarqueeStyle.length; ++i) {
+			var listNode = allElementsWithMarqueeStyle[i];
+			console.log('marquee-infinitive:: found element: ' + listNode.id);
+			destroyables.add(createMarqueWidget(listNode, {marqueeStyle: 'endToEnd', delay: '1000', iteration: 'infinite', autoRun: true}));
 		}
 
 		//Find every circle helper on current page, create widget for it and save it for later destruction
@@ -162,10 +170,10 @@ define(modules, function(require, utils, updater) {
 				listNode,
 				'input:checked[value]',
 				function(el) {
-					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);					
+					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);
 				}
 			);
-			
+
 			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
 			createMarqueeWidgetForListElement(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
 						
