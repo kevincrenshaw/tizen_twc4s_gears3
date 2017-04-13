@@ -162,9 +162,9 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		}
 	};
 	
-	/*
+	/**
 	 * update ui function. all periodic update UI processes should be place here
-	 */
+	 * */
 	const updateUI = function(ui) {
 		if(ui) {
 			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';

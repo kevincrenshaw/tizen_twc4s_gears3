@@ -94,7 +94,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 		pagebeforehide: function(ev) {
 			const page = ev.target;
-			storage.data.setChangeListener(updateHandler);
+			storage.data.unsetChangeListener(updateHandler);
 			updateHandler = null;
 			ui = null;
 		},

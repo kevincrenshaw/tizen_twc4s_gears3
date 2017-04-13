@@ -122,12 +122,12 @@ define(['utils/fsutils'], function(fsutils) {
 	
 	const createMapZoomMappingObject = function() {
 		//Do not use this var directly. Use: getRemappedDistanceLazily function
-		var distance = null;
-		
+	 	var distance = null;
+	 	
 		//It has to be lazy because createMapZoomLocalization function is used during creation of 'storage' object.
 		//	Function body uses 'storage' which do not exists at moment of calling createMapZoomLocalization. Thus remapping
 		//	has to be postponed until 'storage' exists.
-		const getRemappedDistanceLazily = function() {
+	 	const getRemappedDistanceLazily = function() {
 			if (!distance) {
 				const mapping = {
 					'1': 'SETTINGS_MENU_UNITS_MAP_ZOOM_MILES',
@@ -140,27 +140,27 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 			
 			return distance;
-		};
-		
-		const mapZoomMapping = createValueMapping({
-			'1' : '100',
-			'2' : '75',
-			'3' : '50',
-			'4' : '25'
-		});
-		
+	 	};
+	 	
+	 	const mapZoomMapping = createValueMapping({
+	 		'1' : '100',
+	 		'2' : '75',
+	 		'3' : '50',
+	 		'4' : '25'
+	 	});
+	 	
 		return createValueDecoratedMappingObject(mapZoomMapping, function(value) {
 			return value + ' ' + getRemappedDistanceLazily().getMapped(); });
 	};
 
-	/*
+	/**
 	 * get saved index by key in a tizen.preference
 	 * Params:
 	 * 		sessionStorageKey - key for getting index data from locale storage
 	 * 
 	 * Returns:
 	 * 		index stored by sessionStorageKey, or 0
-	 */
+	 * */
 	const getIndex = function(sessionStorageKey) {
 		try {
 			return parseInt(tizen.preference.getValue(sessionStorageKey));
@@ -169,7 +169,7 @@ define(['utils/fsutils'], function(fsutils) {
 		}
 	};
 	
-	/*
+	/**
 	 * set and save index by key in a tizen.preference
 	 * Params:
 	 * 		sessionStorageKey - key for setting index data to a tizen.preference
@@ -177,12 +177,12 @@ define(['utils/fsutils'], function(fsutils) {
 	 * 
 	 * Returns:
 	 * 		nothing
-	 */
+	 * */
 	const setIndex = function(sessionStorageKey, index) {
 		tizen.preference.setValue(sessionStorageKey, index);
 	};
 	
-	/*
+	/**
 	 * increase and save index value
 	 * Params:
 	 * 		sessionStorageKey - key for setting index data to a tizen.preference
@@ -191,14 +191,14 @@ define(['utils/fsutils'], function(fsutils) {
 	 * 
 	 * Returns:
 	 * 		new index value (increased)
-	 */
+	 * */
 	const increaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
 		const newValue = (oldIndexVal + 1) % maxIndexVal;
 		setIndex(sessionStorageKey, newValue);
 		return newValue;
 	};
 	
-	/*
+	/**
 	 * decrease and save index value
 	 * Params:
 	 * 		sessionStorageKey - key for setting index data to a tizen.preference
@@ -207,12 +207,12 @@ define(['utils/fsutils'], function(fsutils) {
 	 * 
 	 * Returns:
 	 * new index value (decreased)
-	 */
+	 * */
 	const decreaseAndStoreIndex = function(sessionStorageKey, oldIndexVal, maxIndexVal) {
-		const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
-		setIndex(sessionStorageKey, newValue);
-		return newValue;
-	};
+    	const newValue = (oldIndexVal + maxIndexVal - 1) % maxIndexVal;
+    	setIndex(sessionStorageKey, newValue);
+    	return newValue;
+    };
 	
 	
 	// const createCircularStorage = function(key, maxSize) {
@@ -265,14 +265,14 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 		};
 
-		/*
+		/**
 		 * get file from FS storage
 		 * Params:
 		 * 		onSuccess(file) will be called if file was obtained successfully
 		 * 		onError(error) will be called if something went wrong
 		 * Returns:
 		 * 		nothing
-		 */
+		 * */
 		const get = function(onSuccess, onError) {
 			const index = getIndex(FSIndex);
 			const savedFileName = getSavedFileNameAtIndex(index);
@@ -285,12 +285,12 @@ define(['utils/fsutils'], function(fsutils) {
 			}
 		};
 		
-		/*
+		/**
 		 * check if file storage is empty
 		 * 
 		 * Returns:
 		 * 		true if file storage is empty false otherwise
-		 */
+		 * */
 		const empty = function() {
 			const index = getIndex(FSIndex);
 			const savedFileName = getSavedFileNameAtIndex(index);
@@ -317,14 +317,14 @@ define(['utils/fsutils'], function(fsutils) {
 				const fileName = fsutils.getFileNameFromPath(filePath);
 				tizen.preference.setValue(FSFileName + newIndex, fileName);
 				//create data file directory if its not exist
-				fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
-					function(result) {
-						//if all are ready move file from src directory to private data storage
-						const dstPath = fsutils.createFullPath(result.fullPath, fileName);
-						fsutils.moveFile(filePath, dstPath, onSuccess, onError);
-					},
-					onError
-				);
+		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
+		    		function(result) {
+		    			//if all are ready move file from src directory to private data storage
+		    			const dstPath = fsutils.createFullPath(result.fullPath, fileName);
+		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
+		    		},
+		    		onError
+		    	);
 			};
 
 			//at first we have to remove old file saved by current + 1 position
@@ -339,14 +339,14 @@ define(['utils/fsutils'], function(fsutils) {
 			);
 		};
 		
-		/*
+		/**
 		 * remove file at given index
 		 * Params:
 		 * 		index - used to obtain filename
 		 * 		onResult() - called when file was deleted or if deleting completed with fail 
 		 * Rerturns:
 		 * 		nothing
-		 */
+		 * */
 		const removeAtIndex = function(index, onSuccess, onError) {
 			//get name of saved file at index
 			const savedFileName = getSavedFileNameAtIndex(index);
