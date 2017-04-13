@@ -466,6 +466,7 @@ define(['utils/fsutils'], function(fsutils) {
 		data: createSimpleStorage('data', ''),
 		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
 		temp: createSimpleStorage('temp', ''),	//current temp in celcius (for widget)
+		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)
 	};
 	
 	return storage;

@@ -274,10 +274,11 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			try {
 				const data = JSON.parse(dataText);
 				const mapFilePath = storage.map.get();
-				const weatherData = data.external.weather;
-				const alertsData = data.external.alerts;
+				const weatherData = data.weather;
+				const alertsData = data.alerts;
+				const lastUpdateTime = storage.lastUpdate.get();
 
-				displayData(mapFilePath, weatherData, alertsData, data.internal.downloadTimeEpochInSeconds);
+				displayData(mapFilePath, weatherData, alertsData, lastUpdateTime);
 			} catch(err) {
 				console.error(JSON.stringify(err));
 			}

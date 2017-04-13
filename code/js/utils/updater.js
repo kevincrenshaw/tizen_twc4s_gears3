@@ -44,16 +44,11 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			const alertData = data[2];
 
 			const newStorageObject = {
-				internal: {
-					downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
-				},
-
-				external: {
-					weather: weatherData,
-					alerts: alertData,
-				},
+				weather: weatherData,
+				alerts: alertData,
 			};
 
+			storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
 			storage.map.set(mapFilePath);
 			storage.data.set(JSON.stringify(newStorageObject));
 
@@ -224,9 +219,11 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		if (dataText) {
 			try {
 				const data = JSON.parse(dataText);
-				const downloadTimeEpochInSeconds = data.internal.downloadTimeEpochInSeconds;
+				const downloadTimeEpochInSeconds = storage.lastUpdate.get();
 
-				return parseInt(downloadTimeEpochInSeconds);
+				if (downloadTimeEpochInSeconds) {
+					return parseInt(downloadTimeEpochInSeconds);
+				}
 			} catch(err) {
 				console.error(JSON.stringify(err));
 			}

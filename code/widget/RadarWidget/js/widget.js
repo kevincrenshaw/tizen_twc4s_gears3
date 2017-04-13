@@ -5,9 +5,7 @@ window.onload = function() {
 	var snapshotTimeRepr = {};
 	var mapFilePath;
 	var data;
-
 	var ampm = '';
-	
 	var ui = null;
 	
 	//run for first time when widget is added to a widget board
@@ -211,11 +209,10 @@ window.onload = function() {
 	
 	function getNbrOfAlerts() {		
 		if (data &&
-				data.external &&
-				data.external.alerts &&
-				data.external.alerts.alerts &&
-				Array.isArray(data.external.alerts.alerts)) {
-			return data.external.alerts.alerts.length;
+				data.alerts &&
+				data.alerts.alerts &&
+				Array.isArray(data.alerts.alerts)) {
+			return data.alerts.alerts.length;
 		} else {
 			return 0;
 		}
