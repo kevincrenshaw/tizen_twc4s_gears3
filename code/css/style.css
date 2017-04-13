@@ -53,11 +53,6 @@ body {
 	vertical-align: middle;
 }
 
-.normal-text {
-	font-size: .7em;
-	color: #fff;
-}
-
 .content_text {
 	font-weight:bold;
 	font-size:5em;
@@ -205,13 +200,6 @@ body {
 	font-size: 18px;
 	color: #ffffff;
 	vertical-align: middle;
-}
-
-.refresh-button {
-	width: 25px;
-	height: 25px;
-	vertical-align: middle;
-	-webkit-transform-origin: center center;
 }
 
 .ui-page .ui-selector .ui-selector-indicator-arrow {

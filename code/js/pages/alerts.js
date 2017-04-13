@@ -4,9 +4,15 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 	var intervalUpdaterId = null;
 	var updateHandler = null;
-	var ui = null;
+	var adapter = null;
 
-	const createUIAdapter = function(page) {
+	/**
+	 * Creates adapter between data and UI
+	 * */
+	const createAdapter = function(page) {
+
+		var alertsData;
+
 		//view hierarchy holder
 		const holder = {
 			header: dom.queryWrappedElement(page, '#header'),
@@ -46,6 +52,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				display: dom.createDisplayHandler(holder.alerts.page),
 				addItem: dom.createAddListItemHandler(holder.alerts.list),
 				clear: dom.createDeleteAllChildrenHolder(holder.alerts.list),
+				listitems: dom.createGetAllChildrenByType(holder.alerts.list),
 			},
 			more: {
 				visible: dom.createVisibilityHandler(holder.moreblock),
@@ -82,7 +89,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			console.log('details: ' + details);
 			
 			var subtitleDiv = createDivElement('text_subtitle', details);
-			subtitleDiv.className = "ui-marquee list-item-subtitle";
+			subtitleDiv.className = "list-item-subtitle";
 			subtitleDiv.style.color = "#a7abae";
 
 			var iconDiv = createDivElement('alert_icon');
@@ -92,11 +99,26 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			listItem.className = " li-has-thumb-left li-has-2line";
 			listItem.id = "alerts_list_item";
 
-			listItem.appendChild(titleDiv);
-			listItem.appendChild(subtitleDiv);
+			var textBlockDiv = createDivElement('text_block');
+			textBlockDiv.appendChild(titleDiv);
+			textBlockDiv.appendChild(subtitleDiv);
+			textBlockDiv.className = 'ui-marquee';
+
+			listItem.appendChild(textBlockDiv);
 			listItem.appendChild(iconDiv);
 
 			return listItem;
+		};
+
+		const updateListItem = function(listitem, alertData) {
+			const subtitleDiv = listitem.querySelector('#text_subtitle');
+			if(subtitleDiv) {
+				const details = createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC);
+				subtitleDiv.innerHTML = details;
+				console.log('list item was updated');
+			} else {
+				console.log('cant find list item');
+			}
 		};
 
 		return {
@@ -127,30 +149,61 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 					const itemData = alertObject.alerts.alerts[index];
 					binder.alerts.addItem(createListItem(itemData));
 				}
+				this.update();
 			},
 			update: function() {
 				const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 				const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 				binder.header.time(currentTimeRepr[0], currentTimeRepr[1]);
-				
+
 				//add updating list item elements here
+				if(this.alertsData && this.alertsData.alerts) {
+					const alertsCount = this.alertsData.alerts.length;
+					console.log('update::data.length: ' + this.alertsData.alerts.length);
+					for(var i = 0; i < alertsCount; ++i) {
+						//get list item view
+						const items = binder.alerts.listitems('li');
+						const item = items[i];
+
+						if(item) {
+							console.log('got list item on index: ' + i);
+							updateListItem(item, this.alertsData.alerts[i]);
+						} else {
+							console.log('cant update list item on index: ' + i);
+						}
+					}
+				}
+				
 			}
 		};
 	};
 
 	function createOnPrefsUpdater() {
 		return function() {
-			if(ui) {
-				ui.setData(storage.alert.get())
+			if(adapter) {
+				adapter.setData(storage.alert.get());
 			}
 		};
 	}
 
+	const onDateTimeChangedListener = function() {
+		console.log('data or time was changed');
+		if(adapter) {
+			adapter.update();
+		}
+	};
+
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
+			tizen.time.setDateTimeChangeListener(function() {
+				console.log('data or time was changed');
+				if(adapter) {
+					adapter.update();
+				}
+			});
 			
-			ui = createUIAdapter(page);
+			adapter = createAdapter(page);
 			updateHandler = createOnPrefsUpdater();
 			storage.data.setChangeListener(updateHandler);
 			ui.update(storage.data.get());
@@ -159,9 +212,17 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 		pagebeforehide: function(ev) {
 			const page = ev.target;
-			storage.data.unsetChangeListener(updateHandler);
+			tizen.time.unsetDateTimeChangeListener();
+			
+			if(intervalUpdaterId) {
+				clearInterval(intervalUpdaterId);
+				intervalUpdaterId = null;
+			}
+
+			storage.alert.unsetChangeListener(updateHandler);
 			updateHandler = null;
-			ui = null;
+			adapter = null;
+			
 		},
 	};
 });

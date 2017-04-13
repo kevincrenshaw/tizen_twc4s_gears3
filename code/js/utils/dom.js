@@ -142,6 +142,14 @@ define([], function() {
 		};
 	};
 
+	const createGetAllChildrenByType = function(wrappedElement) {
+		return function(childtype) {
+			return wrappedElement.apply(function(el) {
+				return el.querySelectorAll(childtype);
+			});
+		};
+	};
+
 	return {
 		queryWrappedElement: queryWrappedElement,
 		createDisplayHandler: createDisplayHandler,
@@ -153,5 +161,6 @@ define([], function() {
 		createEnableHandler: createEnableHandler,
 		createAddListItemHandler: createAddListItemHandler,
 		createDeleteAllChildrenHolder: createDeleteAllChildrenHolder,
+		createGetAllChildrenByType: createGetAllChildrenByType,
 	};
 });

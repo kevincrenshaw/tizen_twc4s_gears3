@@ -56,12 +56,12 @@ define(modules, function(require, utils, updater) {
 	//Creates object that manages array of destroyables.
 	const createDestroyableManager = function() {
 		const destroyableArr = [];
-		
+
 		return {
 			add: function(destroyable) {
 				destroyableArr.push(destroyable);
 			},
-			
+
 			destroy: function() {
 				//Destroy in reverse order
 				for (i=destroyableArr.length-1; i>=0; --i) {
@@ -72,7 +72,7 @@ define(modules, function(require, utils, updater) {
 			}
 		};
 	};
-	
+
 	const createMarqueeWidgetManager = function() {
 		var activeMarqueeWidget;
 		
@@ -99,7 +99,7 @@ define(modules, function(require, utils, updater) {
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
 
 	const createMarqueWidget = function(element, options) {
-		return tau.widget.Marquee(element, options);
+		return new tau.widget.Marquee(element, options);
 	};
 
 	const createMarqueeWidgetForListElement = function(element) {
@@ -110,7 +110,6 @@ define(modules, function(require, utils, updater) {
 	};
 	
 	const listItemSelectedEventListener = function(ev) {
-		console.log('list item selected');
 		const page = ev.target;
 		createMarqueeWidgetForListElement(page.querySelector('.ui-marquee'));
 	};
@@ -151,7 +150,6 @@ define(modules, function(require, utils, updater) {
 		const allElementsWithMarqueeStyle = page.querySelectorAll('.marquee-infinitive-autorun');
 		for(var i = 0; i < allElementsWithMarqueeStyle.length; ++i) {
 			var listNode = allElementsWithMarqueeStyle[i];
-			console.log('marquee-infinitive:: found element: ' + listNode.id);
 			destroyables.add(createMarqueWidget(listNode, {marqueeStyle: 'endToEnd', delay: '1000', iteration: 'infinite', autoRun: true}));
 		}
 
@@ -181,7 +179,7 @@ define(modules, function(require, utils, updater) {
 			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
 			
 			destroyables.add({
-				destroy: function() {					
+				destroy: function() {
 					listNode.removeEventListener('selected', listItemSelectedEventListener);
 					listNode.removeEventListener('scrollstart', listItemScrollStartEventListener);
 					activeMaruqeeWidget.destroy();
