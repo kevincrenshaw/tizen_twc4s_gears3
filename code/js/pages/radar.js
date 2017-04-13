@@ -273,7 +273,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		if (dataText) {
 			try {
 				const data = JSON.parse(dataText);
-				const mapFilePath = data.internal.mapFilePath;
+				const mapFilePath = storage.map.get();
 				const weatherData = data.external.weather;
 				const alertsData = data.external.alerts;
 

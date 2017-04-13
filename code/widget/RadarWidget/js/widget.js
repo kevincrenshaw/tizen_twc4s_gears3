@@ -3,8 +3,9 @@ window.onload = function() {
 
 	var currentTimeRepr = {};
 	var snapshotTimeRepr = {};
-	var weatherData;
-	
+	var mapFilePath;
+	var data;
+
 	var ampm = '';
 	
 	var ui = null;
@@ -24,6 +25,8 @@ window.onload = function() {
 	 * triggered on page visible state 
 	 * */
 	function onpageshow() {
+		var dataAsText;
+		
 		console.log('on page show');
 		ui = createUi(document);
 		
@@ -39,10 +42,16 @@ window.onload = function() {
 			snapshotTimeRepr[1] = ampm;
 		}
 		
-		if (tizen.preference.exists('weather_data')) {
-			weatherData = tizen.preference.getValue('weather_data');
-			console.log('weatherData = ' + weatherData);
-			weatherData = JSON.parse(weatherData);
+		mapFilePath = getFromStore('map');
+		
+		dataAsText = getFromStore('data');
+		if (dataAsText) {
+			try {
+				data = JSON.parse(dataAsText);
+			} catch (err) {
+				console.error('Failed to convert alerts into object: '
+						+ JSON.stringify(err));
+			}
 		}
 
 		ui.footer.alert.value(getNbrOfAlerts());
@@ -103,9 +112,9 @@ window.onload = function() {
 					ui.temperature.at.textContent = TIZEN_L10N.AT;
 				}
 			}
-			
-			if (weatherData && weatherData.map) {
-				ui.map.style['background-image'] = 'url("' + weatherData.map + '")';
+
+			if (mapFilePath) {
+				ui.map.style['background-image'] = 'url("' + mapFilePath + '")';
 			}
 		}
 	}
@@ -200,26 +209,17 @@ window.onload = function() {
 		return element;
 	}
 	
-	function getNbrOfAlerts() {
-		var key = 'alerts';
-		var value;
-		var alertsObj;
-		
-		value = getFromStore(key);
-		if (value) {
-			try {
-				alertsObj = JSON.parse(value);
-				
-				if (alertsObj && alertsObj.alerts) {
-					return alertsObj.alerts.length;						
-				}					
-			} catch (err) {
-				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
-			}
+	function getNbrOfAlerts() {		
+		if (data &&
+				data.external &&
+				data.external.alerts &&
+				data.external.alerts.alerts &&
+				Array.isArray(data.external.alerts.alerts)) {
+			return data.external.alerts.alerts.length;
+		} else {
+			return 0;
 		}
-		
-		return 0;
 	}
-	
+
 	document.addEventListener('visibilitychange', handleVisibilityChange);
 };

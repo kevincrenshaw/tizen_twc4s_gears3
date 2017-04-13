@@ -46,7 +46,6 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			const newStorageObject = {
 				internal: {
 					downloadTimeEpochInSeconds: utils.getNowAsEpochInSeconds(),
-					mapFilePath: mapFilePath, //store map file path for given weather data
 				},
 
 				external: {
@@ -55,6 +54,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				},
 			};
 
+			storage.map.set(mapFilePath);
 			storage.data.set(JSON.stringify(newStorageObject));
 
 			console.log('new data received');
