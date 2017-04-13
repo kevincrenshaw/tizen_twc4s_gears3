@@ -86,8 +86,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			titleDiv.style.color = "#f5f5f5";
 
 			const details = createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC);
-			console.log('details: ' + details);
-			
+
 			var subtitleDiv = createDivElement('text_subtitle', details);
 			subtitleDiv.className = "list-item-subtitle";
 			subtitleDiv.style.color = "#a7abae";
@@ -115,9 +114,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			if(subtitleDiv) {
 				const details = createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC);
 				subtitleDiv.innerHTML = details;
-				console.log('list item was updated');
 			} else {
-				console.log('cant find list item');
+				console.warn('updateListItem::cant find list item');
 			}
 		};
 
@@ -159,17 +157,15 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				//add updating list item elements here
 				if(this.alertsData && this.alertsData.alerts) {
 					const alertsCount = this.alertsData.alerts.length;
-					console.log('update::data.length: ' + this.alertsData.alerts.length);
 					for(var i = 0; i < alertsCount; ++i) {
 						//get list item view
 						const items = binder.alerts.listitems('li');
 						const item = items[i];
 
 						if(item) {
-							console.log('got list item on index: ' + i);
 							updateListItem(item, this.alertsData.alerts[i]);
 						} else {
-							console.log('cant update list item on index: ' + i);
+							console.warn('update::cant update list item on index: ' + i);
 						}
 					}
 				}
@@ -186,18 +182,10 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 		};
 	}
 
-	const onDateTimeChangedListener = function() {
-		console.log('data or time was changed');
-		if(adapter) {
-			adapter.update();
-		}
-	};
-
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
 			tizen.time.setDateTimeChangeListener(function() {
-				console.log('data or time was changed');
 				if(adapter) {
 					adapter.update();
 				}
