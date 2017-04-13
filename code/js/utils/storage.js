@@ -464,6 +464,7 @@ define(['utils/fsutils'], function(fsutils) {
 		},
 		file: createFileStorage('file', 4),
 		data: createSimpleStorage('data', ''),
+		temp: createSimpleStorage('temp', ''),	//current temp in celcius (for widget)
 	};
 	
 	return storage;

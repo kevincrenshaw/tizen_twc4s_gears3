@@ -254,6 +254,8 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
 		
+		storage.temp.set(tempInCelsius);
+
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);

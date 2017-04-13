@@ -71,6 +71,8 @@ window.onload = function() {
 
 	function onUpdateUi() {
 		var displayInCelsius = isCelsiusSelected();
+		var currentTempInCelsius;
+		
 		if(ui) {
 			//if we have data to show
 			if(snapshotTimeRepr[0] && currentTimeRepr[0]) {
@@ -86,10 +88,18 @@ window.onload = function() {
 					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
 					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
 					
-					ui.temperature.value.textContent = [(displayInCelsius
-						? weatherData.temperature.valueInCelsius
-						: Math.round(celsiusToFahrenheit(weatherData.temperature.valueInCelsius))), '°'].join('');
-					ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
+					if(tizen.preference.exists('temp')) {
+						currentTempInCelsius = tizen.preference.getValue('temp');
+						if (currentTempInCelsius) {
+							currentTempInCelsius = parseInt(currentTempInCelsius);
+							ui.temperature.value.textContent = [(displayInCelsius
+									? currentTempInCelsius
+									: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
+							
+							ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';							
+						}
+					}
+					
 					ui.temperature.at.textContent = TIZEN_L10N.AT;
 				}
 			}
