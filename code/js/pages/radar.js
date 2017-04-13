@@ -458,12 +458,12 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 
 		//snapshot time
 		const shapshotTimeInMillis = weather.observation.obs_time * 1000;
-		const snashotTimeRawDate = new Date(shapshotTimeInMillis);
-		this.snapshotTimeRepr = utils.getTimeAsText(snashotTimeRawDate, storage.settings.units.time.get(), systemUses12hFormat);
+		const snapshotTimeRawDate = new Date(shapshotTimeInMillis);
+		this.snapshotTimeRepr = utils.getTimeAsText(snapshotTimeRawDate, storage.settings.units.time.get(), systemUses12hFormat);
 
 		updateUI(ui);
 
-		saveSnapshotTime(snashotTimeRawDate.getTime());
+		saveSnapshotTime(snapshotTimeRawDate.getTime());
 		saveTimeAmPm(this.currentTimeRepr[1]);
 
 		//refresh time
