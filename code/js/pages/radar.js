@@ -139,96 +139,48 @@ define(radarModules, function(storage, map, network, consts, utils, dom, alertUp
 				},
 			},
 		};
-		
-		const visibilityImpl = function(wrappedElement) {
-			return function(isVisible) {
-				wrappedElement.apply(function(el) {
-					el.style.visibility = isVisible ? 'visible' : 'hidden';
-				});
-			};
-		};
-		
-		const isVisibileImpl = function(wrappedElement) {
-			return function() {
-				return wrappedElement.apply(function(el) {
-					return el.style.visibility === 'visible';
-				}) || false;
-			};
-		};
-		
-		const setSrcImpl = function(wrappedElement) {
-			return function(uri) {
-				wrappedElement.apply(function(el) {
-					el.src = uri;
-				});
-			};
-		};
-		
-		const setInnerHtmlImpl = function(wrappedElement) {
-			return function(text) {
-				wrappedElement.apply(function(el) {
-					el.innerHTML = text;
-				});
-			};
-		};
-		
-		const enableImpl = function(wrappedElement) {
-			return function(isEnabled) {
-				wrappedElement.apply(function(el) {
-					el.disabled = isEnabled ? false : true;
-				});
-			};
-		};
-		
-		const onClickImpl = function(wrappedElement) {
-			return function(handler) {
-				wrappedElement.apply(function(el) {
-					el.onclick = handler;
-				});
-			};
-		};
-		
-		const footerContainerVisibility = visibilityImpl(element.footer.container);
-		const alertCounterContainerVisibility = visibilityImpl(element.footer.alert.counter.container);
+
+		const footerContainerVisibility = dom.createVisibilityHandler(element.footer.container);
+		const alertCounterContainerVisibility = dom.createVisibilityHandler(element.footer.alert.counter.container);
 		
 		return {
 			map: {
-				visible: visibilityImpl(element.map),
-				isVisible: isVisibileImpl(element.map),
-				src: setSrcImpl(element.map),
+				visible: dom.createVisibilityHandler(element.map),
+				isVisible: dom.createIsVisibileHandler(element.map),
+				src: dom.createSetSrcHandler(element.map),
 			},
 			
 			more: {
-				visible: visibilityImpl(element.more),
-				onClick: onClickImpl(element.more),
+				visible: dom.createVisibilityHandler(element.more),
+				onClick: dom.createOnClickHandler(element.more),
 			},
 			
 			header: {
-				visible: visibilityImpl(element.header.container),
+				visible: dom.createVisibilityHandler(element.header.container),
 				temperature: {
-					text: setInnerHtmlImpl(element.header.temperature.value),
-					unit: setInnerHtmlImpl(element.header.temperature.unit),
-					at: setInnerHtmlImpl(element.header.temperature.at),
-					time: setInnerHtmlImpl(element.header.temperature.time),
-					ampm: setInnerHtmlImpl(element.header.temperature.ampm),
+					text: dom.createSetInnerHtmlHandler(element.header.temperature.value),
+					unit: dom.createSetInnerHtmlHandler(element.header.temperature.unit),
+					at: dom.createSetInnerHtmlHandler(element.header.temperature.at),
+					time: dom.createSetInnerHtmlHandler(element.header.temperature.time),
+					ampm: dom.createSetInnerHtmlHandler(element.header.temperature.ampm),
 				},
 				refresh: {
 					btn: {
-						enable: enableImpl(element.header.refresh.btn),
-						onClick: onClickImpl(element.header.refresh.btn),
+						enable: dom.createEnableHandler(element.header.refresh.btn),
+						onClick: dom.createOnClickHandler(element.header.refresh.btn),
 					},
 
-					text: setInnerHtmlImpl(element.header.refresh.text),
+					text: dom.createSetInnerHtmlHandler(element.header.refresh.text),
 				},
 				time: {
-					text: setInnerHtmlImpl(element.header.time.value),
-					unit: setInnerHtmlImpl(element.header.time.unit),
+					text: dom.createSetInnerHtmlHandler(element.header.time.value),
+					unit: dom.createSetInnerHtmlHandler(element.header.time.unit),
 				},
 			},
 			
 			footer: {
 				alert: {
-					onClick: onClickImpl(element.footer.alert.button),
+					onClick: dom.createOnClickHandler(element.footer.alert.button),
 					
 					counter: function(number) {
 						const value = parseInt(number);
