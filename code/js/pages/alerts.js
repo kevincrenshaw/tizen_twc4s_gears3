@@ -45,10 +45,9 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				const alertObject = utils.convertAlertsTextToObjectOrUndefined(data);
 
 				const numberOfAlerts = alertObject &&
-					alertObject.external &&
-					alertObject.external.alerts &&
-					alertObject.external.alerts.alerts &&
-					Array.isArray(alertObject.external.alerts.alerts) ? alertObject.external.alerts.alerts.length : 0;
+					alertObject.alerts &&
+					alertObject.alerts.alerts &&
+					Array.isArray(alertObject.alerts.alerts) ? alertObject.alerts.alerts.length : 0;
 
 				binder.title(TIZEN_L10N.ALERTS);
 				
@@ -67,7 +66,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				}
 
 				for(var index = 0; index < numberOfAlerts; ++index) {
-					const itemData = alertObject.external.alerts.alerts[index];
+					const itemData = alertObject.alerts.alerts[index];
 					binder.alerts.addItem(createListItem(itemData.eventTrackingNumber + ' : ' + itemData.eventDescription));
 				}
 			},
