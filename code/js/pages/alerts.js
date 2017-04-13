@@ -42,7 +42,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 		return {
 			update: function(data) {
-				const alertObject = utils.convertAlertsTextToObjectOrUndefined(data);
+				const alertObject = utils.convertTextToObjectOrUndefined(data);
 
 				const numberOfAlerts = alertObject &&
 					alertObject.alerts &&
@@ -75,8 +75,16 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 	function createOnPrefsUpdater() {
 		return function(data) {
-			if(ui) {
-				ui.update(data);
+			try {
+				if (ui) {
+					if (data.value) {
+						ui.update(data.value);
+					}
+				} else {
+					console.warn('createOnPrefsUpdater no ui');
+				}
+			} catch(err) {
+				console.error('createOnPrefsUpdater: ' + JSON.stringify(err));
 			}
 		};
 	}
