@@ -117,7 +117,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			apiKey: consts.API_KEY,
 		};
 
-		const uriBase = ['https://api.weather.com', 'v1', 'geocode', latitude, longitude, 'observations', 'current.json'].join('/');
+		const uriBase = [consts.WEATHER_URL, latitude, longitude, 'observations', 'current.json'].join('/');
 		return utils.createUri(uriBase, options);
 	};
 
@@ -183,7 +183,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		console.log('getMap: lat=' + latitude + ', lon=' + longitude + ', lod=' + lod + ', mapImgUrl=' + mapImgUrl);
 
 		const epoch = utils.getNowAsEpochInMiliseconds();
-		const uniqueFileName = [['map', epoch, utils.guid()].join('_'), '.jpg'].join('');
+		const uniqueFileName = ['map', epoch, utils.guid()].join('_') + '.jpg';
 		console.log('uniqueFileName: ' + uniqueFileName);
 
 		return network.downloadFileRx(mapImgUrl, uniqueFileName).flatMap(function(downloadedFilePath) {
@@ -245,7 +245,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			const now = utils.getNowAsEpochInSeconds();
 
 			const delta = now > lastUpdateTime ? now - lastUpdateTime : 0;
-			console.log('last data update happened ' + delta + ' second(s) ago');	//TODO remove
+			console.log('last data update happened ' + delta + ' second(s) ago');
 
 			return delta >= consts.DATA_UPDATE_TIMEOUT_IN_SEC;
 		} else {
@@ -263,9 +263,9 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		updateInProgress: function() {
 			if (subscription) {
 				return true;
-			} else {
-				return false;
 			}
+
+			return false;
 		},
 
 		/*
@@ -278,9 +278,9 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			if (!this.updateInProgress()) {
 				tryGetNewData();
 				return true;
-			} else {
-				return false;
 			}
+
+			return false;
 		},
 
 		/*
@@ -295,9 +295,9 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			if (timeForUpdate()) {
 				this.hardUpdate();
 				return true;
-			} else {
-				return false;
 			}
+			
+			return false;
 		},
 
 		/*

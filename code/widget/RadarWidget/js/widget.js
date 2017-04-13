@@ -95,16 +95,14 @@ window.onload = function() {
 					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
 					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
 					
-					if(tizen.preference.exists('temp')) {
-						currentTempInCelsius = tizen.preference.getValue('temp');
-						if (currentTempInCelsius) {
-							currentTempInCelsius = parseInt(currentTempInCelsius);
-							ui.temperature.value.textContent = [(displayInCelsius
-									? currentTempInCelsius
-									: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
-							
-							ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';							
-						}
+					currentTempInCelsius = getFromStore('temp', undefined);
+					if (currentTempInCelsius !== undefined) {
+						currentTempInCelsius = parseInt(currentTempInCelsius);
+						ui.temperature.value.textContent = [(displayInCelsius
+								? currentTempInCelsius
+								: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
+						
+						ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
 					}
 					
 					ui.temperature.at.textContent = TIZEN_L10N.AT;
@@ -207,7 +205,7 @@ window.onload = function() {
 		return element;
 	}
 	
-	function getNbrOfAlerts() {		
+	function getNbrOfAlerts() {
 		if (data &&
 				data.alerts &&
 				data.alerts.alerts &&
