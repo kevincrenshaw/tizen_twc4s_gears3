@@ -271,6 +271,7 @@ body {
 .no-alerts-text {
 	text-align: center;
 	font-size: 30px;
+	line-height: 120px;
 	color: white;
 }
 
