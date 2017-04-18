@@ -116,13 +116,15 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 		};
 
 		return {
-			update: function(data) {
+			setData: function(data) {
 				const alertObject = utils.convertTextToObjectOrUndefined(data);
 
 				const numberOfAlerts = alertObject &&
 					alertObject.alerts &&
 					alertObject.alerts.alerts &&
 					Array.isArray(alertObject.alerts.alerts) ? alertObject.alerts.alerts.length : 0;
+				//because we have only one distrinct from current location, we can take it from first alert event
+				const district = numberOfAlerts > 0 ? alertObject.alerts.alerts[0].officeAdminDistrict : '-';
 
 				//show header
 				binder.header.visible(true);
@@ -130,11 +132,11 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				if(numberOfAlerts > 0) {
 					binder.noalerts.display('none');
 					binder.alerts.display('inline');
-					binder.header.district(distrinct);
+					binder.header.district(district);
 					binder.alerts.clear();
 					binder.more.visible(true);
 					for(var index = 0; index < numberOfAlerts; ++index) {
-						const itemData = alertObject.alerts[index];
+						const itemData = alertObject.alerts.alerts[index];
 						binder.alerts.addItem(createListItem(itemData));
 					}
 				} else {
@@ -143,10 +145,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 					binder.noalerts.text(TIZEN_L10N.NO_ALERTS);
 				}
 
-				for(var index = 0; index < numberOfAlerts; ++index) {
-					const itemData = alertObject.alerts.alerts[index];
-					binder.alerts.addItem(createListItem(itemData));
-				}
 				this.update();
 			},
 			update: function() {
@@ -198,7 +196,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			adapter = createAdapter(page);
 			updateHandler = createOnPrefsUpdater();
 			storage.data.setChangeListener(updateHandler);
-			ui.update(storage.data.get());
+			adapter.setData(storage.data.get());
 			updater.softUpdate();
 		},
 
@@ -209,7 +207,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			storage.alert.unsetChangeListener(updateHandler);
 			updateHandler = null;
 			adapter = null;
-			
 		},
 	};
 });
