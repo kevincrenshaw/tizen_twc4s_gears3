@@ -271,12 +271,12 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	/**
 	 * Converts json text to an object
 	 * */
-	const convertAlertsTextToObjectOrUndefined = function(alertsText) {		
-		if (alertsText) {
+	const convertTextToObjectOrUndefined = function(text) {
+		if (text) {
 			try {
-				return JSON.parse(alertsText);
+				return JSON.parse(text);
 			} catch (err) {
-				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+				console.error('Failed to convert text into object: ' + JSON.stringify(err));
 			}
 		}
 		return undefined;
@@ -298,6 +298,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		getAppControl: getAppControl,
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
-		convertAlertsTextToObjectOrUndefined: convertAlertsTextToObjectOrUndefined,
+		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
 	};
 });

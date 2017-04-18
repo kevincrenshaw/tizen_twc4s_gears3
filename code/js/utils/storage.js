@@ -213,42 +213,7 @@ define(['utils/fsutils'], function(fsutils) {
     	setIndex(sessionStorageKey, newValue);
     	return newValue;
     };
-	
     
-	const createCircularStorage = function(key, maxSize) {
-		const LSIndex = key + '_ls_index';
-		const LSValue = key + '_ls_value_';
-
-		const get = function() {
-			const index = getIndex(LSIndex);
-			try {
-				return tizen.preference.getValue(LSValue + index);
-			} catch(err) {
-				return null;
-			}
-		};
-
-		const add = function(value) {
-			const index = getIndex(LSIndex);
-			const newIndex = increaseAndStoreIndex(LSIndex, index, maxSize);
-			tizen.preference.setValue(LSValue + newIndex, value);
-		};
-
-		const remove = function() {
-			const index = getIndex(LSIndex);
-			if(tizen.preference.exists(LSValue + index)) {
-				tizen.preference.remove(LSValue + index);
-				decreaseAndStoreIndex(LSIndex, index, maxSize);
-			}
-		};
-
-		return {
-			get: get,
-			add: add,
-			remove: remove,
-		};
-	};
-
 	const createFileStorage = function(key, maxSize) {
 
 		const rootDirName = 'wgt-private';
@@ -462,9 +427,11 @@ define(['utils/fsutils'], function(fsutils) {
 						}))
 			},
 		},
-		json : createCircularStorage('json', 4),
-		file : createFileStorage('file', 4),
-		alert: createSimpleStorage('alerts', ''),
+		file: createFileStorage('file', 4),
+		data: createSimpleStorage('data', ''),
+		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
+		temp: createSimpleStorage('temp', ''),	//current temp in celcius (for widget)
+		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)
 	};
 	
 	return storage;

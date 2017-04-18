@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, dom) {
+define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(storage, utils, dom, updater) {
 
 	var updateHandler = null;
 	var ui = null;
@@ -42,8 +42,12 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 
 		return {
 			update: function(data) {
-				const alertObject = utils.convertAlertsTextToObjectOrUndefined(data);
-				const numberOfAlerts = alertObject && alertObject.alerts ? alertObject.alerts.length : 0;
+				const alertObject = utils.convertTextToObjectOrUndefined(data);
+
+				const numberOfAlerts = alertObject &&
+					alertObject.alerts &&
+					alertObject.alerts.alerts &&
+					Array.isArray(alertObject.alerts.alerts) ? alertObject.alerts.alerts.length : 0;
 
 				binder.title(TIZEN_L10N.ALERTS);
 				
@@ -62,7 +66,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 				}
 
 				for(var index = 0; index < numberOfAlerts; ++index) {
-					const itemData = alertObject.alerts[index];
+					const itemData = alertObject.alerts.alerts[index];
 					binder.alerts.addItem(createListItem(itemData.eventTrackingNumber + ' : ' + itemData.eventDescription));
 				}
 			},
@@ -70,9 +74,17 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 	};
 
 	function createOnPrefsUpdater() {
-		return function() {
-			if(ui) {
-				ui.update(storage.alert.get())
+		return function(data) {
+			try {
+				if (ui) {
+					if (data.value) {
+						ui.update(data.value);
+					}
+				} else {
+					console.warn('createOnPrefsUpdater no ui');
+				}
+			} catch(err) {
+				console.error('createOnPrefsUpdater: ' + JSON.stringify(err));
 			}
 		};
 	}
@@ -83,15 +95,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom'], function(storage, utils, d
 			
 			ui = createUIAdapter(page);
 			updateHandler = createOnPrefsUpdater();
-			storage.alert.setChangeListener(updateHandler);
-			ui.update(storage.alert.get());
-			//alerts.onPageShow(page);
+			storage.data.setChangeListener(updateHandler);
+			ui.update(storage.data.get());
+			updater.softUpdate();
 		},
 
 		pagebeforehide: function(ev) {
 			const page = ev.target;
-			//alerts.onPageHide(page);
-			storage.alert.unsetChangeListener(updateHandler);
+			storage.data.unsetChangeListener(updateHandler);
 			updateHandler = null;
 			ui = null;
 		},

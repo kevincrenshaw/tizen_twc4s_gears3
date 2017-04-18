@@ -16,17 +16,22 @@ define([], function() {
 		},
 	};
 	
-	const ONE_MINUTE_IN_MS = 1000 * 60;
-	const BASE_V2_URL ='https://api.weather.com/v2/';
-	const BASE_V3_URL = 'https://api.weather.com/v3/';
+	const ONE_MINUTE_IN_SEC = 60;
+	const ONE_MINUTE_IN_MS = 1000 * ONE_MINUTE_IN_SEC;
+	
+	function getApiBaseUrl(version) {
+		return 'https://api.weather.com/v' + version + '/';
+	};
 
 	return {
 		settings: settings,
 		API_KEY: 'ce21274b08780261ce553b0b9166a9ae',
 		GEOLOCATION_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		ALERT_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
-		ALERTS_URL: BASE_V3_URL + 'alerts/headlines',
-		MAPS_URL: BASE_V2_URL + 'maps/dynamic',
+		DATA_UPDATE_TIMEOUT_IN_SEC: ONE_MINUTE_IN_SEC * 15,
+		ALERTS_URL: getApiBaseUrl(3) + 'alerts/headlines',
+		MAPS_URL: getApiBaseUrl(2) + 'maps/dynamic',
+		WEATHER_URL: getApiBaseUrl(1) + 'geocode',
 		RADAR_ALERTS_MAX_NBR: 99,
 	};
 });

@@ -11,7 +11,7 @@ requirejs.config({
 const modules = [
 	'require',
 	'utils/utils',
-	'utils/alert_updater',
+	'utils/updater',
 	'utils/storage',
 	'utils/network',
 	'utils/back',
@@ -32,7 +32,7 @@ const modules = [
 	'pages/alerts'
 ];
 
-define(modules, function(require, utils, alertUpdater) {
+define(modules, function(require, utils, updater) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
@@ -119,13 +119,11 @@ define(modules, function(require, utils, alertUpdater) {
 	};
 
 	const onFocus = function(ev) {
-		if(!alertUpdater.active()) {
-			alertUpdater.activate();
-		}
+		updater.softUpdate();
 	};
 	
 	window.addEventListener('blur', function(ev) {
-		alertUpdater.deactivate();
+		updater.stopUpdate();
 	});
 	
 	//Handle on focus event that happen before app module up & running
@@ -182,6 +180,8 @@ define(modules, function(require, utils, alertUpdater) {
 				}
 			});
 		}
+		
+		visibilityChangeManager.setPage(page);
 	});
 	
 	document.addEventListener('pagebeforehide', function(ev) {
@@ -190,6 +190,30 @@ define(modules, function(require, utils, alertUpdater) {
 
 		//Call event handler from page module (if provided)
 		dispatchEventToPage(ev);
+		
+		visibilityChangeManager.setPage(null);
+	});
+	
+	const visibilityChangeManager = function() {
+		var currentPage;
+		
+		return {
+			setPage: function(page) {
+				currentPage = page;
+			},
+			
+			sendEvent: function(state) {
+				if (currentPage) {
+					dispatchEventToPage({ target:currentPage, type:'visibilitychange', status:status });					
+				} else {
+					console.log('visibilityChangeManager: No current page');					
+				}
+			},
+		}
+	}();
+	
+	document.addEventListener('visibilitychange', function() {
+		visibilityChangeManager.sendEvent(document.visibilityState);
 	});
 
 	const appCtrl = utils.getAppControl();
@@ -204,8 +228,10 @@ define(modules, function(require, utils, alertUpdater) {
 		
 		tau.changePage(target);
 	} else {
+		const mainPage = document.getElementById('main');
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.
 		//To maintain backward comatibility send this event manually.
-		dispatchEventToPage({ type:'pagebeforeshow', target:document.getElementById('main') });
+		dispatchEventToPage({ type:'pagebeforeshow', target:mainPage });
+		visibilityChangeManager.setPage(mainPage);
 	}
 });
