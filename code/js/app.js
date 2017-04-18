@@ -99,13 +99,18 @@ define(modules, function(require, utils, updater) {
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
 
 	const createMarqueWidget = function(element, options) {
+		options = options || {};
+
+		options.marqueeStyle = options.marqueeStyle || 'endToEnd';
+		options.delay = options.delay || '1000';
+
 		return new tau.widget.Marquee(element, options);
 	};
 
 	const createMarqueeWidgetForListElement = function(element) {
 		if (element) {
 			activeMaruqeeWidget.destroy();
-			activeMaruqeeWidget.set(createMarqueWidget(element, {marqueeStyle: 'endToEnd', delay: '1000'}));
+			activeMaruqeeWidget.set(createMarqueWidget(element));
 		}
 	};
 	
@@ -144,13 +149,13 @@ define(modules, function(require, utils, updater) {
 
 		const title = page.querySelector(".ui-title");
 		if (title) {
-			destroyables.add(createMarqueWidget(title, {marqueeStyle: 'endToEnd', delay: '1000'}));
+			destroyables.add(createMarqueWidget(title));
 		}
 
 		const allElementsWithMarqueeStyle = page.querySelectorAll('.marquee-infinitive-autorun');
 		for(var i = 0; i < allElementsWithMarqueeStyle.length; ++i) {
 			var listNode = allElementsWithMarqueeStyle[i];
-			destroyables.add(createMarqueWidget(listNode, {marqueeStyle: 'endToEnd', delay: '1000', iteration: 'infinite', autoRun: true}));
+			destroyables.add(createMarqueWidget(listNode, {iteration: 'infinite', autoRun: true}));
 		}
 
 		//Find every circle helper on current page, create widget for it and save it for later destruction

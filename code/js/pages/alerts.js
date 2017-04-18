@@ -2,7 +2,6 @@
 
 define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(storage, utils, dom, updater) {
 
-	var intervalUpdaterId = null;
 	var updateHandler = null;
 	var adapter = null;
 
@@ -60,14 +59,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			},
 		};
 
-		const createAlertDetailsText = function(startsAtUTCSecons, endAtUTCSecons) {
+		const createAlertDetailsText = function(startsAtUTCSeconds, endAtUTCSeconds) {
 			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 			const timeFormatSetting = storage.settings.units.time.get();
 
-			const startsAt = utils.getDateAndTimeAsText(new Date(startsAtUTCSecons * 1000), timeFormatSetting, systemUses12hFormat);
-			const endsAt = utils.getDateAndTimeAsText(new Date(endAtUTCSecons * 1000), timeFormatSetting, systemUses12hFormat);
+			const startsAt = utils.getDateAndTimeAsText(new Date(startsAtUTCSeconds * 1000), timeFormatSetting, systemUses12hFormat);
+			const endsAt = utils.getDateAndTimeAsText(new Date(endAtUTCSeconds * 1000), timeFormatSetting, systemUses12hFormat);
 
-			return 'starts: ' + startsAt + ' ends: ' + endsAt;
+			return ['starts:', startsAt, 'ends:', endsAt].join(' ');
 		};
 
 		const createListItem = function(alertData) {
@@ -81,21 +80,18 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			};
 
 			var titleDiv = createDivElement('text_title', alertData.eventDescription);
-			titleDiv.className = " list-item-title";
-			//because tau.circle.min override colors we have to set it after all style settings
-			titleDiv.style.color = "#f5f5f5";
+			titleDiv.className = "list-item-title";
 
 			const details = createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC);
 
 			var subtitleDiv = createDivElement('text_subtitle', details);
 			subtitleDiv.className = "list-item-subtitle";
-			subtitleDiv.style.color = "#a7abae";
 
 			var iconDiv = createDivElement('alert_icon');
-			iconDiv.className = " img-icon warning-icon ui-li-thumb-left";
+			iconDiv.classList.add("img-icon", "warning-icon", "ui-li-thumb-left");
 
 			var listItem = document.createElement('li');
-			listItem.className = " li-has-thumb-left li-has-2line";
+			listItem.classList.add("li-has-thumb-left", "li-has-2line");
 			listItem.id = "alerts_list_item";
 
 			var textBlockDiv = createDivElement('text_block');
@@ -137,6 +133,10 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 					binder.header.district(distrinct);
 					binder.alerts.clear();
 					binder.more.visible(true);
+					for(var index = 0; index < numberOfAlerts; ++index) {
+						const itemData = alertObject.alerts[index];
+						binder.alerts.addItem(createListItem(itemData));
+					}
 				} else {
 					binder.noalerts.display('inline');
 					binder.alerts.display('none');
@@ -178,6 +178,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 		return function() {
 			if(adapter) {
 				adapter.setData(storage.alert.get());
+			} else {
+				console.warn('createOnPrefsUpdater::adapter isn exist');
 			}
 		};
 	}
@@ -188,6 +190,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			tizen.time.setDateTimeChangeListener(function() {
 				if(adapter) {
 					adapter.update();
+				} else {
+					console.warn('date/time changed::adapter isnt exist');
 				}
 			});
 			
@@ -201,11 +205,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 		pagebeforehide: function(ev) {
 			const page = ev.target;
 			tizen.time.unsetDateTimeChangeListener();
-			
-			if(intervalUpdaterId) {
-				clearInterval(intervalUpdaterId);
-				intervalUpdaterId = null;
-			}
 
 			storage.alert.unsetChangeListener(updateHandler);
 			updateHandler = null;

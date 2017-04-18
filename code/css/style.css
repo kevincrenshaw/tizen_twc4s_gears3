@@ -282,12 +282,14 @@ body {
 	font-size: 24px;
 	margin-top: 8px;
 	margin-bottom:5px;
+	color: #f5f5f5;
 }
 
 .list-item-subtitle {
 	text-align: left;
 	line-height: 22px;
 	font-size: 18px;
+	color: #a7abae;
 }
 
 .more-block {
