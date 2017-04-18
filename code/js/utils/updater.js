@@ -3,6 +3,9 @@
 define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'rx'], function(utils, consts, storage, map, network, rx) {
 	var subscription;
 
+	//Handler called when update completes (successful or error)
+	var updateCompleteHandler;
+
 	/*
 	 * Attempts to get current location, fetch data for given location and store it in storage.data.
 	 *
@@ -37,6 +40,14 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		})
 		.finally(function() {
 			subscription = null;
+
+			if (updateCompleteHandler) {
+				try {
+					updateCompleteHandler();
+				} catch (err) {
+					console.error('Data download update complete handler error: ' + JSON.stringify(err));
+				}
+			}
 		})
 		.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
 		.subscribe(function(data) {
@@ -309,6 +320,14 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				subscription.dispose();
 				subscription = null;
 			}
+		},
+
+		setOnUpdateCompleteHandler: function(handler) {
+			updateCompleteHandler = handler;
+		},
+
+		removeOnUpdateCompleteHandler: function() {
+			updateCompleteHandler = null;
 		},
 	};
 });

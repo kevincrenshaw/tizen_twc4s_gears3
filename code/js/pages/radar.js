@@ -289,6 +289,14 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			const updateRunning = updater.updateInProgress();
 			ui.header.refresh.btn.enable(!updateRunning);
 			
+			updater.setOnUpdateCompleteHandler(function() {
+				if (ui) {
+					ui.header.refresh.btn.enable(true);
+				} else {
+					console.warn('No UI for setOnUpdateCompleteHandler');
+				}
+			});
+
 			ui.header.refresh.btn.onClick(function() {
 				if (updater.hardUpdate()) {
 					ui.header.refresh.btn.enable(false);
@@ -330,6 +338,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			ui.header.refresh.btn.onClick(null);
 			ui.footer.alert.onClick(null);
 			ui.more.onClick(null);
+			updater.removeOnUpdateCompleteHandler();
 
 			if(intervalUpdaterId) {
 				clearInterval(intervalUpdaterId);
