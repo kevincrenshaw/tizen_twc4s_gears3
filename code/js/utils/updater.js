@@ -16,7 +16,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 		console.log('getting current position...');
 
-		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+		subscription = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
 		.flatMap(function(coords) {
@@ -38,6 +38,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		.finally(function() {
 			subscription = null;
 		})
+		.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
 		.subscribe(function(data) {
 			const mapFilePath = data[0];
 			const weatherData = data[1];
