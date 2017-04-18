@@ -1,0 +1,47 @@
+.radar {
+  display: flex;
+  position: relative;
+}
+
+.radar__header {
+  box-sizing: border-box;
+  height: 137px;
+  left: 0;
+  padding: 31px 0 0 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  font-size: 18px;
+  text-align: center;
+
+  background-color: rgba(0, 0, 0, .4);
+  color: #fff;
+}
+
+.radar__content {
+  display: flex;
+  padding: 0;
+}
+
+.radar__map {
+  display: block;  
+  height: 100%;
+  width: 100%;
+}
+
+.radar__more {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.radar__footer {
+  position: absolute;
+
+  background: transparent;
+}
+
+.radar__alerts {
+  background-color: #009de8 !important;
+}

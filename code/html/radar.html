@@ -1,6 +1,6 @@
-<div class="ui-page" id="radar">
-	<img id="map">
-	<div id="header">
+<div class="ui-page radar" id="radar">
+
+	<div id="header" class="ui-header radar__header">
 		<div id="timeBox">
 			<span id="value"></span>
 			<span id="unit"></span>
@@ -19,18 +19,23 @@
 			<span id="text"></span>
 		</div>
 	</div>
+
+	<div class="ui-content radar__content">		
+		<img id="map" class="radar__map">
 	
-	<div id="footer" class="ui-footer ui-bottom-button">
-		<div id="alerts" class="ui-btn">
-			<div id="icon"></div>
+		<div id="more" class="radar__more">
+			<input id="btn" type="image" src="../resources/gfx/device.png" />
 		</div>
 	</div>
 	
-	<div id="more">
-		<input id="btn" type="image" src="../resources/gfx/device.png" />
-	</div>
+	<div id="footer" class="ui-footer ui-bottom-button radar__footer">
+		<div id="alerts" class="ui-btn radar__alerts">
+			<div id="icon"></div>
 	
-	<div id="alerts-counter-container">
-		<div id="alerts-counter-value"></div>
+			<div id="alerts-counter-container">
+				<div id="alerts-counter-value"></div>
+			</div>
+		</div>
 	</div>
+
 </div>
