@@ -27,8 +27,131 @@ define([], function() {
 			},
 		};
 	};
-	
+
+	/**
+	 * Creates click event handler
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createOnClickHandler = function(wrappedElement) {
+		return function(handler) {
+			wrappedElement.apply(function(el) {
+				el.onclick = handler;
+			});
+		};
+	};
+
+	/**
+	 * Creates visibility state changer (using style.display property)
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createDisplayHandler = function(wrappedElement) {
+		return function(displayState) {
+			wrappedElement.apply(function(el) {
+				el.style.display = displayState;
+			});
+		};
+	};
+
+	const createIsVisibileHandler = function(wrappedElement) {
+		return function() {
+			return wrappedElement.apply(function(el) {
+				return el.style.visibility === 'visible';
+			}) || false;
+		};
+	};
+
+	/**
+	 * Creates simplified visibility state changer (using style.visibility property)
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createVisibilityHandler = function(wrappedElement) {
+		return function(isVisible) {
+			wrappedElement.apply(function(el) {
+				el.style.visibility = isVisible ? 'visible' : 'hidden';
+			});
+		};
+	};
+
+	/**
+	 * Creates inner src setter
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createSetSrcHandler = function(wrappedElement) {
+		return function(uri) {
+			wrappedElement.apply(function(el) {
+				el.src = uri;
+			});
+		};
+	};
+
+	/**
+	 * Creates inner html text setter
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createSetInnerHtmlHandler = function(wrappedElement) {
+		return function(text) {
+			wrappedElement.apply(function(el) {
+				el.innerHTML = text;
+			});
+		};
+	};
+
+	/**
+	 * Creates element's enable/disable setter
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createEnableHandler = function(wrappedElement) {
+		return function(isEnabled) {
+			wrappedElement.apply(function(el) {
+				el.disabled = isEnabled ? false : true;
+			});
+		};
+	};
+
+	/**
+	 * Creates add-element-to-listview handler
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createAddListItemHandler = function(wrappedElement) {
+		return function(item) {
+			wrappedElement.apply(function(el) {
+				el.appendChild(item);
+			});
+		}
+	};
+
+	/**
+	 * Creates remove-all-elements-from-listview handler
+	 * Params
+	 * 		wrappedElement - element returned by function queryWrappedElement()
+	 * */
+	const createDeleteAllChildrenHolder = function(wrappedElement) {
+		return function() {
+			wrappedElement.apply(function(el) {
+				while(el.hasChildNodes()) {
+					el.removeChild(el.firstChild);
+				}
+			});
+		};
+	};
+
 	return {
 		queryWrappedElement: queryWrappedElement,
+		createDisplayHandler: createDisplayHandler,
+		createIsVisibileHandler: createIsVisibileHandler,
+		createVisibilityHandler: createVisibilityHandler,
+		createOnClickHandler: createOnClickHandler,
+		createSetSrcHandler: createSetSrcHandler,
+		createSetInnerHtmlHandler: createSetInnerHtmlHandler,
+		createEnableHandler: createEnableHandler,
+		createAddListItemHandler: createAddListItemHandler,
+		createDeleteAllChildrenHolder: createDeleteAllChildrenHolder,
 	};
 });
