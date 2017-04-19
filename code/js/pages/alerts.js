@@ -124,7 +124,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 					alertObject.alerts.alerts &&
 					Array.isArray(alertObject.alerts.alerts) ? alertObject.alerts.alerts.length : 0;
 				//because we have only one distrinct from current location, we can take it from first alert event
-				const district = numberOfAlerts > 0 ? alertObject.alerts.alerts[0].officeAdminDistrict : '-';
+				var district = '-';
+				if(numberOfAlerts > 0) {
+					district = alertObject.alerts.alerts[0].officeAdminDistrict;
+					//some locations can have null district so lets use area name
+					if(district == null) {
+						district = alertObject.alerts.alerts[0].areaName;
+					}
+				}
 
 				//show header
 				binder.header.visible(true);
