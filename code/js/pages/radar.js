@@ -158,21 +158,6 @@ define([
 		};
 	};
 
-	const saveSnapshotTime = function(time) {
-		tizen.preference.setValue('snapshot_time', time);
-	};
-
-	const saveTimeAmPm = function(ampm) {
-		const ampm_key = 'time_ampm';
-		if(ampm) {
-			tizen.preference.setValue(ampm_key, ampm);
-			return;
-		}
-		if(tizen.preference.exists(ampm_key)) {
-			tizen.preference.remove(ampm_key);
-		}
-
-	};
 
 	/**
 	 * update ui function. all periodic update UI processes should be place here
@@ -244,8 +229,6 @@ define([
 
 		updateUI(ui);
 
-		saveSnapshotTime(snapshotTimeRawDate.getTime());
-		saveTimeAmPm(this.currentTimeRepr[1]);
 
 		//refresh time
 		lastRefreshEpochTime = downloadTimeEpochInSeconds;
@@ -260,19 +243,6 @@ define([
 				1000 //every 1 second update interval
 			);
 		}
-
-		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
-		
-		storage.temp.set(tempInCelsius);
-
-		ui.map.src(mapFilePath);
-		ui.header.temperature.text(tempText);
-		ui.header.temperature.unit(unitText);
-		ui.header.refresh.btn.enable(true);
-		ui.map.visible(true);
-		ui.header.visible(true);
-		ui.footer.alert.counter(nbrOfAlerts);
-		ui.more.visible(true);
 	};
 
 	function updateViewData(data) {
@@ -290,9 +260,7 @@ define([
 
 		viewData.alertsCounter = $.isArray(data.alerts) ? data.alerts.length : 0;
 
-				console.log(viewData, storage.settings.units.time.get(), viewData.is12hFormat);
-
-		console.log($.isArray(null));
+		console.log(viewData, storage.settings.units.time.get(), viewData.is12hFormat);
 	}
 
 	function saveToStorage(data) {
@@ -306,7 +274,21 @@ define([
 			return;
 		}
 
+		uiElems.temp.html(
+			data.temp + 
+			'°' +
+			'<span>' + data.tempUnit + '</span>' +
+			'<span class="radar__separator">' + 'at' + '</span>' + 
+			viewData.snapshotTime[0] +
+			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1] + '</span>' : '')
+		);
+		uiElems.header.show();
+
+		uiElems.updateBtn.prop('disabled', false);
+
 		uiElems.map.show().attr('src', data.map);
+
+		uiElems.moreBtn.show();
 
 		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(data.alertsCounter);
 	}
@@ -337,27 +319,10 @@ define([
 		updateViewData(data);
 		saveToStorage(viewData);
 		updateUI(viewData, false);
-return;
-		if (dataText) {
-			try {
-				const data = JSON.parse(dataText);
-				displayData(storage.map.get(), data.weather, data.alerts, storage.lastUpdate.get());
-			} catch(err) {
-				console.error(JSON.stringify(err));
-			}
-		} else {
-			ui.map.visible(false);
-			ui.header.visible(false);
-			ui.footer.alert.counter(0);
-			console.log('No data in storage');
-		}
 	};
 
 	return {
 		pagebeforeshow: function(ev) {
-			// const page = ev.target;
-			// ui = createUiManager(page);
-
 			uiElems = getUiElems();
 
 			storage.data.setChangeListener(loadData);
@@ -366,24 +331,22 @@ return;
 
 			updater.softUpdate();
 
-			/*const updateRunning = updater.updateInProgress();
-			ui.header.refresh.btn.enable(!updateRunning);
-			
-			ui.header.refresh.btn.onClick(function() {
-				if (updater.hardUpdate()) {
-					ui.header.refresh.btn.enable(false);
+			uiElems.updateBtn.prop('disabled', updater.updateInProgress());
+			uiElems.updateBtn.on('click', function() {
+				if(updater.hardUpdate()) {
+					uiElems.updateBtn.prop('disabled', true);
 				} else {
 					console.warn('Force update button cannot be clickable when update in progress');
 				}
 			});
 
-			ui.footer.alert.onClick(function() {
+			uiElems.alertsBtn.on('click', function() {
 				tau.changePage('alerts.html');
 			});
 
-			ui.more.onClick(function() {
+			uiElems.moreBtn.on('click', function() {
 				console.log('More options');
-			});*/
+			});
 		},
 		
 		visibilitychange: function() {
@@ -394,15 +357,16 @@ return;
 
 		pagebeforehide: function(ev) {
 			storage.data.unsetChangeListener(loadData);
-			ui.header.refresh.btn.onClick(null);
-			ui.footer.alert.onClick(null);
-			ui.more.onClick(null);
+
+			uiElems.updateBtn.off();
+			uiElems.moreBtn.off();
+			uiElems.alertsBtn.off();
+			uiElems = null;
 
 			if(intervalUpdaterId) {
 				clearInterval(intervalUpdaterId);
 				intervalUpdaterId = null;
 			}
-			ui = null;
 		},
 	};
 });

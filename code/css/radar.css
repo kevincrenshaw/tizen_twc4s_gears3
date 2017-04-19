@@ -88,6 +88,7 @@
 }
 
 .radar__more {
+  display: none;
   height: 60px;
   position: absolute;
   right: 10px;
