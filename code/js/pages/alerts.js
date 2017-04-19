@@ -126,11 +126,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				//because we have only one distrinct from current location, we can take it from first alert event
 				var district = '-';
 				if(numberOfAlerts > 0) {
-					district = alertObject.alerts.alerts[0].officeAdminDistrict;
 					//some locations can have null district so lets use area name
-					if(district == null) {
-						district = alertObject.alerts.alerts[0].areaName;
-					}
+					district = alertObject.alerts.alerts[0].officeAdminDistrict || alertObject.alerts.alerts[0].areaName;
 				}
 
 				//show header

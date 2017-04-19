@@ -221,7 +221,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 
 	const getDateAndTimeAsText = function(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat) {
 		const timeRepr = getTimeAsText(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat);
-		const date = dateTimeData.getDate() + '.' + dateTimeData.getMonth() + 1 + '.' + dateTimeData.getFullYear();
+		const date = [dateTimeData.getDate(), '.', parseInt(dateTimeData.getMonth()) + 1, '.', dateTimeData.getFullYear()].join('');
 		return date + ' @ ' + timeRepr[0] + timeRepr[1];
 	};
 
