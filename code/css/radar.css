@@ -115,14 +115,15 @@
   display: block;
   height: 25px;
   left: calc(50% + 6px);
+  min-width: 17px;
+  padding: 0 4px;
   position: absolute;
   top: 42px;
-  width: 25px;
 
   font-size: 18px;
   line-height: 25px;
   text-align: center;
 
   background-color: #d6202b;
-  border-radius: 50%;
+  border-radius: 12.5px;
 }

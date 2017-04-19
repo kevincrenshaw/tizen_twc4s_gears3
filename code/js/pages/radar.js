@@ -8,12 +8,9 @@ define([
 	'utils/dom',
 	'utils/updater'
 ], function($, storage, consts, utils, dom, updater) {
-	var intervalUpdaterId = null;
-	var ui;
+
 	var lastRefreshEpochTime;
 
-	var snapshotTimeRepr = null;
-	var currentTimeRepr = null;
 
 	var uiElems = {};
 	var viewData = {};
@@ -58,128 +55,8 @@ define([
 		}
 	}
 
-	const createUiManager = function(root) {
-		const element = {
-			map: dom.queryWrappedElement(root, '#map'),
-			more: dom.queryWrappedElement(root, '#more'),
-			header: {
-				container: dom.queryWrappedElement(root, '#header'),
-				temperature: {
-					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
-					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
-					at: dom.queryWrappedElement(root, '#temperatureBox #at'),
-					time: dom.queryWrappedElement(root, '#temperatureBox #time'),
-					ampm: dom.queryWrappedElement(root, '#temperatureBox #ampm'),
-				},
-				time : {
-					value: dom.queryWrappedElement(root, '#timeBox #value'),
-					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
-				},
-				refresh: {
-					btn: dom.queryWrappedElement(root, '#refreshBox #btn'),
-					text: dom.queryWrappedElement(root, '#refreshBox #text'),
-				},
-			},
-			footer: {
-				container: dom.queryWrappedElement(root, '#footer'),
-				alert: {
-					button: dom.queryWrappedElement(root, '#footer #alerts'),
-					counter: {
-						container: dom.queryWrappedElement(root, '#alerts-counter-container'),
-						value: dom.queryWrappedElement(root, '#alerts-counter-container #alerts-counter-value'),
-					}
-				},
-			},
-		};
-
-		const footerContainerVisibility = dom.createVisibilityHandler(element.footer.container);
-		const alertCounterContainerVisibility = dom.createVisibilityHandler(element.footer.alert.counter.container);
-		
-		return {
-			map: {
-				visible: dom.createVisibilityHandler(element.map),
-				isVisible: dom.createIsVisibileHandler(element.map),
-				src: dom.createSetSrcHandler(element.map),
-			},
-			
-			more: {
-				visible: dom.createVisibilityHandler(element.more),
-				onClick: dom.createOnClickHandler(element.more),
-			},
-			
-			header: {
-				visible: dom.createVisibilityHandler(element.header.container),
-				temperature: {
-					text: dom.createSetInnerHtmlHandler(element.header.temperature.value),
-					unit: dom.createSetInnerHtmlHandler(element.header.temperature.unit),
-					at: dom.createSetInnerHtmlHandler(element.header.temperature.at),
-					time: dom.createSetInnerHtmlHandler(element.header.temperature.time),
-					ampm: dom.createSetInnerHtmlHandler(element.header.temperature.ampm),
-				},
-				refresh: {
-					btn: {
-						enable: dom.createEnableHandler(element.header.refresh.btn),
-						onClick: dom.createOnClickHandler(element.header.refresh.btn),
-					},
-
-					text: dom.createSetInnerHtmlHandler(element.header.refresh.text),
-				},
-				time: {
-					text: dom.createSetInnerHtmlHandler(element.header.time.value),
-					unit: dom.createSetInnerHtmlHandler(element.header.time.unit),
-				},
-			},
-			
-			footer: {
-				alert: {
-					onClick: dom.createOnClickHandler(element.footer.alert.button),
-					
-					counter: function(number) {
-						const value = parseInt(number);
-						
-						if (value > 0) {
-							element.footer.alert.counter.value.apply(function(el) {								
-								const text = value > consts.RADAR_ALERTS_MAX_NBR
-									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
-									: value; 
-								
-								el.innerHTML = text;
-							});
-							
-							footerContainerVisibility(true);
-							alertCounterContainerVisibility(true);
-						} else {
-							alertCounterContainerVisibility(false);
-							footerContainerVisibility(false);
-						}
-					}
-				},
-			}
-		};
-	};
 
 
-	/**
-	 * update ui function. all periodic update UI processes should be place here
-	 * */
-	const updateUI2 = function(ui) {
-		if(!ui) {
-            console.warn('updateUI. there is no ui to update');
-			return;
-		}
-
-		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-		this.currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-
-		//apply on ui
-		ui.header.time.text(this.currentTimeRepr[0]);
-		ui.header.time.unit(this.currentTimeRepr[1]);
-		if(this.snapshotTimeRepr) {
-			ui.header.temperature.time(this.snapshotTimeRepr[0]);
-			ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
-			ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
-		}
-	};
 	
 	const diffCategoryToLocalizationKey = {
 		1: 'NOW',
@@ -190,15 +67,7 @@ define([
 	};
 
 	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
-		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
-		const tempInCelsius = weather.observation.metric.temp;
-		const tempTextualRepr = getTemperatureAndUnitAsText(
-			tempInCelsius,
-			storage.settings.units.temperature.get());
-
-		const tempText = tempTextualRepr[0] + '°';
-		const unitText = tempTextualRepr[1];
 
 		const weatherDownloadTimeUpdater = function() {
 			const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
@@ -222,30 +91,19 @@ define([
 			}
 		};
 
-		//snapshot time
-		const shapshotTimeInMillis = weather.observation.obs_time * 1000;
-		const snapshotTimeRawDate = new Date(shapshotTimeInMillis);
-		this.snapshotTimeRepr = utils.getTimeAsText(snapshotTimeRawDate, storage.settings.units.time.get(), systemUses12hFormat);
-
-		updateUI(ui);
-
 
 		//refresh time
 		lastRefreshEpochTime = downloadTimeEpochInSeconds;
 		weatherDownloadTimeUpdater();
-
-		if(intervalUpdaterId === null) {
-			intervalUpdaterId = setInterval(
-				function() {
-					updateUI(ui);
-					weatherDownloadTimeUpdater();
-				},
-				1000 //every 1 second update interval
-			);
-		}
 	};
 
-	function updateViewData(data) {
+	function updateViewData(data, currentTimeOnly) {
+		const timeUnit = storage.settings.units.time.get();
+		viewData.is12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+
+		viewData.currentTime = utils.getTimeAsText(new Date(), timeUnit, viewData.is12hFormat);
+		if(currentTimeOnly) { return; }
+
 		viewData.map = storage.map.get();
 
 		const observation = data.weather.observation;
@@ -253,10 +111,9 @@ define([
 		const tempData = getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
 		viewData.temp = tempData[0];
 		viewData.tempUnit = tempData[1];
-
-		viewData.is12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+		
 		viewData.snapshotDate = new Date(observation.obs_time * 1000);
-		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, storage.settings.units.time.get(), viewData.is12hFormat);
+		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
 		viewData.alertsCounter = $.isArray(data.alerts) ? data.alerts.length : 0;
 
@@ -270,15 +127,17 @@ define([
 	}
 
 	function updateUI(data, currentTimeOnly) {
-		if(currentTimeOnly) {
-			return;
-		}
+		uiElems.date.html(
+			viewData.currentTime[0] +
+			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1] + '</span>' : '')
+		);
+		if(currentTimeOnly) { return; }
 
 		uiElems.temp.html(
 			data.temp + 
 			'°' +
 			'<span>' + data.tempUnit + '</span>' +
-			'<span class="radar__separator">' + 'at' + '</span>' + 
+			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
 			viewData.snapshotTime[0] +
 			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1] + '</span>' : '')
 		);
@@ -290,13 +149,21 @@ define([
 
 		uiElems.moreBtn.show();
 
-		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(data.alertsCounter);
+		const alertsCounter = parseInt(data.alertsCounter, 10) > consts.RADAR_ALERTS_MAX_NBR ? consts.RADAR_ALERTS_MAX_NBR + '+' : data.alertsCounter; 
+		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(alertsCounter);
 	}
 
 	function resetUI() {
 		uiElems.map.hide();
 		uiElems.header.hide();
 		uiElems.alertsCounter.hide().text(0);
+	}
+
+	var reloadViewId;
+	function reloadView() {
+		updateViewData(null, true);
+		updateUI(viewData, true);
+		reloadViewId = setTimeout(reloadView, 1000);
 	}
 
 	const loadData = function() {
@@ -319,6 +186,10 @@ define([
 		updateViewData(data);
 		saveToStorage(viewData);
 		updateUI(viewData, false);
+
+		if(!reloadViewId) {
+			reloadView();
+		}
 	};
 
 	return {
@@ -363,9 +234,9 @@ define([
 			uiElems.alertsBtn.off();
 			uiElems = null;
 
-			if(intervalUpdaterId) {
-				clearInterval(intervalUpdaterId);
-				intervalUpdaterId = null;
+			if(rerenderId) {
+				clearTimeout(rerenderId);
+				rerenderId = null;
 			}
 		},
 	};
