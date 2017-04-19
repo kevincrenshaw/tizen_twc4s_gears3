@@ -1,6 +1,33 @@
 /* jshint esversion: 6 */
 
 define(['rx', 'utils/const'], function(Rx, consts) {
+	/*
+	 * Converts temperature into textual representation.
+	 * Parameters:
+	 *		celsiusTemp - current temperature in Celsius
+	 *		unit - current temperature unit setting, for instance value returned by:
+	 *			storage.settings.units.temperature.get()
+	 *
+	 * Result:
+	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
+	 * 		textual representation of temperature unit.
+	 */
+	const getTemperatureAndUnitAsText = function(celsiusTemp, unit) {
+		switch (parseInt(unit, 10)) {
+			case consts.settings.units.temperature.SYSTEM:
+				console.warn('temperature system setting not supported yet, falling back to Celsius');
+				/* falls through */
+			case consts.settings.units.temperature.CELSIUS:
+				return [celsiusTemp, 'C'];
+				
+			case consts.settings.units.temperature.FAHRENHEIT:
+				return [Math.round(celsiusToFahrenheit(celsiusTemp)), 'F'];
+				
+			default:
+				console.warn('unexpected temperature setting value "' + unit + '"');
+		}
+	};
+
 	const tryModifyElement = function(root, selector, callback) {
 		const element = root.querySelector(selector);
 	
@@ -291,6 +318,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		guid: guid,
 		celsiusToFahrenheit: celsiusToFahrenheit,
 		getTimeAsText: getTimeAsText,
+		getTemperatureAndUnitAsText: getTemperatureAndUnitAsText,
 		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
 		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
 		getCategoryForTimeDiff: getCategoryForTimeDiff,

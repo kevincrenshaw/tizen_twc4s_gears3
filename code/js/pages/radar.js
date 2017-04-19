@@ -5,42 +5,11 @@ define([
 	'utils/storage',
 	'utils/const',
 	'utils/utils',
-	'utils/dom',
 	'utils/updater'
-], function($, storage, consts, utils, dom, updater) {
-
-	var lastRefreshEpochTime;
-
-
+], function($, storage, consts, utils, updater) {
+	var refreshViewId;
 	var uiElems = {};
 	var viewData = {};
-
-	/*
-	 * Converts temperature into textual representation.
-	 * Parameters:
-	 *		celsiusTemp - current temperature in Celsius
-	 *		unit - current temperature unit setting, for instance value returned by:
-	 *			storage.settings.units.temperature.get()
-	 *
-	 * Result:
-	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
-	 * 		textual representation of temperature unit.
-	 */
-	const getTemperatureAndUnitAsText = function(celsiusTemp, unit) {
-		switch (parseInt(unit, 10)) {
-			case consts.settings.units.temperature.SYSTEM:
-				console.warn('temperature system setting not supported yet, falling back to Celsius');
-				/* falls through */
-			case consts.settings.units.temperature.CELSIUS:
-				return [celsiusTemp, 'C'];
-				
-			case consts.settings.units.temperature.FAHRENHEIT:
-				return [Math.round(utils.celsiusToFahrenheit(celsiusTemp)), 'F'];
-				
-			default:
-				console.warn('unexpected temperature setting value "' + unit + '"');
-		}
-	};
 
 	function getUiElems() {
 		return {
@@ -54,11 +23,8 @@ define([
 			alertsCounter: $('.radar__badge')
 		}
 	}
-
-
-
 	
-	const diffCategoryToLocalizationKey = {
+	const timeTierEnum = {
 		1: 'NOW',
 		2: 'MINUTES_AGO',
 		3: 'HOURS_AGO',
@@ -66,49 +32,44 @@ define([
 		5: 'DAYS_AGO',
 	};
 
-	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
+	function humanReadableTimeDiff(from, to) {
+		const diff = from - to;
+		const tier = utils.getCategoryForTimeDiff(diff);
+		const tierKey = timeTierEnum[tier];
 
+		if(!tierKey) {
+			console.warn('Diff category "' + tier + '" cannot be mapped to localization key');
+			return '';
+		}
 
-		const weatherDownloadTimeUpdater = function() {
-			const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
-			const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
+		const text = TIZEN_L10N[tierKey];
+		if(!text) {
+			console.warn('Key "' + tierKey + '" not available in localization');
+			return '';
+		}
 
-			if (diffCategory in diffCategoryToLocalizationKey) {
-				const localizationKey = diffCategoryToLocalizationKey[diffCategory];
-				if (localizationKey in TIZEN_L10N) {
-					var textToDisplay = TIZEN_L10N[localizationKey];
-
-					if(diffCategory !== 1) {
-						textToDisplay = utils.formatTimeDiffValue(diffInSeconds, diffCategory) + ' ' + textToDisplay;
-					}
-
-					ui.header.refresh.text(textToDisplay);
-				} else {
-					console.warn('Key "' + localizationKey + '" not available in localization');
-				}
-			} else {
-				console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
-			}
-		};
-
-
-		//refresh time
-		lastRefreshEpochTime = downloadTimeEpochInSeconds;
-		weatherDownloadTimeUpdater();
-	};
+		if(tier === 1) {
+			return text;
+		}
+		return utils.formatTimeDiffValue(diff, tier) + ' ' + text;
+	}
 
 	function updateViewData(data, currentTimeOnly) {
 		const timeUnit = storage.settings.units.time.get();
 		viewData.is12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
 		viewData.currentTime = utils.getTimeAsText(new Date(), timeUnit, viewData.is12hFormat);
+
+		viewData.lastUpdate = storage.lastUpdate.get();
+		viewData.lastUpdateHuman = humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), viewData.lastUpdate);
+
 		if(currentTimeOnly) { return; }
 
 		viewData.map = storage.map.get();
 
 		const observation = data.weather.observation;
 		viewData.tempOrig = observation.metric.temp;
-		const tempData = getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
+		const tempData = utils.getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
 		viewData.temp = tempData[0];
 		viewData.tempUnit = tempData[1];
 		
@@ -116,8 +77,6 @@ define([
 		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
 		viewData.alertsCounter = $.isArray(data.alerts) ? data.alerts.length : 0;
-
-		console.log(viewData, storage.settings.units.time.get(), viewData.is12hFormat);
 	}
 
 	function saveToStorage(data) {
@@ -131,6 +90,8 @@ define([
 			viewData.currentTime[0] +
 			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1] + '</span>' : '')
 		);
+		uiElems.updateBtn.text(data.lastUpdateHuman);
+
 		if(currentTimeOnly) { return; }
 
 		uiElems.temp.html(
@@ -159,11 +120,10 @@ define([
 		uiElems.alertsCounter.hide().text(0);
 	}
 
-	var reloadViewId;
-	function reloadView() {
+	function refreshView() {
 		updateViewData(null, true);
 		updateUI(viewData, true);
-		reloadViewId = setTimeout(reloadView, 1000);
+		refreshViewId = setTimeout(refreshView, 1000);
 	}
 
 	const loadData = function() {
@@ -187,20 +147,14 @@ define([
 		saveToStorage(viewData);
 		updateUI(viewData, false);
 
-		if(!reloadViewId) {
-			reloadView();
+		if(!refreshViewId) {
+			refreshView();
 		}
 	};
 
 	return {
 		pagebeforeshow: function(ev) {
 			uiElems = getUiElems();
-
-			storage.data.setChangeListener(loadData);
-
-			loadData();
-
-			updater.softUpdate();
 
 			uiElems.updateBtn.prop('disabled', updater.updateInProgress());
 			uiElems.updateBtn.on('click', function() {
@@ -218,26 +172,30 @@ define([
 			uiElems.moreBtn.on('click', function() {
 				console.log('More options');
 			});
+
+			storage.data.setChangeListener(loadData);
+			loadData();
+			updater.softUpdate();
 		},
 		
 		visibilitychange: function() {
-			if(document.hidden !== true) {
+			if(!document.hidden) {
 				updater.softUpdate();
 			}
 		},
 
 		pagebeforehide: function(ev) {
+			if(refreshViewId) {
+				clearTimeout(refreshViewId);
+				refreshViewId = null;
+			}
+
 			storage.data.unsetChangeListener(loadData);
 
 			uiElems.updateBtn.off();
 			uiElems.moreBtn.off();
 			uiElems.alertsBtn.off();
 			uiElems = null;
-
-			if(rerenderId) {
-				clearTimeout(rerenderId);
-				rerenderId = null;
-			}
 		},
 	};
 });
