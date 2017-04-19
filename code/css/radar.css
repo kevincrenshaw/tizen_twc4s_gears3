@@ -7,21 +7,78 @@
   box-sizing: border-box;
   height: 137px;
   left: 0;
-  padding: 31px 0 0 0;
+  padding: 33px 0 0 0;
   position: absolute;
   top: 0;
   width: 100%;
 
-  font-size: 18px;
+  font-size: 28px;
+  line-height: 28px;
   text-align: center;
 
   background-color: rgba(0, 0, 0, .4);
   color: #fff;
 }
 
+.radar__date {
+  margin-bottom: 5px;
+
+  font-size: 24px;
+  line-height: 24px;
+}
+
+.radar__temp {
+  display: block;
+  width: 100%;
+}
+.radar__date span,
+.radar__temp span {
+  font-size: 18px;
+}
+.radar__temp .radar__separator {
+  margin: 0 21px;
+
+  font-size: 28px;
+}
+
+.radar__update {
+  box-sizing: border-box;
+  display: block;
+  height: 25px;
+  margin: 5px auto 0;
+  padding: 0;
+
+  font-size: 18px;
+  line-height: 25px;
+
+  background: none;
+  border: 0;
+  color: #fff;
+}
+.radar__update::before {
+  content: '';
+  display: inline-block;
+  height: 25px;
+  margin-right: 18px;
+  width: 25px;
+
+  vertical-align: top;
+
+  background: #009de8 url(../resources/gfx/refresh.png) 50% 50% / contain no-repeat;
+  border-radius: 50%;
+}
+.radar__update:disabled::before {
+  -webkit-animation:spin 1s linear infinite;
+}
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(-360deg);
+  }
+}
+
 .radar__content {
   display: flex;
-  padding: 0;
+  padding: 0 !important;
 }
 
 .radar__map {
@@ -31,17 +88,40 @@
 }
 
 .radar__more {
+  height: 60px;
   position: absolute;
-  right: 0;
-  top: 0;
+  right: 10px;
+  top: calc(50% - 30px);
+  width: 60px;
+
+  text-align: center;
+
+  background: #000 url(../resources/gfx/device.png) 50% 50% / 40px 40px no-repeat;
+  border-radius: 50%;
 }
 
 .radar__footer {
-  position: absolute;
-
   background: transparent;
 }
 
 .radar__alerts {
-  background-color: #009de8 !important;
+  top: 3px;
+
+  background: rgba(0, 157, 232, .75) url(../resources/gfx/icon-alerts.png) 50% 25px / 42px 42px no-repeat !important;
+}
+
+.radar__badge {
+  display: block;
+  height: 25px;
+  left: calc(50% + 6px);
+  position: absolute;
+  top: 42px;
+  width: 25px;
+
+  font-size: 18px;
+  line-height: 25px;
+  text-align: center;
+
+  background-color: #d6202b;
+  border-radius: 50%;
 }

@@ -1,40 +1,26 @@
 <div class="ui-page radar" id="radar">
 
 	<div id="header" class="ui-header radar__header">
-		<div id="timeBox">
-			<span id="value"></span>
-			<span id="unit"></span>
+		<div class="radar__date">
+			10:42 <span>AM</span>
 		</div>
-		
-		<div id="temperatureBox">
-			<span id="value" class="radar-temperature-normal-text"></span>
-			<span id="unit" class="radar-temperature-small-text"></span>
-			<span id="at" class="radar-temperature-normal-text"></span>
-			<span id="time" class="radar-temperature-normal-text"></span>
-			<span id="ampm" class="radar-temperature-small-text"></span>
+
+		<div class="radar__temp">
+			-72° <span>F</span> <span class="radar__separator">at</span> 10:45 <span>AM</span>
 		</div>
-		
-		<div id="refreshBox">
-			<input id="btn" type="image" src="../resources/gfx/refresh.png" />
-			<span id="text"></span>
-		</div>
+
+		<div class="radar__update">120 min ago</div>
 	</div>
 
-	<div class="ui-content radar__content">		
+	<div class="ui-content radar__content">
 		<img id="map" class="radar__map">
-	
-		<div id="more" class="radar__more">
-			<input id="btn" type="image" src="../resources/gfx/device.png" />
-		</div>
+
+		<div class="radar__more"></div>
 	</div>
-	
+
 	<div id="footer" class="ui-footer ui-bottom-button radar__footer">
 		<div id="alerts" class="ui-btn radar__alerts">
-			<div id="icon"></div>
-	
-			<div id="alerts-counter-container">
-				<div id="alerts-counter-value"></div>
-			</div>
+			<span class="radar__badge">2</span>
 		</div>
 	</div>
 
