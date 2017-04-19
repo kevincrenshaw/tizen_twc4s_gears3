@@ -1,14 +1,13 @@
 /* jshint esversion: 6 */
 
-const radarModules = [
+define([
+	'jquery',
 	'utils/storage',
 	'utils/const',
 	'utils/utils',
 	'utils/dom',
 	'utils/updater'
-];
-
-define(radarModules, function(storage, consts, utils, dom, updater) {
+], function($, storage, consts, utils, dom, updater) {
 	var intervalUpdaterId = null;
 	var ui;
 	var lastRefreshEpochTime;
@@ -16,36 +15,48 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 	var snapshotTimeRepr = null;
 	var currentTimeRepr = null;
 
+	var uiElems = {};
+	var viewData = {};
+
 	/*
 	 * Converts temperature into textual representation.
 	 * Parameters:
-	 *		tempValueInCelsius - current temperature in Celsius
-	 *		currentTemperatureUnitSetting - current temperature unit setting, for instance value returned by:
+	 *		celsiusTemp - current temperature in Celsius
+	 *		unit - current temperature unit setting, for instance value returned by:
 	 *			storage.settings.units.temperature.get()
 	 *
 	 * Result:
 	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
 	 * 		textual representation of temperature unit.
 	 */
-	const getTemperatureAndUnitAsText = function(tempValueInCelsius, currentTemperatureUnitSetting) {
-		switch (parseInt(currentTemperatureUnitSetting)) {
-		case consts.settings.units.temperature.SYSTEM:
-			console.warn('temperature system setting not supported yet, falling back to Celsius');
-			/* falls through */
-		case consts.settings.units.temperature.CELSIUS:
-			return [tempValueInCelsius, 'C'];
-			
-		case consts.settings.units.temperature.FAHRENHEIT:
-			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)), 'F'];
-			
-		default:
-			console.warn('unexpected temperature setting value "' + currentTemperatureUnitSetting + '"');
+	const getTemperatureAndUnitAsText = function(celsiusTemp, unit) {
+		switch (parseInt(unit, 10)) {
+			case consts.settings.units.temperature.SYSTEM:
+				console.warn('temperature system setting not supported yet, falling back to Celsius');
+				/* falls through */
+			case consts.settings.units.temperature.CELSIUS:
+				return [celsiusTemp, 'C'];
+				
+			case consts.settings.units.temperature.FAHRENHEIT:
+				return [Math.round(utils.celsiusToFahrenheit(celsiusTemp)), 'F'];
+				
+			default:
+				console.warn('unexpected temperature setting value "' + unit + '"');
 		}
 	};
-	
-	const extractTempertatureFromCurrentConditions = function(weather) {
-		return weather.observation.metric.temp;
-	};
+
+	function getUiElems() {
+		return {
+			header: $('.radar__header'),
+			date: $('.radar__date'),
+			temp: $('.radar__temp'),
+			updateBtn: $('.radar__update'),
+			map: $('.radar__map'),
+			moreBtn: $('.radar__more'),
+			alertsBtn: $('.radar__alerts'),
+			alertsCounter: $('.radar__badge')
+		}
+	}
 
 	const createUiManager = function(root) {
 		const element = {
@@ -146,41 +157,43 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			}
 		};
 	};
-	
+
 	const saveSnapshotTime = function(time) {
 		tizen.preference.setValue('snapshot_time', time);
 	};
-	
+
 	const saveTimeAmPm = function(ampm) {
 		const ampm_key = 'time_ampm';
 		if(ampm) {
-			tizen.preference.setValue(ampm_key, ampm);			
-		} else {
-			if(tizen.preference.exists(ampm_key)) {
-				tizen.preference.remove(ampm_key);				
-			}
+			tizen.preference.setValue(ampm_key, ampm);
+			return;
 		}
+		if(tizen.preference.exists(ampm_key)) {
+			tizen.preference.remove(ampm_key);
+		}
+
 	};
-	
+
 	/**
 	 * update ui function. all periodic update UI processes should be place here
 	 * */
-	const updateUI = function(ui) {
-		if(ui) {
-			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-			this.currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-
-			//apply on ui
-			ui.header.time.text(this.currentTimeRepr[0]);
-			ui.header.time.unit(this.currentTimeRepr[1]);
-			if(this.snapshotTimeRepr) {
-				ui.header.temperature.time(this.snapshotTimeRepr[0]);
-				ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
-				ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
-			}
-        } else {
+	const updateUI2 = function(ui) {
+		if(!ui) {
             console.warn('updateUI. there is no ui to update');
-        }
+			return;
+		}
+
+		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+		this.currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
+
+		//apply on ui
+		ui.header.time.text(this.currentTimeRepr[0]);
+		ui.header.time.unit(this.currentTimeRepr[1]);
+		if(this.snapshotTimeRepr) {
+			ui.header.temperature.time(this.snapshotTimeRepr[0]);
+			ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
+			ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
+		}
 	};
 	
 	const diffCategoryToLocalizationKey = {
@@ -194,12 +207,12 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
 		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
-		const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
+		const tempInCelsius = weather.observation.metric.temp;
 		const tempTextualRepr = getTemperatureAndUnitAsText(
 			tempInCelsius,
 			storage.settings.units.temperature.get());
 
-		const tempText = [tempTextualRepr[0], '°'].join('');
+		const tempText = tempTextualRepr[0] + '°';
 		const unitText = tempTextualRepr[1];
 
 		const weatherDownloadTimeUpdater = function() {
@@ -209,15 +222,10 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			if (diffCategory in diffCategoryToLocalizationKey) {
 				const localizationKey = diffCategoryToLocalizationKey[diffCategory];
 				if (localizationKey in TIZEN_L10N) {
-					const localizedText = TIZEN_L10N[localizationKey];
+					var textToDisplay = TIZEN_L10N[localizationKey];
 
-					var textToDisplay;
-
-					if (diffCategory === 1) {
-						textToDisplay = localizedText;
-					} else {
-						textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory),
-						                 localizedText].join(' ');
+					if(diffCategory !== 1) {
+						textToDisplay = utils.formatTimeDiffValue(diffInSeconds, diffCategory) + ' ' + textToDisplay;
 					}
 
 					ui.header.refresh.text(textToDisplay);
@@ -267,19 +275,73 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		ui.more.visible(true);
 	};
 
-	const tryDisplayData = function() {
+	function updateViewData(data) {
+		viewData.map = storage.map.get();
+
+		const observation = data.weather.observation;
+		viewData.tempOrig = observation.metric.temp;
+		const tempData = getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
+		viewData.temp = tempData[0];
+		viewData.tempUnit = tempData[1];
+
+		viewData.is12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+		viewData.snapshotDate = new Date(observation.obs_time * 1000);
+		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, storage.settings.units.time.get(), viewData.is12hFormat);
+
+		viewData.alertsCounter = $.isArray(data.alerts) ? data.alerts.length : 0;
+
+				console.log(viewData, storage.settings.units.time.get(), viewData.is12hFormat);
+
+		console.log($.isArray(null));
+	}
+
+	function saveToStorage(data) {
+		storage.temp.set(data.tempOrig);
+		tizen.preference.setValue('snapshot_time', data.snapshotDate.getTime());
+		tizen.preference.setValue('time_ampm', data.is12hFormat);
+	}
+
+	function updateUI(data, currentTimeOnly) {
+		if(currentTimeOnly) {
+			return;
+		}
+
+		uiElems.map.show().attr('src', data.map);
+
+		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(data.alertsCounter);
+	}
+
+	function resetUI() {
+		uiElems.map.hide();
+		uiElems.header.hide();
+		uiElems.alertsCounter.hide().text(0);
+	}
+
+	const loadData = function() {
 		const dataText = storage.data.get();
 		console.log('try display data');
 
+		if(!dataText) {
+			console.log('No data in storage');
+			resetUI();
+			return;
+		}
+
+		var data;
+		try {
+			data = JSON.parse(dataText);
+		} catch(err) {
+			console.error(JSON.stringify(err));
+			return;
+		}
+		updateViewData(data);
+		saveToStorage(viewData);
+		updateUI(viewData, false);
+return;
 		if (dataText) {
 			try {
 				const data = JSON.parse(dataText);
-				const mapFilePath = storage.map.get();
-				const weatherData = data.weather;
-				const alertsData = data.alerts;
-				const lastUpdateTime = storage.lastUpdate.get();
-
-				displayData(mapFilePath, weatherData, alertsData, lastUpdateTime);
+				displayData(storage.map.get(), data.weather, data.alerts, storage.lastUpdate.get());
 			} catch(err) {
 				console.error(JSON.stringify(err));
 			}
@@ -293,16 +355,18 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 	return {
 		pagebeforeshow: function(ev) {
-			const page = ev.target;
-			ui = createUiManager(page);
+			// const page = ev.target;
+			// ui = createUiManager(page);
 
-			storage.data.setChangeListener(tryDisplayData);
+			uiElems = getUiElems();
 
-			tryDisplayData();
+			storage.data.setChangeListener(loadData);
+
+			loadData();
 
 			updater.softUpdate();
 
-			const updateRunning = updater.updateInProgress();
+			/*const updateRunning = updater.updateInProgress();
 			ui.header.refresh.btn.enable(!updateRunning);
 			
 			ui.header.refresh.btn.onClick(function() {
@@ -319,7 +383,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 			ui.more.onClick(function() {
 				console.log('More options');
-			});
+			});*/
 		},
 		
 		visibilitychange: function() {
@@ -329,7 +393,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		},
 
 		pagebeforehide: function(ev) {
-			storage.data.unsetChangeListener(tryDisplayData);
+			storage.data.unsetChangeListener(loadData);
 			ui.header.refresh.btn.onClick(null);
 			ui.footer.alert.onClick(null);
 			ui.more.onClick(null);
