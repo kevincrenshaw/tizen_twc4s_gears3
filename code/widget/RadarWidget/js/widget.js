@@ -51,8 +51,6 @@ window.onload = function() {
 						+ JSON.stringify(err));
 			}
 		}
-
-		ui.footer.alert.value(getNbrOfAlerts());
 	}
 	
 	/**
@@ -80,38 +78,35 @@ window.onload = function() {
 		var displayInCelsius = isCelsiusSelected();
 		var currentTempInCelsius;
 		
-		if(ui) {
-			//if we have data to show
-			if(snapshotTimeRepr[0] && currentTimeRepr[0]) {
-				if(ui.header.style.display !== 'inline') {
-					//show header if it was hidden
-					ui.header.style.display = 'inline';
+		//update UI only if there is all data available
+		if (ui && snapshotTimeRepr[0] && currentTimeRepr[0] && mapFilePath) {
+			if(ui.header.style.display !== 'inline') {
+				//show header if it was hidden
+				ui.header.style.display = 'inline';
+			}
+			//if header is visible and we have data to show
+			if(ui.header.style.display === 'inline') {
+				ui.currentTime.time.textContent = currentTimeRepr[0];
+				ui.currentTime.ampm.textContent = currentTimeRepr[1];
+				
+				ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
+				ui.temperature.ampm.textContent = snapshotTimeRepr[1];
+				
+				currentTempInCelsius = getFromStore('temp', undefined);
+				if (currentTempInCelsius !== undefined) {
+					currentTempInCelsius = parseInt(currentTempInCelsius);
+					ui.temperature.value.textContent = [(displayInCelsius
+							? currentTempInCelsius
+							: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
+					
+					ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
 				}
-				//if header is visible and we have data to show
-				if(ui.header.style.display === 'inline') {
-					ui.currentTime.time.textContent = currentTimeRepr[0];
-					ui.currentTime.ampm.textContent = currentTimeRepr[1];
-					
-					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
-					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
-					
-					currentTempInCelsius = getFromStore('temp', undefined);
-					if (currentTempInCelsius !== undefined) {
-						currentTempInCelsius = parseInt(currentTempInCelsius);
-						ui.temperature.value.textContent = [(displayInCelsius
-								? currentTempInCelsius
-								: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
-						
-						ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
-					}
-					
-					ui.temperature.at.textContent = TIZEN_L10N.AT;
-				}
+				
+				ui.temperature.at.textContent = TIZEN_L10N.AT;
 			}
 
-			if (mapFilePath) {
-				ui.map.style['background-image'] = 'url("' + mapFilePath + '")';
-			}
+			ui.map.style['background-image'] = 'url("' + mapFilePath + '")';
+			ui.footer.alert.value(getNbrOfAlerts());
 		}
 	}
 	
