@@ -13,7 +13,6 @@ define(['utils/utils', 'utils/storage'], function(utils, storage) {
 		},
 
 		pagebeforehide: function(ev) {
-			console.log('stored time format:' + storage.settings.units.time.get());
 			utils.saveIfSystemUsesAMPMTimeFormat();
 		},
 	};
