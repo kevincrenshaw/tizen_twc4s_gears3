@@ -76,7 +76,7 @@ define([
 		viewData.snapshotDate = new Date(observation.obs_time * 1000);
 		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
-		viewData.alertsCounter = $.isArray(data.alerts) ? data.alerts.length : 0;
+		viewData.alertsCounter = parseInt(($.isArray(data.alerts) ? data.alerts.length : 0), 10);
 	}
 
 	function saveToStorage(data) {
@@ -110,7 +110,10 @@ define([
 
 		uiElems.moreBtn.show();
 
-		const alertsCounter = parseInt(data.alertsCounter, 10) > consts.RADAR_ALERTS_MAX_NBR ? consts.RADAR_ALERTS_MAX_NBR + '+' : data.alertsCounter; 
+		const alertsCounter = 
+			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
+			consts.RADAR_ALERTS_MAX_NBR + '+' :
+			data.alertsCounter; 
 		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(alertsCounter);
 	}
 
@@ -143,7 +146,7 @@ define([
 			console.error(JSON.stringify(err));
 			return;
 		}
-		updateViewData(data);
+		updateViewData(data, false);
 		saveToStorage(viewData);
 		updateUI(viewData, false);
 
