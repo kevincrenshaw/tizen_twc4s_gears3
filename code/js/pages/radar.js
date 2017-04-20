@@ -86,18 +86,14 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		
 		return {
 			map: {
-				visible: dom.createVisibilityHandler(element.map),
-				isVisible: dom.createIsVisibileHandler(element.map),
 				src: dom.createSetSrcHandler(element.map),
 			},
 			
 			more: {
-				visible: dom.createVisibilityHandler(element.more),
 				onClick: dom.createOnClickHandler(element.more),
 			},
 			
 			header: {
-				visible: dom.createVisibilityHandler(element.header.container),
 				temperature: {
 					text: dom.createSetInnerHtmlHandler(element.header.temperature.value),
 					unit: dom.createSetInnerHtmlHandler(element.header.temperature.unit),
@@ -254,10 +250,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);
 		ui.header.refresh.btn.enable(true);
-		ui.map.visible(true);
-		ui.header.visible(true);
 		ui.footer.alert.counter(nbrOfAlerts);
-		ui.more.visible(true);
 	};
 
 	const tryDisplayData = function() {
@@ -314,10 +307,6 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 			updateUI(ui);
 			weatherDownloadTimeUpdater();
-
-			ui.header.visible(true);
-			ui.map.visible(true);
-			ui.more.visible(true);
 
 			if(intervalUpdaterId === null) {
 				intervalUpdaterId = setInterval(
