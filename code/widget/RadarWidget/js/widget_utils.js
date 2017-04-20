@@ -28,7 +28,7 @@ function getTimeAsText(date, ampm) {
 };
 
 function celsiusToFahrenheit(value) {
-	return value * 9.0 / 5.0 + 32;
+	return Math.round( parseInt(value, 10) * 9.0 / 5.0 + 32 );
 };
 
 function getFromStore(key, defaultValue) {

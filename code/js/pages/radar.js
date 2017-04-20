@@ -114,7 +114,6 @@ define([
 			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
 			consts.RADAR_ALERTS_MAX_NBR + '+' :
 			data.alertsCounter;
-			console.log(alertsCounter, !!alertsCounter);
 		ui.alertsBtn.toggle(!!alertsCounter);
 		ui.alertsCounter.text(alertsCounter);
 	}
@@ -122,7 +121,8 @@ define([
 	function resetUI() {
 		ui.map.hide();
 		ui.header.hide();
-		ui.alertsCounter.hide().text(0);
+		ui.alertsBtn.hide();
+		ui.alertsCounter.text(0);
 	}
 
 	function refreshView() {

@@ -7,8 +7,7 @@ body {
 
   font-family: BreezeSans, Verdana, Lucida Sans, Arial, Helvetica, sans-serif;
 
-  /*background: #000 url(../resources/images/preview.png) 50% 50% / 100% 100% no-repeat;*/
-  background: #666;
+  background: #000 url(../resources/images/preview.png) 50% 50% / 100% 100% no-repeat;
   color: #fff;
 }
 
@@ -19,13 +18,13 @@ body {
   position: absolute;
   top: 0;
   width: 100%;
+  z-inde: 10;
 
   font-size: 28px;
   line-height: 28px;
   text-align: center;
 
-  /*background-color: rgba(0, 0, 0, .4);*/
-  background: red;
+  background-color: rgba(0, 0, 0, .4);
 }
 
 .date {
@@ -51,7 +50,8 @@ body {
 .open {
   height: 100%;
   width: 100%;
-  z-index: 10;
+  position: relative;
+  z-index: 20;
 
   background: url(../resources/images/play.png) 50% 50% no-repeat;
 }
@@ -71,7 +71,7 @@ body {
   position: relative;
   width: 100%;
 
-  background: url(../resources/images/icon-alerts.png) 50% 50% / 40px 40px no-repeat;
+  background: url(../resources/images/icon-alerts.png) 50% 50% / 42px 42px no-repeat;
 }
 
 .badge {

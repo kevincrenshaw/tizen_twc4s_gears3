@@ -1,220 +1,179 @@
-window.onload = function() {
-	var intervalUpdaterId = null;
+(function() {
+	var app;
+	var appId;
 
-	var currentTimeRepr = {};
-	var snapshotTimeRepr = {};
-	var mapFilePath;
-	var data;
-	var ampm = '';
-	var ui = null;
-	
-	//run for first time when widget is added to a widget board
-	handleVisibilityChange();
-	
-	function launchRadar() {
-		launchApp('radar');
+	var refreshViewId;
+	var ui = {};
+	var viewData = {};
+
+	function getUI() {
+		return {
+			body: document.getElementsByTagName('body')[0],//
+			header: document.getElementsByClassName('header')[0],
+			currentTime: document.getElementsByClassName('current-time')[0],//
+			currentFormat: document.getElementsByClassName('current-format')[0],//
+			tempValue: document.getElementsByClassName('temp-value')[0],
+			tempUnit: document.getElementsByClassName('temp-unit')[0],
+			separator: document.getElementsByClassName('separator')[0],//
+			tempTime: document.getElementsByClassName('temp-time')[0],//
+			tempFormat: document.getElementsByClassName('temp-format')[0],//
+			openBtn: document.getElementsByClassName('open')[0],//
+			footer: document.getElementsByClassName('footer')[0],
+			badge: document.getElementsByClassName('badge')[0]
+		};
 	}
-	
-	function launchAlerts() {
-		launchApp('alerts');
+
+	function getTempSystem() {
+		// 1 - system, 2 - fahrenheit, 3 - celsius
+		var value = parseInt(getFromStore('settings_units_temperature_key'), 10) || 3;
+
+		if(value === 2) {
+			return 'F';
+		}
+		return 'C';
 	}
-	
-	/**
-	 * triggered on page visible state 
-	 * */
-	function onpageshow() {
-		var dataAsText;
+
+	function updateViewData(data, currentTimeOnly) {
+		var prefs = tizen.preference;
+
+		viewData.is12hFormat = prefs.exists('time_ampm') ? prefs.getValue('time_ampm') : false;
 		
-		console.log('on page show');
-		ui = createUi(document);
-		
-		ui.map.addEventListener('click', launchRadar);
-		ui.footer.alert.container.addEventListener('click', launchAlerts);
-		
-		if(tizen.preference.exists('time_ampm')) {
-			ampm = tizen.preference.getValue('time_ampm');
-		}
-		
-		if(tizen.preference.exists('snapshot_time')) {
-			snapshotTimeRepr[0] = getTimeAsText(new Date( tizen.preference.getValue('snapshot_time') ), !!ampm)[0];
-			snapshotTimeRepr[1] = ampm;
-		}
-		
-		mapFilePath = getFromStore('map');
-		
-		dataAsText = getFromStore('data');
-		if (dataAsText) {
-			try {
-				data = JSON.parse(dataAsText);
-			} catch (err) {
-				console.error('Failed to convert alerts into object: '
-						+ JSON.stringify(err));
-			}
+		viewData.currentTime = getTimeAsText(new Date(), viewData.is12hFormat);
+
+		if(prefs.exists('snapshot_time')) {
+			viewData.snapshotTime = getTimeAsText(new Date( prefs.getValue('snapshot_time') ), viewData.is12hFormat);
 		}
 
-		ui.footer.alert.value(getNbrOfAlerts());
-	}
-	
-	/**
-	 * triggered on page hidden state 
-	 * */
-	function onpagehide() {
-		console.log('on page hide');
-		if(ui) {
-			ui.map.removeEventListener('click', launchRadar);
-			ui.footer.alert.container.removeEventListener('click', launchAlerts);
-			ui.map = null;
-			ui = null;
+		viewData.tempOrig = getFromStore('temp');
+		viewData.tempUnit = getTempSystem();
+		viewData.temp = viewData.tempUnit === 'F' ? celsiusToFahrenheit(viewData.tempOrig) : viewData.tempOrig ;
+
+		viewData.map = getFromStore('map');
+
+		var alertsCounter = 0;
+		if(data && data.alerts && data.alerts.alerts) {
+			alertsCounter = data.alerts.alerts.length;
 		}
+		console.log('view data ' + alertsCounter);
+		viewData.alertsCounter = alertsCounter;
 	}
-	
-	function isCelsiusSelected() {
-		if (parseInt(getFromStore('settings_units_temperature_key', '3')) === 2) {
-			return false;
+
+	function updateUI(data, currentTimeOnly) {
+		ui.currentTime.textContent = data.currentTime[0];
+		ui.currentFormat.textContent = data.currentTime[1];
+
+		ui.tempValue.textContent = data.temp + '° ';
+		ui.tempUnit.textContent = data.tempUnit;
+
+		ui.tempTime.textContent = data.snapshotTime[0];
+		ui.tempFormat.textContent = data.snapshotTime[1];
+
+		ui.separator.textContent = TIZEN_L10N.AT;
+
+		ui.body.style['background-image'] = (data.map ? 'url(' + data.map + ')' : 'none');
+
+		var alertsCounter = data.alertsCounter;
+		if(alertsCounter > 99) {
+			alertsCounter = '99+';
+		}
+		console.log('ui update ' + alertsCounter);
+		ui.badge.textContent = alertsCounter;
+		ui.footer.display = !!alertsCounter ? 'block' : 'none';
+	}
+
+	function refreshView() {
+		updateViewData(null, true);
+		updateUI(viewData, true);
+		refreshViewId = setTimeout(refreshView, 1000);
+	}
+
+	function loadData() {
+		var data = getFromStore('data');
+
+		if(!data) {
+			console.error('no data');
+			return;
+		}
+
+		try {
+			data = JSON.parse(data);
+		} catch (err) {
+			console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+			return;
+		}
+
+		updateViewData(data, false);
+		updateUI(viewData, false);
+
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+			refreshViewId = setTimeout(refreshView, 1000);
 		} else {
-			return true;
+			refreshView();
 		}
 	}
 
-	function onUpdateUi() {
-		var displayInCelsius = isCelsiusSelected();
-		var currentTempInCelsius;
-		
-		if(ui) {
-			//if we have data to show
-			if(snapshotTimeRepr[0] && currentTimeRepr[0]) {
-				if(ui.header.style.display !== 'inline') {
-					//show header if it was hidden
-					ui.header.style.display = 'inline';
-				}
-				//if header is visible and we have data to show
-				if(ui.header.style.display === 'inline') {
-					ui.currentTime.time.textContent = currentTimeRepr[0];
-					ui.currentTime.ampm.textContent = currentTimeRepr[1];
-					
-					ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
-					ui.temperature.ampm.textContent = snapshotTimeRepr[1];
-					
-					currentTempInCelsius = getFromStore('temp', undefined);
-					if (currentTempInCelsius !== undefined) {
-						currentTempInCelsius = parseInt(currentTempInCelsius);
-						ui.temperature.value.textContent = [(displayInCelsius
-								? currentTempInCelsius
-								: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
-						
-						ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
-					}
-					
-					ui.temperature.at.textContent = TIZEN_L10N.AT;
-				}
-			}
+	function init() {
+		ui = getUI();
 
-			if (mapFilePath) {
-				ui.map.style['background-image'] = 'url("' + mapFilePath + '")';
-			}
-		}
-	}
-	
-	
-	/**
-	 * function for periodic tasks (like updating ui, etc)
-	 * */
-	function onUpdate() {
-		//because of limitations of web widget we cannot obtain system settings of am/pm
-		//so we are ignoring it and in case of empty ampm (system setting) use 24h format
-		var time = getTimeAsText(new Date(), ampm !== '');
-		if(currentTimeRepr[0] !== time[0] || currentTimeRepr[1] !== time[1]) {
-			currentTimeRepr = time;
-		}
-		onUpdateUi();
+		ui.openBtn.addEventListener('click', onRadarClick);
+		ui.footer.addEventListener('click', onAlertsClick);
+
+		console.log('init ' + appId);
+
+		loadData();
 	}
 
-	/**
-	 * internal function to handle visibility state changes 
-	 * */
-	function handleVisibilityChange() {
-		if(document.visibilityState === 'visible') {
-			onpageshow();
-			//call it immideatelly for a first time
-			onUpdate();
-			
-			if(intervalUpdaterId === null) {
-				intervalUpdaterId = setInterval(onUpdate, 1000);
-			}
-		} else {
-			onpagehide();
-			
-			if(intervalUpdaterId) {
-				clearInterval(intervalUpdaterId);
-                intervalUpdaterId = null;
-			}
-		}
+	function onVisibilityChange() {
+		document.visibilityState === 'visible' ? init() : destroy();
 	}
+
+	function destroy() {
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+			refreshViewId = null;
+		}
+
+		ui.openBtn.removeEventListener('click', onRadarClick);
+		ui.footer.removeEventListener('click', onAlertsClick);
+
+		ui = null;
+
+		console.log('destroy ' + appId);
+	}
+
 
 	function launchApp(page) {
-		var app = window.tizen.application.getCurrentApplication();
-		var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
 		var appControl = new window.tizen.ApplicationControl('navigate', page, null, null, null, null);
-		window.tizen.application.launchAppControl(appControl, appId,
+		
+		window.tizen.application.launchAppControl(
+			appControl,
+			appId,
 			function() {
-				console.log("application has been launched successfully");
+				console.log('application has been launched successfully');
 			},
 			function(e) {
-				console.error("application launch has been failed. reason: " + e.message);
+				console.error('application launch has been failed. reason: ' + e.message);
 			},
-			null);
-	}
-	
-	function createUi(root) {
-		var footer = root.getElementById('footer');
-		var footer_alerts_value = root.getElementById('footer-alerts-counter-container-value');
-
-		var element = {
-			header: root.getElementById('header'),
-			map: root.getElementTagName('body')[0],
-			
-			currentTime: {
-				time: root.getElementById('time-value'),
-				ampm: root.getElementById('time-ampm'),
-			},
-			
-			temperature: {
-				value: root.getElementById('value'),
-				unit: root.getElementById('unit'),
-				at: root.getElementById('at'),
-				snapshotTime: root.getElementById('snapshot-time'),
-				ampm: root.getElementById('ampm'),
-			},
-
-			footer: {
-				alert: {
-					container: footer,
-					value: function(value) {
-						if (value > 0) {
-							value = value > 99 ? '99+' : value;
-							footer_alerts_value.textContent = value;
-							footer.style.visibility = 'visible';
-						} else {
-							footer.style.visibility = 'hidden';
-						}
- 					}
-				}
-			}
-		};
-		
-		return element;
-	}
-	
-	function getNbrOfAlerts() {
-		if (data &&
-				data.alerts &&
-				data.alerts.alerts &&
-				Array.isArray(data.alerts.alerts)) {
-			return data.alerts.alerts.length;
-		} else {
-			return 0;
-		}
+			null
+		);
 	}
 
-	document.addEventListener('visibilitychange', handleVisibilityChange);
-};
+	function onRadarClick() {
+		launchApp('radar');
+	}
+
+	function onAlertsClick() {
+		launchApp('alerts');
+	}
+
+	function onLoad() {
+		window.removeEventListener('load', onLoad);
+		app = window.tizen.application.getCurrentApplication();
+		appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
+
+		onVisibilityChange();
+		document.addEventListener('visibilitychange', onVisibilityChange);
+	}
+	window.addEventListener('load', onLoad);
+})();
