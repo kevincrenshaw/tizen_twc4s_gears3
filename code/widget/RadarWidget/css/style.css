@@ -67,7 +67,7 @@ body {
   width: 100%;
   z-index: 20;
 
-  background: url(../resources/images/tw_bottom_btn_bg.png) -1px 3px no-repeat;
+  background: url(../resources/images/tw_bottom_btn_bg.png) 0 3px no-repeat;
 }
 
 .alerts {
@@ -82,14 +82,14 @@ body {
   display: block;
   height: 25px;
   left: 50%;
-  min-width: 25px;
-  padding: 0 4px;
+  margin-left: 6px;
   position: absolute;
-  top: 42px;
+  top: 45px;
+  width: 25px;
 
   font-size: 18px;
   line-height: 25px;
   text-align: center;
 
-  background-color: #d6202b;
+  background: url(../resources/images/badge.png) 50% 50% / cover no-repeat;
 }
