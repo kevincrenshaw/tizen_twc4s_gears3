@@ -314,7 +314,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			});
 
 			ui.footer.alert.onClick(function() {
-				tau.changePage('alerts.html');
+				tau.changePage('alerts.html', { transition:'none' });
 			});
 
 			ui.more.onClick(function() {

@@ -226,7 +226,7 @@ define(modules, function(require, utils, updater) {
 		const target = 'html/' + uri + '.html';
 		console.log('Navigating to: "' + target + '"');
 		
-		tau.changePage(target);
+		tau.changePage(target, { transition:'none' });
 	} else {
 		const mainPage = document.getElementById('main');
 		//Send fake event. Beacuse tau engine starts automatically this event is already sent.

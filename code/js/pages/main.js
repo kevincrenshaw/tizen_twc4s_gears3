@@ -20,19 +20,19 @@ define([], function() {
 		console.log('setupMainMenu::selectorClickHandler: handle menu item selection; activeItem.id="' + activeItem.id + '"');
 		switch(activeItem.id) {
 		case 'settings':
-			tau.changePage("html/settings.html");
+			tau.changePage("html/settings.html", { transition:'none' });
 			break;
 
 		case 'radar':
-			tau.changePage("html/radar.html");
+			tau.changePage("html/radar.html", { transition:'none' });
 			break;
 
 		case 'weather':
-			tau.changePage("html/weather.html");
+			tau.changePage("html/weather.html", { transition:'none' });
 			break;
 
 		case 'alerts':
-			tau.changePage("html/alerts.html");
+			tau.changePage("html/alerts.html", { transition:'none' });
 			break;
 
 		default:
