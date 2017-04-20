@@ -215,9 +215,9 @@ define(modules, function(require, utils, updater) {
 			
 			sendEvent: function(state) {
 				if (currentPage) {
-					dispatchEventToPage({ target:currentPage, type:'visibilitychange', status:status });					
+					dispatchEventToPage({ target:currentPage, type:'visibilitychange', status:status });
 				} else {
-					console.log('visibilityChangeManager: No current page');					
+					console.log('visibilityChangeManager: No current page');
 				}
 			},
 		}
@@ -225,6 +225,14 @@ define(modules, function(require, utils, updater) {
 	
 	document.addEventListener('visibilitychange', function() {
 		visibilityChangeManager.sendEvent(document.visibilityState);
+	});
+
+	//save ampm option at app startup
+	utils.saveIfSystemUsesAMPMTimeFormat();
+
+	//also we have to subscribe on "time format change" events
+	tizen.time.setDateTimeChangeListener(function() {
+		utils.saveIfSystemUsesAMPMTimeFormat();
 	});
 
 	const appCtrl = utils.getAppControl();

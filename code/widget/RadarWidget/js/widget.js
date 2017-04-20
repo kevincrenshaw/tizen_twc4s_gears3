@@ -5,7 +5,7 @@ window.onload = function() {
 	var snapshotTimeRepr = {};
 	var mapFilePath;
 	var data;
-	var ampm = '';
+	var ampm = null;
 	var ui = null;
 	
 	//run for first time when widget is added to a widget board
@@ -31,15 +31,8 @@ window.onload = function() {
 		ui.map.addEventListener('click', launchRadar);
 		ui.footer.alert.container.addEventListener('click', launchAlerts);
 		
-		if(tizen.preference.exists('time_ampm')) {
-			ampm = tizen.preference.getValue('time_ampm');
-		}
-		
-		if(tizen.preference.exists('snapshot_time')) {
-			snapshotTimeRepr[0] = getTimeAsText(new Date( tizen.preference.getValue('snapshot_time') ), !!ampm)[0];
-			snapshotTimeRepr[1] = ampm;
-		}
-		
+		ampm = getFromStore('time_ampm', false);
+
 		mapFilePath = getFromStore('map');
 		
 		dataAsText = getFromStore('data');
@@ -47,9 +40,15 @@ window.onload = function() {
 			try {
 				data = JSON.parse(dataAsText);
 			} catch (err) {
-				console.error('Failed to convert alerts into object: '
-						+ JSON.stringify(err));
+				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
 			}
+		}
+
+		//obtain temperature
+		var temperatureRepr = getTemperature(data);
+		if(temperatureRepr) {
+			ui.temperature.value.textContent = temperatureRepr[0];
+			ui.temperature.unit.textContent = temperatureRepr[1];
 		}
 	}
 	
@@ -98,7 +97,6 @@ window.onload = function() {
 					ui.temperature.value.textContent = [(displayInCelsius
 							? currentTempInCelsius
 							: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
-					
 					ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
 				}
 				
@@ -109,17 +107,21 @@ window.onload = function() {
 			ui.footer.alert.value(getNbrOfAlerts());
 		}
 	}
-	
-	
+
 	/**
 	 * function for periodic tasks (like updating ui, etc)
 	 * */
 	function onUpdate() {
 		//because of limitations of web widget we cannot obtain system settings of am/pm
 		//so we are ignoring it and in case of empty ampm (system setting) use 24h format
-		var time = getTimeAsText(new Date(), ampm !== '');
+		var time = getTimeAsText(new Date(), ampm);
 		if(currentTimeRepr[0] !== time[0] || currentTimeRepr[1] !== time[1]) {
 			currentTimeRepr = time;
+		}
+		if(data) {
+			//snapshot time
+			var timestampMillis = data.weather.observation.obs_time * 1000;
+			snapshotTimeRepr = getTimeAsText(new Date(timestampMillis), ampm);
 		}
 		onUpdateUi();
 	}
@@ -146,20 +148,6 @@ window.onload = function() {
 		}
 	}
 
-	function launchApp(page) {
-		var app = window.tizen.application.getCurrentApplication();
-		var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
-		var appControl = new window.tizen.ApplicationControl('navigate', page, null, null, null, null);
-		window.tizen.application.launchAppControl(appControl, appId,
-			function() {
-				console.log("application has been launched successfully");
-			},
-			function(e) {
-				console.error("application launch has been failed. reason: " + e.message);
-			},
-			null);
-	}
-	
 	function createUi(root) {
 		var footer = root.getElementById('footer');
 		var footer_alerts_value = root.getElementById('footer-alerts-counter-container-value');

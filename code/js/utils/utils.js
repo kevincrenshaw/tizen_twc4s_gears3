@@ -288,6 +288,35 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		return undefined;
 	};
 
+	/**
+	 * get value from storage
+	 * */
+	const getFromStore = function(key, defaultValue) {
+		if (tizen.preference.exists(key)) {
+			return tizen.preference.getValue(key);
+		}
+		return defaultValue;
+	};
+
+	/**
+	 * set value to storage
+	 * */
+	const setToStore = function(key, value) {
+		tizen.preference.setValue(key, value);
+	};
+
+	const saveIfSystemUsesAMPMTimeFormat = function() {
+		const ampmkey = 'time_ampm';
+		const timeSetting = getFromStore('settings_units_time_key', '1');
+		//"system" time option
+		if(timeSetting === '1') {
+			setToStore(ampmkey, tizen.time.getTimeFormat() === 'h:m:s ap');
+		} else {
+			//'2' - 12h time option(am/pm - true), '3' - 24h time option (am/pm - false)
+			setToStore(ampmkey, timeSetting === '2');
+		}
+	};
+	
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -306,5 +335,8 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
+		getFromStore: getFromStore,
+		setToStore: setToStore,
+		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
 	};
 });
