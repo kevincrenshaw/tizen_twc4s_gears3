@@ -12,7 +12,7 @@ body {
   color: #fff;
 }
 
-.radar__header {
+.header {
   height: 105px;
   left: 0;
   padding: 32px 0 0 0;
@@ -24,46 +24,57 @@ body {
   line-height: 28px;
   text-align: center;
 
-  background-color: rgba(0, 0, 0, .4);
+  /*background-color: rgba(0, 0, 0, .4);*/
+  background: red;
 }
 
-.radar__date {
+.date {
   margin-bottom: 4px;
 
   font-size: 24px;
   line-height: 24px;
 }
 
-.radar__temp {
+.temp {
   display: block;
   width: 100%;
 }
-.radar__small {
+.small {
   font-size: 18px;
 }
-.radar__separator {
+.separator {
   margin: 0 13px;
 
   font-size: 28px;
 }
 
-.radar__footer {
+.open {
+  height: 100%;
+  width: 100%;
+  z-index: 10;
+
+  background: url(../resources/images/play.png) 50% 50% no-repeat;
+}
+
+.footer {
   bottom: 0;
   height: 97px;
   position: absolute;
   width: 100%;
+  z-index: 20;
+
   background: url(../resources/images/tw_bottom_btn_bg.png) 50% 0 no-repeat;
 }
 
-.radar__alerts {
+.alerts {
   height: 100%;
   position: relative;
   width: 100%;
 
-  background: url(../resources/gfx/icon-alerts.png) 50% 50% no-repeat;
+  background: url(../resources/images/icon-alerts.png) 50% 50% / 40px 40px no-repeat;
 }
 
-.radar__badge {
+.badge {
   display: block;
   height: 25px;
   left: 50%;
@@ -77,5 +88,4 @@ body {
   text-align: center;
 
   background-color: #d6202b;
-  border-radius: 12px;
 }
