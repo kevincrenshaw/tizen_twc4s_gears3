@@ -171,7 +171,7 @@ window.onload = function() {
 
 		var element = {
 			header: root.getElementById('header'),
-			map: root.getElementById('main-screen'),
+			map: root.getElementTagName('body')[0],
 			
 			currentTime: {
 				time: root.getElementById('time-value'),

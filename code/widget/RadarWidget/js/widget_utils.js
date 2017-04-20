@@ -1,19 +1,4 @@
 
-function launchApp() {
-	var app = window.tizen.application.getCurrentApplication();
-	var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
-	var appControl = new window.tizen.ApplicationControl('', null, null, null, null, null);
-	window.tizen.application.launchAppControl(appControl, appId,
-		function() {
-			console.log("application has been launched successfully");
-		},
-		function(e) {
-			console.error("application launch has been failed. reason: " + e.message);
-		},
-		null);
-};
-
-
 /**
  * convert date object to a text representation 
  * Params: 

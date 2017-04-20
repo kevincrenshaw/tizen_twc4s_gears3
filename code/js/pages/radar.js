@@ -96,7 +96,7 @@ define([
 
 		ui.temp.html(
 			data.temp + 
-			'°' +
+			'° ' +
 			'<span>' + data.tempUnit + '</span>' +
 			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
 			viewData.snapshotTime[0] +
@@ -114,6 +114,7 @@ define([
 			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
 			consts.RADAR_ALERTS_MAX_NBR + '+' :
 			data.alertsCounter;
+			console.log(alertsCounter, !!alertsCounter);
 		ui.alertsBtn.toggle(!!alertsCounter);
 		ui.alertsCounter.text(alertsCounter);
 	}
@@ -151,7 +152,10 @@ define([
 		saveToStorage(viewData);
 		updateUI(viewData, false);
 
-		if(!refreshViewId) {
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+			refreshViewId = setTimeout(refreshView, 1000);
+		} else {
 			refreshView();
 		}
 	};
