@@ -172,7 +172,7 @@ define([
 			});
 
 			ui.alertsBtn.on('click', function() {
-				tau.changePage('alerts.html');
+				tau.changePage('alerts.html', { transition:'none' });
 			});
 
 			ui.moreBtn.on('click', function() {
