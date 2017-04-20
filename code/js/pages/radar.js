@@ -76,7 +76,7 @@ define([
 		viewData.snapshotDate = new Date(observation.obs_time * 1000);
 		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
-		viewData.alertsCounter = parseInt(($.isArray(data.alerts) ? data.alerts.length : 0), 10);
+		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
 	}
 
 	function saveToStorage(data) {

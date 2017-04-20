@@ -42,9 +42,11 @@
 
 .radar__update {
   display: block;
-  height: 25px;
+  height: 45px;
   margin: 5px auto 0;
-  padding: 0;
+  padding: 10px 0;
+  position: relative;
+  top: -10px;
 
   font-size: 18px;
   line-height: 25px;
