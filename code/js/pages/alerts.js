@@ -179,7 +179,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 	function createOnPrefsUpdater() {
 		return function() {
 			if(adapter) {
-				adapter.setData(storage.alert.get());
+				adapter.setData(storage.data.get());
 			} else {
 				console.warn('createOnPrefsUpdater::adapter isn exist');
 			}
@@ -208,7 +208,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 			const page = ev.target;
 			tizen.time.unsetDateTimeChangeListener();
 
-			storage.alert.unsetChangeListener(updateHandler);
+			storage.data.unsetChangeListener(updateHandler);
 			updateHandler = null;
 			adapter = null;
 		},
