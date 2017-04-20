@@ -8,10 +8,10 @@ define([
 	'utils/updater'
 ], function($, storage, consts, utils, updater) {
 	var refreshViewId;
-	var uiElems = {};
+	var ui = {};
 	var viewData = {};
 
-	function getUiElems() {
+	function getUI() {
 		return {
 			header: $('.radar__header'),
 			date: $('.radar__date'),
@@ -86,15 +86,15 @@ define([
 	}
 
 	function updateUI(data, currentTimeOnly) {
-		uiElems.date.html(
+		ui.date.html(
 			viewData.currentTime[0] +
 			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1] + '</span>' : '')
 		);
-		uiElems.updateBtn.text(data.lastUpdateHuman);
+		ui.updateBtn.text(data.lastUpdateHuman);
 
 		if(currentTimeOnly) { return; }
 
-		uiElems.temp.html(
+		ui.temp.html(
 			data.temp + 
 			'°' +
 			'<span>' + data.tempUnit + '</span>' +
@@ -102,25 +102,26 @@ define([
 			viewData.snapshotTime[0] +
 			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1] + '</span>' : '')
 		);
-		uiElems.header.show();
+		ui.header.show();
 
-		uiElems.updateBtn.prop('disabled', false);
+		ui.updateBtn.prop('disabled', false);
 
-		uiElems.map.show().attr('src', data.map);
+		ui.map.show().attr('src', data.map);
 
-		uiElems.moreBtn.show();
+		ui.moreBtn.show();
 
 		const alertsCounter = 
 			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
 			consts.RADAR_ALERTS_MAX_NBR + '+' :
-			data.alertsCounter; 
-		uiElems.alertsCounter.toggle(!!data.alertsCounter).text(alertsCounter);
+			data.alertsCounter;
+		ui.alertsBtn.toggle(!!alertsCounter);
+		ui.alertsCounter.text(alertsCounter);
 	}
 
 	function resetUI() {
-		uiElems.map.hide();
-		uiElems.header.hide();
-		uiElems.alertsCounter.hide().text(0);
+		ui.map.hide();
+		ui.header.hide();
+		ui.alertsCounter.hide().text(0);
 	}
 
 	function refreshView() {
@@ -157,22 +158,22 @@ define([
 
 	return {
 		pagebeforeshow: function(ev) {
-			uiElems = getUiElems();
+			ui = getUI();
 
-			uiElems.updateBtn.prop('disabled', updater.updateInProgress());
-			uiElems.updateBtn.on('click', function() {
+			ui.updateBtn.prop('disabled', updater.updateInProgress());
+			ui.updateBtn.on('click', function() {
 				if(updater.hardUpdate()) {
-					uiElems.updateBtn.prop('disabled', true);
+					ui.updateBtn.prop('disabled', true);
 				} else {
 					console.warn('Force update button cannot be clickable when update in progress');
 				}
 			});
 
-			uiElems.alertsBtn.on('click', function() {
+			ui.alertsBtn.on('click', function() {
 				tau.changePage('alerts.html');
 			});
 
-			uiElems.moreBtn.on('click', function() {
+			ui.moreBtn.on('click', function() {
 				console.log('More options');
 			});
 
@@ -195,10 +196,10 @@ define([
 
 			storage.data.unsetChangeListener(loadData);
 
-			uiElems.updateBtn.off();
-			uiElems.moreBtn.off();
-			uiElems.alertsBtn.off();
-			uiElems = null;
+			ui.updateBtn.off();
+			ui.moreBtn.off();
+			ui.alertsBtn.off();
+			ui = null;
 		},
 	};
 });

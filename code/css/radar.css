@@ -4,7 +4,6 @@
 }
 
 .radar__header {
-  box-sizing: border-box;
   height: 137px;
   left: 0;
   padding: 33px 0 0 0;
@@ -42,7 +41,6 @@
 }
 
 .radar__update {
-  box-sizing: border-box;
   display: block;
   height: 25px;
   margin: 5px auto 0;
@@ -106,6 +104,7 @@
 }
 
 .radar__alerts {
+  display: none;
   top: 3px;
 
   background: rgba(0, 157, 232, .75) url(../resources/gfx/icon-alerts.png) 50% 25px / 42px 42px no-repeat !important;
@@ -115,7 +114,7 @@
   display: block;
   height: 25px;
   left: calc(50% + 6px);
-  min-width: 17px;
+  min-width: 25px;
   padding: 0 4px;
   position: absolute;
   top: 42px;
