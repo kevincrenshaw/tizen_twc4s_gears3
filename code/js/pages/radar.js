@@ -88,7 +88,7 @@ define([
 	function updateUI(data, currentTimeOnly) {
 		ui.date.html(
 			viewData.currentTime[0] +
-			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1] + '</span>' : '')
+			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1].trim() + '</span>' : '')
 		);
 		ui.updateBtn.text(data.lastUpdateHuman);
 
@@ -96,11 +96,11 @@ define([
 
 		ui.temp.html(
 			data.temp + 
-			'° ' +
+			'°' +
 			'<span>' + data.tempUnit + '</span>' +
 			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
 			viewData.snapshotTime[0] +
-			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1] + '</span>' : '')
+			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1].trim() + '</span>' : '')
 		);
 		ui.header.show();
 
@@ -154,10 +154,8 @@ define([
 
 		if(refreshViewId) {
 			clearTimeout(refreshViewId);
-			refreshViewId = setTimeout(refreshView, 1000);
-		} else {
-			refreshView();
 		}
+		refreshView();
 	};
 
 	return {

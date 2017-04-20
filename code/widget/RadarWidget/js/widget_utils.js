@@ -17,7 +17,7 @@ function getTimeAsText(date, ampm) {
 	var ampmStr = '';
 
 	if(ampm) {
-		ampmStr = hours >= 12 ? ' PM' : ' AM';
+		ampmStr = hours >= 12 ? 'PM' : 'AM';
 		hours = hours % 12;
 		//0 hour should be printed as 12
 		hours = hours ? hours : 12;

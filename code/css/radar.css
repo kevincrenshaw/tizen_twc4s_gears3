@@ -32,12 +32,16 @@
 }
 .radar__date span,
 .radar__temp span {
+  margin-left: 2px;
+
   font-size: 18px;
+  text-transform: uppercase;
 }
 .radar__temp .radar__separator {
-  margin: 0 21px;
+  margin: 0 21px 0 25px;
 
   font-size: 28px;
+  text-transform: none;
 }
 
 .radar__update {
@@ -49,7 +53,7 @@
   top: -10px;
 
   font-size: 18px;
-  line-height: 25px;
+  line-height: 26px;
 
   background: none;
   border: 0;
@@ -59,7 +63,7 @@
   content: '';
   display: inline-block;
   height: 25px;
-  margin-right: 18px;
+  margin-right: 17px;
   width: 25px;
 
   vertical-align: top;
