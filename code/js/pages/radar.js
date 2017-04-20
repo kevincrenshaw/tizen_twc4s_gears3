@@ -191,6 +191,36 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		5: 'DAYS_AGO',
 	};
 
+	const weatherDownloadTimeUpdater = function() {
+		const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
+		const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
+
+		if (diffCategory in diffCategoryToLocalizationKey) {
+			const localizationKey = diffCategoryToLocalizationKey[diffCategory];
+			if (localizationKey in TIZEN_L10N) {
+				const localizedText = TIZEN_L10N[localizationKey];
+
+				var textToDisplay;
+
+				if (diffCategory === 1) {
+					textToDisplay = localizedText;
+				} else {
+					if (isNaN(diffInSeconds)) {
+						textToDisplay = ['-', localizedText].join(' ');
+					} else {
+						textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory), localizedText].join(' ');
+					}
+				}
+
+				ui.header.refresh.text(textToDisplay);
+			} else {
+				console.warn('Key "' + localizationKey + '" not available in localization');
+			}
+		} else {
+			console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
+		}
+	};
+
 	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
 		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
@@ -201,33 +231,6 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 		const tempText = [tempTextualRepr[0], '°'].join('');
 		const unitText = tempTextualRepr[1];
-
-		const weatherDownloadTimeUpdater = function() {
-			const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
-			const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
-
-			if (diffCategory in diffCategoryToLocalizationKey) {
-				const localizationKey = diffCategoryToLocalizationKey[diffCategory];
-				if (localizationKey in TIZEN_L10N) {
-					const localizedText = TIZEN_L10N[localizationKey];
-
-					var textToDisplay;
-
-					if (diffCategory === 1) {
-						textToDisplay = localizedText;
-					} else {
-						textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory),
-						                 localizedText].join(' ');
-					}
-
-					ui.header.refresh.text(textToDisplay);
-				} else {
-					console.warn('Key "' + localizationKey + '" not available in localization');
-				}
-			} else {
-				console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
-			}
-		};
 
 		//snapshot time
 		const shapshotTimeInMillis = weather.observation.obs_time * 1000;
@@ -242,16 +245,6 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		//refresh time
 		lastRefreshEpochTime = downloadTimeEpochInSeconds;
 		weatherDownloadTimeUpdater();
-
-		if(intervalUpdaterId === null) {
-			intervalUpdaterId = setInterval(
-				function() {
-					updateUI(ui);
-					weatherDownloadTimeUpdater();
-				},
-				1000 //every 1 second update interval
-			);
-		}
 
 		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
 		
@@ -284,8 +277,6 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 				console.error(JSON.stringify(err));
 			}
 		} else {
-			ui.map.visible(false);
-			ui.header.visible(false);
 			ui.footer.alert.counter(0);
 			console.log('No data in storage');
 		}
@@ -320,6 +311,23 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			ui.more.onClick(function() {
 				console.log('More options');
 			});
+
+			updateUI(ui);
+			weatherDownloadTimeUpdater();
+
+			ui.header.visible(true);
+			ui.map.visible(true);
+			ui.more.visible(true);
+
+			if(intervalUpdaterId === null) {
+				intervalUpdaterId = setInterval(
+					function() {
+						updateUI(ui);
+						weatherDownloadTimeUpdater();
+					},
+					1000 //every 1 second update interval
+				);
+			}
 		},
 		
 		visibilitychange: function() {
