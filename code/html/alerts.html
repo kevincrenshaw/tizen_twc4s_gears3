@@ -1,15 +1,32 @@
 <div class="ui-page" id="alerts">
-	<div class="ui-header">
-		<h2 class="ui-title"></h2>
+	<div class="ui-header"></div>
+
+	<div id="header" class="header black">
+		<div class="header-block-top">
+			<span id="value" class="text-24px-white">00</span>
+			<span id="unit" class="text-18px-lightgrey"></span>
+		</div>
+
+		<div class="header-block-middle">
+			<div id="office-district" class="ui-marquee marquee-infinitive-autorun">-</div>
+		</div>
+
+		<div id="refreshBox" class="header-block-bottom">
+			<input id="btn" class="refresh-button" type="image" src="../resources/gfx/refresh.png" />
+			<span id="text" class="text-18px-white">- min ago</span>
+		</div>
 	</div>
 
 	<div class="ui-content">
-		<div id="no-alerts-container" class="alert-page-container invisible">
+		<div id="no-alerts-container" class="alert-page-container display-none">
 			<span id="status" class="no-alerts-text">No alerts</span>
 		</div>
 
-		<div id="alerts-container" class="alert-page-container invisible">
-			<ul id="alert-list" data-role="listview" class="normal-text"></ul>
+		<div id="alerts-container" class="alert-page-container display-none">
+			<ul id="alert-list" class="ui-listview circle-helper-snap-list"></ul>
 		</div>
+	</div>
+	<div id="moreblock" class="more-block">
+		<input id="morebtn" class="more-button" type="image" src="../resources/gfx/device.png" />
 	</div>
 </div>

@@ -56,12 +56,12 @@ define(modules, function(require, utils, updater) {
 	//Creates object that manages array of destroyables.
 	const createDestroyableManager = function() {
 		const destroyableArr = [];
-		
+
 		return {
 			add: function(destroyable) {
 				destroyableArr.push(destroyable);
 			},
-			
+
 			destroy: function() {
 				//Destroy in reverse order
 				for (i=destroyableArr.length-1; i>=0; --i) {
@@ -72,7 +72,7 @@ define(modules, function(require, utils, updater) {
 			}
 		};
 	};
-	
+
 	const createMarqueeWidgetManager = function() {
 		var activeMarqueeWidget;
 		
@@ -98,10 +98,15 @@ define(modules, function(require, utils, updater) {
 	//There is only one acrive marquee widget at the moment
 	const activeMaruqeeWidget = createMarqueeWidgetManager();
 
-	const createMarqueWidget = function(element) {
-		return tau.widget.Marquee(element, {marqueeStyle: 'endToEnd', delay: '1000'});
+	const createMarqueWidget = function(element, options) {
+		options = options || {};
+
+		options.marqueeStyle = options.marqueeStyle || 'endToEnd';
+		options.delay = options.delay || '1000';
+
+		return new tau.widget.Marquee(element, options);
 	};
-	
+
 	const createMarqueeWidgetForListElement = function(element) {
 		if (element) {
 			activeMaruqeeWidget.destroy();
@@ -147,6 +152,12 @@ define(modules, function(require, utils, updater) {
 			destroyables.add(createMarqueWidget(title));
 		}
 
+		const allElementsWithMarqueeStyle = page.querySelectorAll('.marquee-infinitive-autorun');
+		for(var i = 0; i < allElementsWithMarqueeStyle.length; ++i) {
+			var listNode = allElementsWithMarqueeStyle[i];
+			destroyables.add(createMarqueWidget(listNode, {iteration: 'infinite', autoRun: true}));
+		}
+
 		//Find every circle helper on current page, create widget for it and save it for later destruction
 		const selector = '.ui-listview.circle-helper-snap-list';
 		const snapListNodeList = page.querySelectorAll(selector);
@@ -162,10 +173,10 @@ define(modules, function(require, utils, updater) {
 				listNode,
 				'input:checked[value]',
 				function(el) {
-					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);					
+					snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);
 				}
 			);
-			
+
 			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
 			createMarqueeWidgetForListElement(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
 						
@@ -173,7 +184,7 @@ define(modules, function(require, utils, updater) {
 			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
 			
 			destroyables.add({
-				destroy: function() {					
+				destroy: function() {
 					listNode.removeEventListener('selected', listItemSelectedEventListener);
 					listNode.removeEventListener('scrollstart', listItemScrollStartEventListener);
 					activeMaruqeeWidget.destroy();
