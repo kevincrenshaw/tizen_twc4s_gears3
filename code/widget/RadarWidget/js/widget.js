@@ -31,7 +31,7 @@ window.onload = function() {
 		ui.map.addEventListener('click', launchRadar);
 		ui.footer.alert.container.addEventListener('click', launchAlerts);
 		
-		ampm = getFromStore('time_ampm', false);
+		ampm = getFromStore('ampm');
 
 		mapFilePath = getFromStore('map');
 		

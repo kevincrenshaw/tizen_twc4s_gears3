@@ -289,34 +289,24 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	};
 
 	/**
-	 * get value from storage
+	 * saves flag of used time format
+	 * Params:
+	 * 		savedTimeUnitSetting saved time unit (use: storage.settings.units.time)
+	 * 		ampmStorageProvider storage provider which should save ampm format (use: storage::createSimpleStorage typed object)
+	 * 
+	 * Returns:
+	 * 		nothing
 	 * */
-	const getFromStore = function(key, defaultValue) {
-		if (tizen.preference.exists(key)) {
-			return tizen.preference.getValue(key);
-		}
-		return defaultValue;
-	};
-
-	/**
-	 * set value to storage
-	 * */
-	const setToStore = function(key, value) {
-		tizen.preference.setValue(key, value);
-	};
-
-	const saveIfSystemUsesAMPMTimeFormat = function() {
-		const ampmkey = 'time_ampm';
-		const timeSetting = getFromStore('settings_units_time_key', '1');
+	const saveIfSystemUsesAMPMTimeFormat = function(savedTimeUnitSetting, ampmStorageProvider) {
 		//"system" time option
-		if(timeSetting === '1') {
-			setToStore(ampmkey, tizen.time.getTimeFormat() === 'h:m:s ap');
+		if(savedTimeUnitSetting == consts.settings.units.time.SYSTEM) {
+			ampmStorageProvider.set(tizen.time.getTimeFormat() === 'h:m:s ap');
 		} else {
 			//'2' - 12h time option(am/pm - true), '3' - 24h time option (am/pm - false)
-			setToStore(ampmkey, timeSetting === '2');
+			ampmStorageProvider.set(savedTimeUnitSetting == consts.settings.units.time.TIME_12H);
 		}
 	};
-	
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -335,8 +325,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
-		getFromStore: getFromStore,
-		setToStore: setToStore,
 		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
 	};
 });

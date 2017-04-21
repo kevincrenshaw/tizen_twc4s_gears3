@@ -36,6 +36,7 @@ define(['rx', 'utils/utils'], function(rx, utils) {
 		.subscribe(function(pageid) {
 			switch (pageid) {
 			case "main":
+				tizen.time.unsetDateTimeChangeListener();
 				quit();
 				break;
 			default:
