@@ -218,7 +218,13 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 
 	    return [hours + ':' + minutes, ampm];
 	};
-	
+
+	const getDateAndTimeAsText = function(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat) {
+		const timeRepr = getTimeAsText(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat);
+		const date = [dateTimeData.getDate(), '.', parseInt(dateTimeData.getMonth()) + 1, '.', dateTimeData.getFullYear()].join('');
+		return date + ' @ ' + timeRepr[0] + timeRepr[1];
+	};
+
 	const getAppControl = function() {
 		const app = window.tizen.application.getCurrentApplication();
 		return app.getRequestedAppControl().appControl;
@@ -291,6 +297,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		guid: guid,
 		celsiusToFahrenheit: celsiusToFahrenheit,
 		getTimeAsText: getTimeAsText,
+		getDateAndTimeAsText: getDateAndTimeAsText,
 		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
 		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
 		getCategoryForTimeDiff: getCategoryForTimeDiff,

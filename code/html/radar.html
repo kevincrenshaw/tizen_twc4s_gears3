@@ -1,12 +1,12 @@
 <div class="ui-page" id="radar">
 	<img id="map">
-	<div id="header">
-		<div id="timeBox">
-			<span id="value"></span>
-			<span id="unit"></span>
+	<div id="header" class="header semitransparent">
+		<div id="timeBox" class="header-block-top">
+			<span id="value" class="text-24px-white"></span>
+			<span id="unit" class="text-18px-lightgrey"></span>
 		</div>
-		
-		<div id="temperatureBox">
+
+		<div id="temperatureBox" class="header-block-middle">
 			<span id="value" class="radar-temperature-normal-text"></span>
 			<span id="unit" class="radar-temperature-small-text"></span>
 			<span id="at" class="radar-temperature-normal-text"></span>
@@ -14,22 +14,22 @@
 			<span id="ampm" class="radar-temperature-small-text"></span>
 		</div>
 		
-		<div id="refreshBox">
-			<input id="btn" type="image" src="../resources/gfx/refresh.png" />
+		<div id="refreshBox" class="header-block-bottom">
+			<input id="btn" class="refresh-button" type="image" src="../resources/gfx/refresh.png" />
 			<span id="text"></span>
 		</div>
 	</div>
-	
+
 	<div id="footer" class="ui-footer ui-bottom-button">
 		<div id="alerts" class="ui-btn">
 			<div id="icon"></div>
 		</div>
 	</div>
-	
-	<div id="more">
-		<input id="btn" type="image" src="../resources/gfx/device.png" />
+
+	<div id="more" class="more-block">
+		<input id="btn" class="more-button" type="image" src="../resources/gfx/device.png" />
 	</div>
-	
+
 	<div id="alerts-counter-container">
 		<div id="alerts-counter-value"></div>
 	</div>
