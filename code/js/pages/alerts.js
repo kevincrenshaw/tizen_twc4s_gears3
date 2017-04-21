@@ -136,7 +136,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 				if(numberOfAlerts > 0) {
 					binder.noalerts.display('none');
 					binder.alerts.display('inline');
-					binder.header.district(district);
 					binder.alerts.clear();
 					binder.more.visible(true);
 					for(var index = 0; index < numberOfAlerts; ++index) {
@@ -148,6 +147,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 					binder.alerts.display('none');
 					binder.noalerts.text(TIZEN_L10N.NO_ALERTS);
 				}
+
+				binder.header.district(district);
 
 				this.update();
 			},
