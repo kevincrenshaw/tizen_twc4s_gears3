@@ -80,8 +80,8 @@
 		ui.body.style['background-image'] = (viewData.map ? 'url(' + viewData.map + ')' : 'none');
 
 		var alertsCounter = viewData.alertsCounter;
-		if(alertsCounter > 99) {
-			alertsCounter = '99+';
+		if(alertsCounter > 9) {
+			alertsCounter = '9+';
 		}
 		ui.badge.textContent = alertsCounter;
 		ui.footer.style.display = !!alertsCounter ? 'block' : 'none';

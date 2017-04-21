@@ -119,11 +119,11 @@
 .radar__badge {
   display: block;
   height: 25px;
-  left: calc(50% + 6px);
-  min-width: 25px;
-  padding: 0 4px;
+  left: calc(50%);
+  margin-left: 6px;
   position: absolute;
   top: 42px;
+  width: 25px;
 
   font-size: 18px;
   line-height: 26px;

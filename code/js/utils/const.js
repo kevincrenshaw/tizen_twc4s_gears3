@@ -32,6 +32,6 @@ define([], function() {
 		ALERTS_URL: getApiBaseUrl(3) + 'alerts/headlines',
 		MAPS_URL: getApiBaseUrl(2) + 'maps/dynamic',
 		WEATHER_URL: getApiBaseUrl(1) + 'geocode',
-		RADAR_ALERTS_MAX_NBR: 99,
+		RADAR_ALERTS_MAX_NBR: 9,
 	};
 });
