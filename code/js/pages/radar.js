@@ -24,7 +24,7 @@ define([
 		}
 	}
 	
-	const timeTierEnum = {
+	const diffCategoryToLocalizationKey = {
 		1: 'NOW',
 		2: 'MINUTES_AGO',
 		3: 'HOURS_AGO',
@@ -35,7 +35,7 @@ define([
 	function humanReadableTimeDiff(from, to) {
 		const diff = from - to;
 		const tier = utils.getCategoryForTimeDiff(diff);
-		const tierKey = timeTierEnum[tier];
+		const tierKey = diffCategoryToLocalizationKey[tier];
 
 		if(!tierKey) {
 			console.warn('Diff category "' + tier + '" cannot be mapped to localization key');
