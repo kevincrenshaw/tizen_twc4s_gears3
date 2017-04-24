@@ -65,7 +65,18 @@
 		viewData.alertsCounter = alertsCounter;
 	}
 
+	function isViewDataValid() {
+		return viewData &&
+			   viewData.currentTime[0] &&
+			   viewData.snapshotTime[0] &&
+			   viewData.map;
+	}
+
 	function updateUI(currentTimeOnly) {
+		if(!isViewDataValid()) { return; }
+
+		ui.header.style.display = 'block';
+
 		ui.currentTime.textContent = viewData.currentTime[0];
 		ui.currentFormat.textContent = viewData.currentTime[1];
 
