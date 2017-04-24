@@ -290,7 +290,13 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			});
 
 			ui.more.onClick(function() {
-				console.log('More options');
+				const openDeeplinkResult = {
+					onsuccess : function(data) {},
+					onfailure : function() {
+						console.error('cant open deeplink');
+					}
+				}
+				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK, openDeeplinkResult);
 			});
 
 			updateUI(ui);

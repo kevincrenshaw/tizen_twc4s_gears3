@@ -1,6 +1,12 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(storage, utils, dom, updater) {
+const alertModules = ['utils/storage', 
+                      'utils/utils', 
+                      'utils/dom',
+                      'utils/updater',
+                      'utils/const'];
+
+define(alertModules, function(storage, utils, dom, updater, consts) {
 
 	var updateHandler = null;
 	var adapter = null;
@@ -68,6 +74,16 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 
 			return ['starts:', startsAt, 'ends:', endsAt].join(' ');
 		};
+
+		binder.more.onClick(function() {
+			const openDeeplinkResult = {
+					onsuccess : function(data) {},
+					onfailure : function() {
+						console.error('cant open deeplink');
+					}
+				}
+			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK, openDeeplinkResult);
+		});
 
 		const createListItem = function(alertData) {
 			const createDivElement = function(divId, innerHtml) {
@@ -172,7 +188,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater'], function(
 						}
 					}
 				}
-				
 			}
 		};
 	};
