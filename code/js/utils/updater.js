@@ -17,6 +17,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			return false;
 		}
 
+		storage.lastUpdate.set(0);
 		console.log('getting current position...');
 
 		subscription = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
