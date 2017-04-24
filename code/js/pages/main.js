@@ -75,6 +75,8 @@ define([], function() {
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
 			setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
 			
+			selector.style.visibility = 'visible';
+
 			popup = page.querySelector('#selector-value-popup');
 			if (!popup) {
 				console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
