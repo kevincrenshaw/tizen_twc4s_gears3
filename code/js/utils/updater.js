@@ -3,6 +3,11 @@
 define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'rx'], function(utils, consts, storage, map, network, rx) {
 	var subscription;
 
+	//Flag to state wheather hard update is started. It may happen that hard update will be stopped by putting app in
+	//background. Then when app wokes up soft update will not trigger hard update if there been successful update not
+	//so long ago. To remmember that hard update was not completed successfuly we use this flag.
+	var hardUpdateInProgress = false;
+
 	//Handler called when update completes (successful or error)
 	var updateCompleteHandler;
 
@@ -17,7 +22,6 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			return false;
 		}
 
-		storage.lastUpdate.set(0);
 		console.log('getting current position...');
 
 		subscription = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
@@ -64,6 +68,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
 			storage.map.set(mapFilePath);
 			storage.data.set(JSON.stringify(newStorageObject));
+
+			hardUpdateInProgress = false;
 
 			console.log('new data received');
 		}, function(err) {
@@ -288,6 +294,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 * 		Return true if update process started, false otherwise (update proces already running)
 		 */
 		hardUpdate: function() {
+			hardUpdateInProgress = true;
+			
 			if (!this.updateInProgress()) {
 				tryGetNewData();
 				return true;
@@ -305,7 +313,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 *		there is already update in progress.
 		 */
 		softUpdate: function() {
-			if (timeForUpdate()) {
+			if (timeForUpdate() || hardUpdateInProgress) {
 				this.hardUpdate();
 				return true;
 			}
