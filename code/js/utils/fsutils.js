@@ -79,17 +79,17 @@ define([], function() {
 	 * Params:
 	 * 		rootDirPath - root directory
 	 * 		dirName - name of a directory to be removed
+	 * 		recursive - flag indicating whether the deletion is recursive or not
 	 *
 	 * 		onSuccess() - is triggered when file was deleted successfully
 	 * 		onError(error) - is called when deletion was fail
 	 * Returns:
 	 * 		nothing
 	 * */
-	const removeDir = function(rootDirPath, dirName, onSuccess, onError) {
-		const fullPath = createFullPath(rootDirPath, dirName);
+	const removeDir = function(rootDirPath, dirName, recursive, onSuccess, onError) {
 		hasSuchFile(rootDirPath, function(rootDir) {
-			hasSuchFile(fullPath, function(dir) {
-				rootDir.deleteDirectory(dir.fullPath, onSuccess, onError);
+			hasSuchFile(createFullPath(rootDirPath, dirName), function(dir) {
+				rootDir.deleteDirectory(dir.fullPath, recursive, onSuccess, onError);
 			}, onError);
 		}, onError);
 	};
