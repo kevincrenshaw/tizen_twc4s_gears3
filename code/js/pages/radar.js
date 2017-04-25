@@ -102,13 +102,10 @@ define([
 			viewData.snapshotTime[0] +
 			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1].trim() + '</span>' : '')
 		);
-		ui.header.show();
-
+		
 		ui.updateBtn.prop('disabled', false);
 
-		ui.map.show().attr('src', data.map);
-
-		ui.moreBtn.show();
+		ui.map.attr('src', data.map);
 
 		const alertsCounter = 
 			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
@@ -119,8 +116,6 @@ define([
 	}
 
 	function resetUI() {
-		ui.map.hide();
-		ui.header.hide();
 		ui.alertsBtn.hide();
 		ui.alertsCounter.text(0);
 	}

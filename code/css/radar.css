@@ -92,7 +92,6 @@
 }
 
 .radar__more {
-  display: none;
   height: 60px;
   position: absolute;
   right: 10px;
@@ -101,7 +100,7 @@
 
   text-align: center;
 
-  background: #000 url(../resources/gfx/device.png) 50% 50% / 40px 40px no-repeat;
+  background: #009de8 url(../resources/gfx/device.png) 50% 50% / 40px 40px no-repeat;
   border-radius: 50%;
 }
 
