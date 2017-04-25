@@ -35,7 +35,7 @@ define([], function() {
 		const fullPath = createFullPath(rootDirPath, dirName);
 		hasSuchFile(rootDirPath, 
 			function(rootDir) {
-				hasSuchFile(fullPath,onSuccess,
+				hasSuchFile(fullPath, onSuccess,
 					function(error) {
 						try {
 							onSuccess(rootDir.createDirectory(dirName));

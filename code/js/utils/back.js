@@ -1,11 +1,15 @@
 /* jshint esversion: 6 */
 
-define(['rx', 'utils/utils'], function(rx, utils) {
+define(['rx', 'utils/utils', 'utils/network'], function(rx, utils, network) {
 	
 	const quit = function() {
-		try {
-			tizen.application.getCurrentApplication().exit();
-		} catch (ignore) {}
+		network.clearCache(function() {
+			try {
+				tizen.application.getCurrentApplication().exit();
+			} catch (ignore) {}
+		}, function() {
+			console.error('could not clear cache on app quit');
+		})
 	};
 	
 	const operationIsNavigate = function() {
