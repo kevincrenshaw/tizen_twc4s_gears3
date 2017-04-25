@@ -75,6 +75,26 @@ define([], function() {
 	};
 
 	/**
+	 * remove directory
+	 * Params:
+	 * 		rootDirPath - root directory
+	 * 		dirName - name of a directory to be removed
+	 *
+	 * 		onSuccess() - is triggered when file was deleted successfully
+	 * 		onError(error) - is called when deletion was fail
+	 * Returns:
+	 * 		nothing
+	 * */
+	const removeDir = function(rootDirPath, dirName, onSuccess, onError) {
+		const fullPath = createFullPath(rootDirPath, dirName);
+		hasSuchFile(rootDirPath, function(rootDir) {
+			hasSuchFile(fullPath, function(dir) {
+				rootDir.deleteDirectory(dir.fullPath, onSuccess, onError);
+			}, onError);
+		}, onError);
+	};
+
+	/**
 	 * move file from one to another directory
 	 * 
 	 * Params:
@@ -165,12 +185,7 @@ define([], function() {
 	 * 		full file path. 
 	 * */
 	const createFullPath = function() {
-		var array = [];
-		for(var i = 0; i < arguments.length; i++) {
-			array.push(arguments[i]);
-		}
-		
-		return array.join(separator);
+		return Array.prototype.join.call(arguments, separator);
 	};
 	
 	return {
@@ -178,6 +193,7 @@ define([], function() {
 		createDirectoryIfNotExists: createDirectoryIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
+		removeDir: removeDir,
 		createFullPath: createFullPath,
 		getFileNameFromPath: getFileNameFromPath,
 		getDirectoryNameFromPath: getDirectoryNameFromPath,
