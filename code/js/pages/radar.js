@@ -48,6 +48,14 @@ define([
 			return '';
 		}
 
+		// TODO: fix that dirty hack
+		// initially, before data is retrieved from server, last update time is uknown
+		// the storage returns 0 though, so all calculations are correct,
+		// but a strange value would be returnd, i.e. '123456 days ago'
+		if(to === 0) {
+			return '-     ' + text;
+		}
+
 		if(tier === 1) {
 			return text;
 		}
@@ -127,12 +135,17 @@ define([
 	}
 
 	const loadData = function() {
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+		}
+
 		const dataText = storage.data.get();
 		console.log('try display data');
 
 		if(!dataText) {
 			console.log('No data in storage');
 			resetUI();
+			refreshView();
 			return;
 		}
 
@@ -141,15 +154,12 @@ define([
 			data = JSON.parse(dataText);
 		} catch(err) {
 			console.error(JSON.stringify(err));
+			refreshView();
 			return;
 		}
 		updateViewData(data, false);
 		saveToStorage(viewData);
 		updateUI(viewData, false);
-
-		if(refreshViewId) {
-			clearTimeout(refreshViewId);
-		}
 		refreshView();
 	};
 
