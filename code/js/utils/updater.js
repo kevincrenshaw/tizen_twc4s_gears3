@@ -3,6 +3,14 @@
 define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'rx'], function(utils, consts, storage, map, network, rx) {
 	var subscription;
 
+	//Flag to state wheather hard update is started. It may happen that hard update will be stopped by putting app in
+	//background. Then when app wokes up soft update will not trigger hard update if there been successful update not
+	//so long ago. To remmember that hard update was not completed successfuly we use this flag.
+	var hardUpdateInProgress = false;
+
+	//Handler called when update completes (successful or error)
+	var updateCompleteHandler;
+
 	/*
 	 * Attempts to get current location, fetch data for given location and store it in storage.data.
 	 *
@@ -16,7 +24,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 		console.log('getting current position...');
 
-		subscription = utils.getCurrentPositionRx(consts.GEOLOCATION_TIMEOUT_IN_MS).map(function(pos) {
+		subscription = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
 		.flatMap(function(coords) {
@@ -37,7 +45,16 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		})
 		.finally(function() {
 			subscription = null;
+
+			if (updateCompleteHandler) {
+				try {
+					updateCompleteHandler();
+				} catch (err) {
+					console.error('Data download update complete handler error: ' + JSON.stringify(err));
+				}
+			}
 		})
+		.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
 		.subscribe(function(data) {
 			const mapFilePath = data[0];
 			const weatherData = data[1];
@@ -51,6 +68,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
 			storage.map.set(mapFilePath);
 			storage.data.set(JSON.stringify(newStorageObject));
+
+			hardUpdateInProgress = false;
 
 			console.log('new data received');
 		}, function(err) {
@@ -275,6 +294,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 * 		Return true if update process started, false otherwise (update proces already running)
 		 */
 		hardUpdate: function() {
+			hardUpdateInProgress = true;
+			
 			if (!this.updateInProgress()) {
 				tryGetNewData();
 				return true;
@@ -292,7 +313,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 *		there is already update in progress.
 		 */
 		softUpdate: function() {
-			if (timeForUpdate()) {
+			if (timeForUpdate() || hardUpdateInProgress) {
 				this.hardUpdate();
 				return true;
 			}
@@ -308,6 +329,14 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				subscription.dispose();
 				subscription = null;
 			}
+		},
+
+		setOnUpdateCompleteHandler: function(handler) {
+			updateCompleteHandler = handler;
+		},
+
+		removeOnUpdateCompleteHandler: function() {
+			updateCompleteHandler = null;
 		},
 	};
 });

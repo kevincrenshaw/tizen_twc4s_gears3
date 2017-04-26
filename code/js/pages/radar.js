@@ -104,7 +104,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 				refresh: {
 					btn: {
 						enable: dom.createEnableHandler(element.header.refresh.btn),
-						onClick: dom.createOnClickHandler(element.header.refresh.btn),
+						onClick: dom.createOnClickHandler(element.header.container),
 					},
 
 					text: dom.createSetInnerHtmlHandler(element.header.refresh.text),
@@ -275,6 +275,11 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		}
 	};
 
+	const setForceUpdateButtonState = function() {
+		const updateRunning = updater.updateInProgress();
+		ui.header.refresh.btn.enable(!updateRunning);
+	};
+
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
@@ -286,9 +291,16 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 			updater.softUpdate();
 
-			const updateRunning = updater.updateInProgress();
-			ui.header.refresh.btn.enable(!updateRunning);
+			setForceUpdateButtonState();
 			
+			updater.setOnUpdateCompleteHandler(function() {
+				if (ui) {
+					ui.header.refresh.btn.enable(true);
+				} else {
+					console.warn('No UI for setOnUpdateCompleteHandler');
+				}
+			});
+
 			ui.header.refresh.btn.onClick(function() {
 				if (updater.hardUpdate()) {
 					ui.header.refresh.btn.enable(false);
@@ -322,6 +334,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		visibilitychange: function() {
 			if(document.hidden !== true) {
 				updater.softUpdate();
+				setForceUpdateButtonState();
 			}
 		},
 
@@ -330,6 +343,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			ui.header.refresh.btn.onClick(null);
 			ui.footer.alert.onClick(null);
 			ui.more.onClick(null);
+			updater.removeOnUpdateCompleteHandler();
 
 			if(intervalUpdaterId) {
 				clearInterval(intervalUpdaterId);
