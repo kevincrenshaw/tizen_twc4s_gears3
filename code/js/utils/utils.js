@@ -288,7 +288,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		return undefined;
 	};
 
-	const openDeepLinkOnPhone = function(url, callback) {
+	const openDeepLinkOnPhone = function(url) {
 
 		const appid = 'com.samsung.w-manager-service';
 
@@ -296,20 +296,28 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 			 new tizen.ApplicationControlData('type', ['phone']),
 			 new tizen.ApplicationControlData('deeplink', [url])
 			 ];
-		
-		var appControl = new tizen.ApplicationControl(
+
+		const appControl = new tizen.ApplicationControl(
 				'http://tizen.org/appcontrol/operation/default',
 				null,
 				null,
 				null,
 				extras);
+
+		const openDeeplinkResult = {
+				onsuccess : function() {},
+				onfailure : function() {
+					console.error('openDeepLinkOnPhone::cant open deeplink');
+				}
+			};
+
 		try {
 			tizen.application.launchAppControl(
 					appControl,
 					appid,
 					null,
 					null,
-					callback);
+					openDeeplinkResult);
 			} catch(err) {
 				console.error('openDeepLinkOnPhone::cant to open deep link, error: ' + err);
 			}

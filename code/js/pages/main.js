@@ -28,13 +28,7 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 			break;
 
 		case 'weather':
-			const openDeeplinkResult = {
-				onsuccess : function(data) {},
-				onfailure : function() {
-					console.error('cant open deeplink');
-				}
-			}
-			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK, openDeeplinkResult);
+			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			break;
 
 		case 'alerts':

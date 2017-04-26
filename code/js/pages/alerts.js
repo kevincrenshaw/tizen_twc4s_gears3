@@ -1,12 +1,6 @@
 /* jshint esversion: 6 */
 
-const alertModules = ['utils/storage', 
-                      'utils/utils', 
-                      'utils/dom',
-                      'utils/updater',
-                      'utils/const'];
-
-define(alertModules, function(storage, utils, dom, updater, consts) {
+define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/const'], function(storage, utils, dom, updater, consts) {
 
 	var updateHandler = null;
 	var adapter = null;
@@ -76,13 +70,7 @@ define(alertModules, function(storage, utils, dom, updater, consts) {
 		};
 
 		binder.more.onClick(function() {
-			const openDeeplinkResult = {
-					onsuccess : function(data) {},
-					onfailure : function() {
-						console.error('cant open deeplink');
-					}
-				}
-			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK, openDeeplinkResult);
+			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 		});
 
 		const createListItem = function(alertData) {
