@@ -168,6 +168,9 @@ define([
 			ui = getUI();
 
 			ui.updateBtn.prop('disabled', updater.updateInProgress());
+			updater.setOnUpdateCompleteHandler(function() {
+				ui.updateBtn.prop('disabled', false);
+			});
 			ui.updateBtn.on('click', function() {
 				if(updater.hardUpdate()) {
 					ui.updateBtn.prop('disabled', true);
@@ -192,6 +195,7 @@ define([
 		visibilitychange: function() {
 			if(!document.hidden) {
 				updater.softUpdate();
+				ui.updateBtn.prop('disabled', updater.updateInProgress());
 			}
 		},
 
@@ -202,6 +206,7 @@ define([
 			}
 
 			storage.data.unsetChangeListener(loadData);
+			updater.removeOnUpdateCompleteHandler();
 
 			ui.updateBtn.off();
 			ui.moreBtn.off();
