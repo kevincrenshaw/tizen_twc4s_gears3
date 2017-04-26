@@ -42,10 +42,6 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			console.warn('unexpected temperature setting value "' + currentTemperatureUnitSetting + '"');
 		}
 	};
-	
-	const extractTempertatureFromCurrentConditions = function(weather) {
-		return weather.observation.metric.temp;
-	};
 
 	const createUiManager = function(root) {
 		const element = {
@@ -123,7 +119,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 						const value = parseInt(number);
 						
 						if (value > 0) {
-							element.footer.alert.counter.value.apply(function(el) {								
+							element.footer.alert.counter.value.apply(function(el) {
 								const text = value > consts.RADAR_ALERTS_MAX_NBR
 									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
 									: value; 
@@ -142,22 +138,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			}
 		};
 	};
-	
-	const saveSnapshotTime = function(time) {
-		tizen.preference.setValue('snapshot_time', time);
-	};
-	
-	const saveTimeAmPm = function(ampm) {
-		const ampm_key = 'time_ampm';
-		if(ampm) {
-			tizen.preference.setValue(ampm_key, ampm);			
-		} else {
-			if(tizen.preference.exists(ampm_key)) {
-				tizen.preference.remove(ampm_key);				
-			}
-		}
-	};
-	
+
 	/**
 	 * update ui function. all periodic update UI processes should be place here
 	 * */
@@ -220,7 +201,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
 		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
-		const tempInCelsius = extractTempertatureFromCurrentConditions(weather);
+		const tempInCelsius = weather.observation.metric.temp;
 		const tempTextualRepr = getTemperatureAndUnitAsText(
 			tempInCelsius,
 			storage.settings.units.temperature.get());
@@ -235,17 +216,12 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 
 		updateUI(ui);
 
-		saveSnapshotTime(snapshotTimeRawDate.getTime());
-		saveTimeAmPm(this.currentTimeRepr[1]);
-
 		//refresh time
 		lastRefreshEpochTime = downloadTimeEpochInSeconds;
 		weatherDownloadTimeUpdater();
 
 		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
 		
-		storage.temp.set(tempInCelsius);
-
 		ui.map.src(mapFilePath);
 		ui.header.temperature.text(tempText);
 		ui.header.temperature.unit(unitText);

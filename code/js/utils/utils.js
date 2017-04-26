@@ -288,6 +288,25 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		return undefined;
 	};
 
+	/**
+	 * saves flag of used time format
+	 * Params:
+	 * 		savedTimeUnitSetting saved time unit (use: storage.settings.units.time)
+	 * 		ampmStorageProvider storage provider which should save ampm format (use: storage::createSimpleStorage typed object)
+	 * 
+	 * Returns:
+	 * 		nothing
+	 * */
+	const saveIfSystemUsesAMPMTimeFormat = function(savedTimeUnitSetting, ampmStorageProvider) {
+		//"system" time option
+		if(savedTimeUnitSetting == consts.settings.units.time.SYSTEM) {
+			ampmStorageProvider.set(tizen.time.getTimeFormat() === 'h:m:s ap');
+		} else {
+			//'2' - 12h time option(am/pm - true), '3' - 24h time option (am/pm - false)
+			ampmStorageProvider.set(savedTimeUnitSetting == consts.settings.units.time.TIME_12H);
+		}
+	};
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -306,5 +325,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
+		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
 	};
 });
