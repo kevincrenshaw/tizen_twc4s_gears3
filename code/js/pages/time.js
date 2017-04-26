@@ -11,5 +11,9 @@ define(['utils/utils', 'utils/storage'], function(utils, storage) {
 				'time-radio',
 				storage.settings.units.time);
 		},
+
+		pagebeforehide: function(ev) {
+			utils.saveIfSystemUsesAMPMTimeFormat(storage.settings.units.time.get(), storage.ampm);
+		},
 	};
 });

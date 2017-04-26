@@ -1,7 +1,4 @@
 (function() {
-	var app;
-	var appId;
-
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
@@ -29,40 +26,50 @@
 		return (value === 2 ? 'F' : 'C');
 	}
 
+	function readData(data) {
+		if(!data) {
+			return false;
+		}
+
+		try {
+			return JSON.parse(data);
+		} catch(err) {
+			console.error('Failed to parse data ' + JSON.stringify(err));
+			return false;
+		}
+	}
+
 	function updateViewData(currentTimeOnly) {
-		var prefs = tizen.preference;
-
-		viewData.is12hFormat = prefs.exists('time_ampm') ? prefs.getValue('time_ampm') : false;
-
+		viewData.is12hFormat = getFromStore('ampm');
 		viewData.currentTime = getTimeAsText(new Date(), viewData.is12hFormat);
 
 		if(currentTimeOnly) { return; }
 
-		if(prefs.exists('snapshot_time')) {
-			viewData.snapshotTime = getTimeAsText(new Date( prefs.getValue('snapshot_time') ), viewData.is12hFormat);
-		}
-
-		viewData.tempOrig = getFromStore('temp');
-		viewData.tempUnit = getTempSystem();
-		viewData.temp = viewData.tempUnit === 'F' ? celsiusToFahrenheit(viewData.tempOrig) : viewData.tempOrig ;
-
 		viewData.map = getFromStore('map');
+		viewData.snapshotTime = ['', ''];
+		var tmpTemp;
+		viewData.temp = '-';
+		viewData.tempUnit = getTempSystem();
+		viewData.alertsCounter = 0;
 
-		var alertsData = getFromStore('data');
-		var alertsCounter = 0;
-		if(alertsData) {
-			try {
-				alertsData = JSON.parse(alertsData);
-			} catch (err) {
-				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
+		var data = readData(getFromStore('data'));
+		
+		if(!data) { return; }
+		
+		if(data.weather && data.weather.observation) {
+			if(data.weather.observation.metric) {
+				tmpTemp = data.weather.observation.metric.temp || '-';
+				viewData.temp = !isNaN(tmpTemp) && viewData.tempUnit === 'F' ? celsiusToFahrenheit(tmpTemp) : tmpTemp;
 			}
-			if(alertsData && alertsData.alerts && alertsData.alerts.alerts) {
-				alertsCounter = alertsData.alerts.alerts.length;
+
+			if(data.weather.observation.obs_time) {
+				viewData.snapshotTime = getTimeAsText(new Date(data.weather.observation.obs_time * 1000), viewData.is12hFormat);
 			}
-		} else {
-			console.warn('no alerts data');
 		}
-		viewData.alertsCounter = alertsCounter;
+
+		if(data.alerts && data.alerts.alerts) {
+			viewData.alertsCounter = data.alerts.alerts.length;
+		}
 	}
 
 	function isViewDataValid() {
@@ -109,8 +116,6 @@
 		ui.openBtn.addEventListener('click', onRadarClick);
 		ui.footer.addEventListener('click', onAlertsClick);
 
-		console.log('init ' + appId);
-
 		updateViewData(false);
 		updateUI(false);
 		refreshView();
@@ -129,25 +134,6 @@
 		ui.openBtn.removeEventListener('click', onRadarClick);
 		ui.footer.removeEventListener('click', onAlertsClick);
 		ui = null;
-
-		console.log('destroy ' + appId);
-	}
-
-
-	function launchApp(page) {
-		var appControl = new window.tizen.ApplicationControl('navigate', page, null, null, null, null);
-		
-		window.tizen.application.launchAppControl(
-			appControl,
-			appId,
-			function() {
-				console.log('application has been launched successfully');
-			},
-			function(e) {
-				console.error('application launch has been failed. reason: ' + e.message);
-			},
-			null
-		);
 	}
 
 	function onRadarClick() {
@@ -160,8 +146,6 @@
 
 	function onLoad() {
 		window.removeEventListener('load', onLoad);
-		app = window.tizen.application.getCurrentApplication();
-		appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
 
 		onVisibilityChange();
 		document.addEventListener('visibilitychange', onVisibilityChange);

@@ -53,7 +53,7 @@ define([
 		// the storage returns 0 though, so all calculations are correct,
 		// but a strange value would be returnd, i.e. '123456 days ago'
 		if(to === 0) {
-			return '-     ' + text;
+			return '- ' + text;
 		}
 
 		if(tier === 1) {
@@ -85,12 +85,6 @@ define([
 		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
 		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
-	}
-
-	function saveToStorage(data) {
-		storage.temp.set(data.tempOrig);
-		tizen.preference.setValue('snapshot_time', data.snapshotDate.getTime());
-		tizen.preference.setValue('time_ampm', data.is12hFormat);
 	}
 
 	function updateUI(data, currentTimeOnly) {
@@ -158,7 +152,6 @@ define([
 			return;
 		}
 		updateViewData(data, false);
-		saveToStorage(viewData);
 		updateUI(viewData, false);
 		refreshView();
 	};

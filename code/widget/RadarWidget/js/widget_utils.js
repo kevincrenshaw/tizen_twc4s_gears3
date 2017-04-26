@@ -1,3 +1,20 @@
+function launchApp(page) {
+	var appControl = new window.tizen.ApplicationControl('navigate', page, null, null, null, null);
+	var app = window.tizen.application.getCurrentApplication();
+	var appId = app.appInfo.id.substring(0, (app.appInfo.id.lastIndexOf('.')) );
+	
+	window.tizen.application.launchAppControl(
+		appControl,
+		appId,
+		function() {
+			console.log('application has been launched successfully');
+		},
+		function(e) {
+			console.error('application launch has been failed. reason: ' + e.message);
+		},
+		null
+	);
+}
 
 /**
  * convert date object to a text representation 
@@ -34,7 +51,6 @@ function celsiusToFahrenheit(value) {
 function getFromStore(key, defaultValue) {
 	if (tizen.preference.exists(key)) {
 		return tizen.preference.getValue(key);
-	} else {
-		return defaultValue;
 	}
+	return defaultValue;
 }

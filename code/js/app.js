@@ -32,7 +32,7 @@ const modules = [
 	'pages/alerts'
 ];
 
-define(modules, function(require, utils, updater) {
+define(modules, function(require, utils, updater, storage) {
 	//Selects module for given page (based on id tag) and call ev.type function from selected module (if possible).
 	//Modules need to be loaded ealier.
 	const dispatchEventToPage = function(ev) {
@@ -215,9 +215,9 @@ define(modules, function(require, utils, updater) {
 			
 			sendEvent: function(state) {
 				if (currentPage) {
-					dispatchEventToPage({ target:currentPage, type:'visibilitychange', status:status });					
+					dispatchEventToPage({ target:currentPage, type:'visibilitychange', status:status });
 				} else {
-					console.log('visibilityChangeManager: No current page');					
+					console.log('visibilityChangeManager: No current page');
 				}
 			},
 		}
@@ -225,6 +225,14 @@ define(modules, function(require, utils, updater) {
 	
 	document.addEventListener('visibilitychange', function() {
 		visibilityChangeManager.sendEvent(document.visibilityState);
+	});
+
+	//save ampm option at app startup
+	utils.saveIfSystemUsesAMPMTimeFormat(storage.settings.units.time.get(), storage.ampm);
+
+	//also we have to subscribe on "time format change" events
+	tizen.time.setDateTimeChangeListener(function() {
+		utils.saveIfSystemUsesAMPMTimeFormat(storage.settings.units.time.get(), storage.ampm);
 	});
 
 	const appCtrl = utils.getAppControl();
