@@ -56,7 +56,6 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	};
 
 	return {
-		prepareCache: prepareCache,
 		clearCache: clearCache,
 		downloadFileRx: downloadFileRx,
 		getResourceByURLRx: getResourceByURLRx,
