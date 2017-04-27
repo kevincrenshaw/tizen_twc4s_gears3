@@ -1,26 +1,42 @@
 .about {
+	text-align: center;
+}
 
+.about .ui-scroller {
+	display: none !important;
 }
 
 .about__logo {
 	display: block;
 	height: 100px;
-	margin: 0 auto;
+	margin: 30px auto 20px;
 	width: 100px;
 }
 
 .about h1 {
+	margin: 0;
 
+	font-size: 32px;
+	color: #fff;
+}
+
+.about p {
+	margin: 0;
 }
 
 .about__subtitle {
+	font-size: 18px;
 
+	color: #fff;
 }
 
-.about span {
+.about__version {
+	margin: 25px 0;
 
+	font-size: 14px;
+	text-transform: uppercase;
 }
 
 .about__copyrights {
-
+	font-size: 14px;
 }
