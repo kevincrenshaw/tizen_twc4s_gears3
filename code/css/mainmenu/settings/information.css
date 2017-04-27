@@ -1,27 +1,26 @@
-.about-header {
-	padding-top: 25px; 
+.about {
+
+}
+
+.about__logo {
+	display: block;
 	height: 100px;
+	margin: 0 auto;
+	width: 100px;
 }
 
-img.storm-logo {
-	height: 100px; 
-	width: 100px; 
-	margin-left: auto;
-	margin-right: auto; 
-	display: block;
+.about h1 {
+
 }
 
-.ui-page.ui-scroll-on .ui-content.about-content {
-	padding-bottom: 0px; 
-	margin-left: auto; 
-	margin-right: auto; 
-	display: block;
+.about__subtitle {
+
 }
 
-.about-content h3 {
-	margin-bottom: 10px;
+.about span {
+
 }
 
-.about-content p {
-	font-size: 0.70em;
+.about__copyrights {
+
 }
