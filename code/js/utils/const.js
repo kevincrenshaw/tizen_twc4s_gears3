@@ -33,5 +33,6 @@ define([], function() {
 		MAPS_URL: getApiBaseUrl(2) + 'maps/dynamic',
 		WEATHER_URL: getApiBaseUrl(1) + 'geocode',
 		RADAR_ALERTS_MAX_NBR: 9,
+		RADAR_DEEPLINK: 'android-app://com.weather.radar/radar/gps',
 	};
 });

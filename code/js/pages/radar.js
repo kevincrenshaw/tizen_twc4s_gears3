@@ -177,7 +177,7 @@ define([
 			});
 
 			ui.moreBtn.on('click', function() {
-				console.log('More options');
+				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
 
 			storage.data.setChangeListener(loadData);

@@ -35,7 +35,7 @@ define([], function() {
 		const fullPath = createFullPath(rootDirPath, dirName);
 		hasSuchFile(rootDirPath, 
 			function(rootDir) {
-				hasSuchFile(fullPath,onSuccess,
+				hasSuchFile(fullPath, onSuccess,
 					function(error) {
 						try {
 							onSuccess(rootDir.createDirectory(dirName));
@@ -72,6 +72,26 @@ define([], function() {
 			},
 			onError
 		);
+	};
+
+	/**
+	 * remove directory
+	 * Params:
+	 * 		rootDirPath - root directory
+	 * 		dirName - name of a directory to be removed
+	 * 		recursive - flag indicating whether the deletion is recursive or not
+	 *
+	 * 		onSuccess() - is triggered when file was deleted successfully
+	 * 		onError(error) - is called when deletion was fail
+	 * Returns:
+	 * 		nothing
+	 * */
+	const removeDir = function(rootDirPath, dirName, recursive, onSuccess, onError) {
+		hasSuchFile(rootDirPath, function(rootDir) {
+			hasSuchFile(createFullPath(rootDirPath, dirName), function(dir) {
+				rootDir.deleteDirectory(dir.fullPath, recursive, onSuccess, onError);
+			}, onError);
+		}, onError);
 	};
 
 	/**
@@ -165,12 +185,7 @@ define([], function() {
 	 * 		full file path. 
 	 * */
 	const createFullPath = function() {
-		var array = [];
-		for(var i = 0; i < arguments.length; i++) {
-			array.push(arguments[i]);
-		}
-		
-		return array.join(separator);
+		return Array.prototype.join.call(arguments, separator);
 	};
 	
 	return {
@@ -178,6 +193,7 @@ define([], function() {
 		createDirectoryIfNotExists: createDirectoryIfNotExists,
 		moveFile: moveFile,
 		removeFile: removeFile,
+		removeDir: removeDir,
 		createFullPath: createFullPath,
 		getFileNameFromPath: getFileNameFromPath,
 		getDirectoryNameFromPath: getDirectoryNameFromPath,
