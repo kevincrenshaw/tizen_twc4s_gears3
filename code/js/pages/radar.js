@@ -160,10 +160,15 @@ define([
 		pagebeforeshow: function(ev) {
 			ui = getUI();
 
+			storage.data.setChangeListener(loadData);
+			loadData();
+			updater.softUpdate();
+
 			ui.updateBtn.prop('disabled', updater.updateInProgress());
 			updater.setOnUpdateCompleteHandler(function() {
 				ui.updateBtn.prop('disabled', false);
 			});
+			
 			ui.header.on('click', function() {
 				if(updater.hardUpdate()) {
 					ui.updateBtn.prop('disabled', true);
@@ -179,10 +184,6 @@ define([
 			ui.moreBtn.on('click', function() {
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
-
-			storage.data.setChangeListener(loadData);
-			loadData();
-			updater.softUpdate();
 		},
 		
 		visibilitychange: function() {
