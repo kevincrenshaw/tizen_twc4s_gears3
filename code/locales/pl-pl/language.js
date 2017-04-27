@@ -3,7 +3,7 @@
 TIZEN_L10N=
 {
 	"MAIN_MENU_RADAR" : "Radar",
-	"MAIN_MENU_WEATHER" : "Pogoda",
+	"MAIN_MENU_WEATHER" : "Aplikacja androidowa",
 	"MAIN_MENU_ALERTS" : "Alarmy",
 	"MAIN_MENU_SETTINGS" : "Ustawienia",
 	"SETTINGS_MENU_UNITS" : "Jednostki",

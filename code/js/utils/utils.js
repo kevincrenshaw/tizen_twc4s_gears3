@@ -288,6 +288,41 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		return undefined;
 	};
 
+	const openDeepLinkOnPhone = function(url) {
+
+		const appid = 'com.samsung.w-manager-service';
+
+		const extras = [
+			 new tizen.ApplicationControlData('type', ['phone']),
+			 new tizen.ApplicationControlData('deeplink', [url])
+			 ];
+
+		const appControl = new tizen.ApplicationControl(
+				'http://tizen.org/appcontrol/operation/default',
+				null,
+				null,
+				null,
+				extras);
+
+		const openDeeplinkResult = {
+				onsuccess : function() {},
+				onfailure : function() {
+					console.error('openDeepLinkOnPhone::cant open deeplink');
+				}
+			};
+
+		try {
+			tizen.application.launchAppControl(
+					appControl,
+					appid,
+					null,
+					null,
+					openDeeplinkResult);
+			} catch(err) {
+				console.error('openDeepLinkOnPhone::cant to open deep link, error: ' + err);
+			}
+	}
+
 	/**
 	 * saves flag of used time format
 	 * Params:
@@ -325,6 +360,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		createUri: createUri,
 		getCurrentPositionRx: getCurrentPositionRx,
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
+		openDeepLinkOnPhone: openDeepLinkOnPhone,
 		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
 	};
 });
