@@ -65,7 +65,7 @@ body {
 }
 
 .weather-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-changes.png");
+    background-image: url("../resources/gfx/storm-icon-weather-openapp.png");
     background-size: contain;
 }
 

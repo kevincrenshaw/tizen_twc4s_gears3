@@ -290,7 +290,7 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 			});
 
 			ui.more.onClick(function() {
-				console.log('More options');
+				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
 
 			updateUI(ui);

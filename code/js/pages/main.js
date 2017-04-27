@@ -1,11 +1,11 @@
 /* jshint esversion: 6 */
-define([], function() {
+define(['utils/utils', 'utils/const'], function(utils, consts) {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
 	var popupHeader;
 	var popup;
 	
-	const selectorClickHandler = function() {		
+	const selectorClickHandler = function() {
 		if (!selector) {
 			console.warn('setupMainMenu::selectorClickHandler: no selector element');
 			return;
@@ -28,7 +28,7 @@ define([], function() {
 			break;
 
 		case 'weather':
-			tau.changePage("html/weather.html", { transition:'none' });
+			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			break;
 
 		case 'alerts':
