@@ -62,6 +62,7 @@ body {
 
 .footer {
   bottom: 0;
+  display: none;
   height: 100px;
   position: absolute;
   width: 100%;

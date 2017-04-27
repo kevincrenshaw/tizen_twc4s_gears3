@@ -164,7 +164,7 @@ define([
 			updater.setOnUpdateCompleteHandler(function() {
 				ui.updateBtn.prop('disabled', false);
 			});
-			ui.updateBtn.on('click', function() {
+			ui.header.on('click', function() {
 				if(updater.hardUpdate()) {
 					ui.updateBtn.prop('disabled', true);
 				} else {
@@ -201,7 +201,7 @@ define([
 			storage.data.unsetChangeListener(loadData);
 			updater.removeOnUpdateCompleteHandler();
 
-			ui.updateBtn.off();
+			ui.header.off();
 			ui.moreBtn.off();
 			ui.alertsBtn.off();
 			ui = null;
