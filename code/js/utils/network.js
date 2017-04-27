@@ -49,6 +49,9 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 						observer.onNext({data: data, textStatus: textStatus, xhr: xhr});
 						observer.onCompleted();
 					},
+					error: function(jqXHR) {
+						observer.onError(jqXHR);
+					},
 					timeout: timeout,
 				});
 			}
