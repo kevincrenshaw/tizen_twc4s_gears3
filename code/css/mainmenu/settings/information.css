@@ -1,4 +1,6 @@
 .about {
+	display: block !important;
+
 	text-align: center;
 }
 
@@ -9,7 +11,7 @@
 .about__logo {
 	display: block;
 	height: 100px;
-	margin: 30px auto 20px;
+	margin: 20px auto 10px;
 	width: 100px;
 }
 
@@ -24,19 +26,26 @@
 	margin: 0;
 }
 
-.about__subtitle {
+.about .about__subtitle {
+	margin-top: -10px;
+
 	font-size: 18px;
 
 	color: #fff;
 }
 
 .about__version {
-	margin: 25px 0;
+	margin: 10px 0;
 
 	font-size: 14px;
 	text-transform: uppercase;
 }
+.about__links {
+	font-size: 14px;
+	color: #fff;
+}
+.about .about__copyrights {
+	margin-top: 10px;
 
-.about__copyrights {
 	font-size: 14px;
 }
