@@ -57,7 +57,7 @@ body {
   position: relative;
   z-index: 20;
 
-  background: url(../resources/images/play.png) 50% 50% no-repeat;
+  background: url(../resources/images/play.png) 50% 50% / 70px 70px no-repeat;
 }
 
 .footer {
