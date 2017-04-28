@@ -145,6 +145,7 @@ body {
 	-webkit-transform-origin: center center;
 }
 #alerts .refresh-button {
+	-webkit-filter: grayscale(100%);
 	filter: grayscale(100%);
 }
 
