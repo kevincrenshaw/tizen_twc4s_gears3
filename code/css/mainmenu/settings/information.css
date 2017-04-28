@@ -1,27 +1,42 @@
-.about-header {
-	padding-top: 25px; 
+.about {
+	text-align: center;
+}
+
+.about .ui-scroller {
+	display: none !important;
+}
+
+.about__logo {
+	display: block;
 	height: 100px;
+	margin: 30px auto 20px;
+	width: 100px;
 }
 
-img.storm-logo {
-	height: 100px; 
-	width: 100px; 
-	margin-left: auto;
-	margin-right: auto; 
-	display: block;
+.about h1 {
+	margin: 0;
+
+	font-size: 32px;
+	color: #fff;
 }
 
-.ui-page.ui-scroll-on .ui-content.about-content {
-	padding-bottom: 0px; 
-	margin-left: auto; 
-	margin-right: auto; 
-	display: block;
+.about p {
+	margin: 0;
 }
 
-.about-content h3 {
-	margin-bottom: 10px;
+.about__subtitle {
+	font-size: 18px;
+
+	color: #fff;
 }
 
-.about-content p {
-	font-size: 0.70em;
+.about__version {
+	margin: 25px 0;
+
+	font-size: 14px;
+	text-transform: uppercase;
+}
+
+.about__copyrights {
+	font-size: 14px;
 }
