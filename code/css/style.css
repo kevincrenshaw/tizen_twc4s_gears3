@@ -144,6 +144,9 @@ body {
 	vertical-align: middle;
 	-webkit-transform-origin: center center;
 }
+#alerts .refresh-button {
+	filter: grayscale(100%);
+}
 
 .ui-page .ui-selector .ui-selector-indicator-arrow {
 	width: 180px;
