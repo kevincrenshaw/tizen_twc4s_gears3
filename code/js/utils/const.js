@@ -21,7 +21,7 @@ define([], function() {
 	
 	function getApiBaseUrl(version) {
 		return 'https://api.weather.com/v' + version + '/';
-	};
+	}
 
 	return {
 		settings: settings,
@@ -34,5 +34,6 @@ define([], function() {
 		WEATHER_URL: getApiBaseUrl(1) + 'geocode',
 		RADAR_ALERTS_MAX_NBR: 9,
 		RADAR_DEEPLINK: 'android-app://com.weather.radar/radar/gps',
+		ALERT_DEEPLINK: 'android-app://com.weather.radar/radar/gpsAlerts',
 	};
 });

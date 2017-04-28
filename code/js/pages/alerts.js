@@ -70,7 +70,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 		};
 
 		binder.more.onClick(function() {
-			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
+			utils.openDeepLinkOnPhone(consts.ALERT_DEEPLINK);
 		});
 
 		const createListItem = function(alertData) {
