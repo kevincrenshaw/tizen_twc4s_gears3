@@ -1,164 +1,28 @@
 /* jshint esversion: 6 */
 
-const radarModules = [
+define([
+	'jquery',
 	'utils/storage',
 	'utils/const',
 	'utils/utils',
-	'utils/dom',
 	'utils/updater'
-];
+], function($, storage, consts, utils, updater) {
+	var refreshViewId;
+	var ui = {};
+	var viewData = {};
 
-define(radarModules, function(storage, consts, utils, dom, updater) {
-	var intervalUpdaterId = null;
-	var ui;
-	var lastRefreshEpochTime;
-
-	var snapshotTimeRepr = null;
-	var currentTimeRepr = null;
-
-	/*
-	 * Converts temperature into textual representation.
-	 * Parameters:
-	 *		tempValueInCelsius - current temperature in Celsius
-	 *		currentTemperatureUnitSetting - current temperature unit setting, for instance value returned by:
-	 *			storage.settings.units.temperature.get()
-	 *
-	 * Result:
-	 * 		Return array of two elements. First one is temperature converted to Celsius/Fahrenheit units. Second is
-	 * 		textual representation of temperature unit.
-	 */
-	const getTemperatureAndUnitAsText = function(tempValueInCelsius, currentTemperatureUnitSetting) {
-		switch (parseInt(currentTemperatureUnitSetting)) {
-		case consts.settings.units.temperature.SYSTEM:
-			console.warn('temperature system setting not supported yet, falling back to Celsius');
-			/* falls through */
-		case consts.settings.units.temperature.CELSIUS:
-			return [tempValueInCelsius, 'C'];
-			
-		case consts.settings.units.temperature.FAHRENHEIT:
-			return [Math.round(utils.celsiusToFahrenheit(tempValueInCelsius)), 'F'];
-			
-		default:
-			console.warn('unexpected temperature setting value "' + currentTemperatureUnitSetting + '"');
-		}
-	};
-
-	const createUiManager = function(root) {
-		const element = {
-			map: dom.queryWrappedElement(root, '#map'),
-			more: dom.queryWrappedElement(root, '#more'),
-			header: {
-				container: dom.queryWrappedElement(root, '#header'),
-				temperature: {
-					value: dom.queryWrappedElement(root, '#temperatureBox #value'),
-					unit: dom.queryWrappedElement(root, '#temperatureBox #unit'),
-					at: dom.queryWrappedElement(root, '#temperatureBox #at'),
-					time: dom.queryWrappedElement(root, '#temperatureBox #time'),
-					ampm: dom.queryWrappedElement(root, '#temperatureBox #ampm'),
-				},
-				time : {
-					value: dom.queryWrappedElement(root, '#timeBox #value'),
-					unit: dom.queryWrappedElement(root, '#timeBox #unit'),
-				},
-				refresh: {
-					btn: dom.queryWrappedElement(root, '#refreshBox #btn'),
-					text: dom.queryWrappedElement(root, '#refreshBox #text'),
-				},
-			},
-			footer: {
-				container: dom.queryWrappedElement(root, '#footer'),
-				alert: {
-					button: dom.queryWrappedElement(root, '#footer #alerts'),
-					counter: {
-						container: dom.queryWrappedElement(root, '#alerts-counter-container'),
-						value: dom.queryWrappedElement(root, '#alerts-counter-container #alerts-counter-value'),
-					}
-				},
-			},
-		};
-
-		const footerContainerVisibility = dom.createVisibilityHandler(element.footer.container);
-		const alertCounterContainerVisibility = dom.createVisibilityHandler(element.footer.alert.counter.container);
-		
+	function getUI() {
 		return {
-			map: {
-				src: dom.createSetSrcHandler(element.map),
-			},
-			
-			more: {
-				onClick: dom.createOnClickHandler(element.more),
-			},
-			
-			header: {
-				temperature: {
-					text: dom.createSetInnerHtmlHandler(element.header.temperature.value),
-					unit: dom.createSetInnerHtmlHandler(element.header.temperature.unit),
-					at: dom.createSetInnerHtmlHandler(element.header.temperature.at),
-					time: dom.createSetInnerHtmlHandler(element.header.temperature.time),
-					ampm: dom.createSetInnerHtmlHandler(element.header.temperature.ampm),
-				},
-				refresh: {
-					btn: {
-						enable: dom.createEnableHandler(element.header.refresh.btn),
-						onClick: dom.createOnClickHandler(element.header.container),
-					},
-
-					text: dom.createSetInnerHtmlHandler(element.header.refresh.text),
-				},
-				time: {
-					text: dom.createSetInnerHtmlHandler(element.header.time.value),
-					unit: dom.createSetInnerHtmlHandler(element.header.time.unit),
-				},
-			},
-			
-			footer: {
-				alert: {
-					onClick: dom.createOnClickHandler(element.footer.alert.button),
-					
-					counter: function(number) {
-						const value = parseInt(number);
-						
-						if (value > 0) {
-							element.footer.alert.counter.value.apply(function(el) {
-								const text = value > consts.RADAR_ALERTS_MAX_NBR
-									? consts.RADAR_ALERTS_MAX_NBR.toString() + '+'
-									: value; 
-								
-								el.innerHTML = text;
-							});
-							
-							footerContainerVisibility(true);
-							alertCounterContainerVisibility(true);
-						} else {
-							alertCounterContainerVisibility(false);
-							footerContainerVisibility(false);
-						}
-					}
-				},
-			}
-		};
-	};
-
-	/**
-	 * update ui function. all periodic update UI processes should be place here
-	 * */
-	const updateUI = function(ui) {
-		if(ui) {
-			const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-			this.currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-
-			//apply on ui
-			ui.header.time.text(this.currentTimeRepr[0]);
-			ui.header.time.unit(this.currentTimeRepr[1]);
-			if(this.snapshotTimeRepr) {
-				ui.header.temperature.time(this.snapshotTimeRepr[0]);
-				ui.header.temperature.ampm(this.snapshotTimeRepr[1]);
-				ui.header.temperature.at(TIZEN_L10N.RADAR_AT);
-			}
-        } else {
-            console.warn('updateUI. there is no ui to update');
-        }
-	};
+			header: $('.radar__header'),
+			date: $('.radar__date'),
+			temp: $('.radar__temp'),
+			updateBtn: $('.radar__update'),
+			map: $('.radar__map'),
+			moreBtn: $('.radar__more'),
+			alertsBtn: $('.radar__alerts'),
+			alertsCounter: $('.radar__badge')
+		}
+	}
 	
 	const diffCategoryToLocalizationKey = {
 		1: 'NOW',
@@ -168,163 +32,179 @@ define(radarModules, function(storage, consts, utils, dom, updater) {
 		5: 'DAYS_AGO',
 	};
 
-	const weatherDownloadTimeUpdater = function() {
-		const diffInSeconds = utils.getNowAsEpochInSeconds() - lastRefreshEpochTime;
-		const diffCategory = utils.getCategoryForTimeDiff(diffInSeconds);
+	function humanReadableTimeDiff(from, to) {
+		const diff = from - to;
+		const tier = utils.getCategoryForTimeDiff(diff);
+		const tierKey = diffCategoryToLocalizationKey[tier];
 
-		if (diffCategory in diffCategoryToLocalizationKey) {
-			const localizationKey = diffCategoryToLocalizationKey[diffCategory];
-			if (localizationKey in TIZEN_L10N) {
-				const localizedText = TIZEN_L10N[localizationKey];
-
-				var textToDisplay;
-
-				if (diffCategory === 1) {
-					textToDisplay = localizedText;
-				} else {
-					if (isNaN(diffInSeconds)) {
-						textToDisplay = ['-', localizedText].join(' ');
-					} else {
-						textToDisplay = [utils.formatTimeDiffValue(diffInSeconds, diffCategory), localizedText].join(' ');
-					}
-				}
-
-				ui.header.refresh.text(textToDisplay);
-			} else {
-				console.warn('Key "' + localizationKey + '" not available in localization');
-			}
-		} else {
-			console.warn('Diff category "' + diffCategory + '" cannot be mapped to localization key');
+		if(!tierKey) {
+			console.warn('Diff category "' + tier + '" cannot be mapped to localization key');
+			return '';
 		}
-	};
 
-	const displayData = function(mapFilePath, weather, alerts, downloadTimeEpochInSeconds) {
-		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+		const text = TIZEN_L10N[tierKey];
+		if(!text) {
+			console.warn('Key "' + tierKey + '" not available in localization');
+			return '';
+		}
 
-		const tempInCelsius = weather.observation.metric.temp;
-		const tempTextualRepr = getTemperatureAndUnitAsText(
-			tempInCelsius,
-			storage.settings.units.temperature.get());
+		// TODO: fix that dirty hack
+		// initially, before data is retrieved from server, last update time is uknown
+		// the storage returns 0 though, so all calculations are correct,
+		// but a strange value would be returnd, i.e. '123456 days ago'
+		if(to === 0) {
+			return '- ' + text;
+		}
 
-		const tempText = [tempTextualRepr[0], '°'].join('');
-		const unitText = tempTextualRepr[1];
+		if(tier === 1) {
+			return text;
+		}
+		return utils.formatTimeDiffValue(diff, tier) + ' ' + text;
+	}
 
-		//snapshot time
-		const shapshotTimeInMillis = weather.observation.obs_time * 1000;
-		const snapshotTimeRawDate = new Date(shapshotTimeInMillis);
-		this.snapshotTimeRepr = utils.getTimeAsText(snapshotTimeRawDate, storage.settings.units.time.get(), systemUses12hFormat);
+	function updateViewData(data, currentTimeOnly) {
+		const timeUnit = storage.settings.units.time.get();
+		viewData.is12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 
-		updateUI(ui);
+		viewData.currentTime = utils.getTimeAsText(new Date(), timeUnit, viewData.is12hFormat);
 
-		//refresh time
-		lastRefreshEpochTime = downloadTimeEpochInSeconds;
-		weatherDownloadTimeUpdater();
+		viewData.lastUpdate = storage.lastUpdate.get();
+		viewData.lastUpdateHuman = humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), viewData.lastUpdate);
 
-		const nbrOfAlerts = alerts && alerts.alerts ? alerts.alerts.length : 0;
+		if(currentTimeOnly) { return; }
+
+		viewData.map = storage.map.get();
+
+		const observation = data.weather.observation;
+		viewData.tempOrig = observation.metric.temp;
+		const tempData = utils.getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
+		viewData.temp = tempData[0];
+		viewData.tempUnit = tempData[1];
 		
-		ui.map.src(mapFilePath);
-		ui.header.temperature.text(tempText);
-		ui.header.temperature.unit(unitText);
-		ui.header.refresh.btn.enable(true);
-		ui.footer.alert.counter(nbrOfAlerts);
-	};
+		viewData.snapshotDate = new Date(observation.obs_time * 1000);
+		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
-	const tryDisplayData = function() {
+		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
+	}
+
+	function updateUI(data, currentTimeOnly) {
+		ui.date.html(
+			viewData.currentTime[0] +
+			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1].trim() + '</span>' : '')
+		);
+		ui.updateBtn.text(data.lastUpdateHuman);
+
+		if(currentTimeOnly) { return; }
+
+		ui.temp.html(
+			data.temp + 
+			'°' +
+			'<span>' + data.tempUnit + '</span>' +
+			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
+			viewData.snapshotTime[0] +
+			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1].trim() + '</span>' : '')
+		);
+		
+		ui.updateBtn.prop('disabled', false);
+
+		ui.map.attr('src', data.map);
+
+		const alertsCounter = 
+			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
+			consts.RADAR_ALERTS_MAX_NBR + '+' :
+			data.alertsCounter;
+		ui.alertsBtn.toggle(!!alertsCounter);
+		ui.alertsCounter.text(alertsCounter);
+	}
+
+	function resetUI() {
+		ui.alertsBtn.hide();
+		ui.alertsCounter.text(0);
+	}
+
+	function refreshView() {
+		updateViewData(null, true);
+		updateUI(viewData, true);
+		refreshViewId = setTimeout(refreshView, 1000);
+	}
+
+	const loadData = function() {
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+		}
+
 		const dataText = storage.data.get();
 		console.log('try display data');
 
-		if (dataText) {
-			try {
-				const data = JSON.parse(dataText);
-				const mapFilePath = storage.map.get();
-				const weatherData = data.weather;
-				const alertsData = data.alerts;
-				const lastUpdateTime = storage.lastUpdate.get();
-
-				displayData(mapFilePath, weatherData, alertsData, lastUpdateTime);
-			} catch(err) {
-				console.error(JSON.stringify(err));
-			}
-		} else {
-			ui.footer.alert.counter(0);
+		if(!dataText) {
 			console.log('No data in storage');
+			resetUI();
+			refreshView();
+			return;
 		}
-	};
 
-	const setForceUpdateButtonState = function() {
-		const updateRunning = updater.updateInProgress();
-		ui.header.refresh.btn.enable(!updateRunning);
+		var data;
+		try {
+			data = JSON.parse(dataText);
+		} catch(err) {
+			console.error(JSON.stringify(err));
+			refreshView();
+			return;
+		}
+		updateViewData(data, false);
+		updateUI(viewData, false);
+		refreshView();
 	};
 
 	return {
 		pagebeforeshow: function(ev) {
-			const page = ev.target;
-			ui = createUiManager(page);
+			ui = getUI();
 
-			storage.data.setChangeListener(tryDisplayData);
-
-			tryDisplayData();
-
+			storage.data.setChangeListener(loadData);
+			loadData();
 			updater.softUpdate();
 
-			setForceUpdateButtonState();
-			
+			ui.updateBtn.prop('disabled', updater.updateInProgress());
 			updater.setOnUpdateCompleteHandler(function() {
-				if (ui) {
-					ui.header.refresh.btn.enable(true);
-				} else {
-					console.warn('No UI for setOnUpdateCompleteHandler');
-				}
+				ui.updateBtn.prop('disabled', false);
 			});
-
-			ui.header.refresh.btn.onClick(function() {
-				if (updater.hardUpdate()) {
-					ui.header.refresh.btn.enable(false);
+			
+			ui.header.on('click', function() {
+				if(updater.hardUpdate()) {
+					ui.updateBtn.prop('disabled', true);
 				} else {
 					console.warn('Force update button cannot be clickable when update in progress');
 				}
 			});
 
-			ui.footer.alert.onClick(function() {
+			ui.alertsBtn.on('click', function() {
 				tau.changePage('alerts.html', { transition:'none' });
 			});
 
-			ui.more.onClick(function() {
+			ui.moreBtn.on('click', function() {
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
-
-			updateUI(ui);
-			weatherDownloadTimeUpdater();
-
-			if(intervalUpdaterId === null) {
-				intervalUpdaterId = setInterval(
-					function() {
-						updateUI(ui);
-						weatherDownloadTimeUpdater();
-					},
-					1000 //every 1 second update interval
-				);
-			}
 		},
 		
 		visibilitychange: function() {
-			if(document.hidden !== true) {
+			if(!document.hidden) {
 				updater.softUpdate();
-				setForceUpdateButtonState();
+				ui.updateBtn.prop('disabled', updater.updateInProgress());
 			}
 		},
 
 		pagebeforehide: function(ev) {
-			storage.data.unsetChangeListener(tryDisplayData);
-			ui.header.refresh.btn.onClick(null);
-			ui.footer.alert.onClick(null);
-			ui.more.onClick(null);
+			if(refreshViewId) {
+				clearTimeout(refreshViewId);
+				refreshViewId = null;
+			}
+
+			storage.data.unsetChangeListener(loadData);
 			updater.removeOnUpdateCompleteHandler();
 
-			if(intervalUpdaterId) {
-				clearInterval(intervalUpdaterId);
-				intervalUpdaterId = null;
-			}
+			ui.header.off();
+			ui.moreBtn.off();
+			ui.alertsBtn.off();
 			ui = null;
 		},
 	};

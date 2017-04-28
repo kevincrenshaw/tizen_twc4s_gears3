@@ -1,10 +1,7 @@
-* {
-    font-family: Verdana, Lucida Sans, Arial, Helvetica, sans-serif;
-}
-
 body {
-    margin: 0px auto;
-    background-color:#222;
+    margin: 0 auto;
+    background-color: #222;
+    font-family: BreezeSans, Verdana, Lucida Sans, Arial, Helvetica, sans-serif;
 }
 
 /* To remove shadow from radio buttons */
@@ -101,6 +98,7 @@ body {
 	top: 0%;
 	width: 100%;
 	height: 127px;
+	visibility: hidden;
 }
 
 .header-block-top {
@@ -140,65 +138,11 @@ body {
 	font-size: .65em;
 }
 
-.radar-temperature-normal-text {
-	opacity: 0.9;
-	font-family: BreezeSans;
-	font-size: 28px;
-	color: #ffffff;
-}
-
-.radar-temperature-small-text {
-	font-family: BreezeSans;
-	font-size: 18px;
-	color: #e0e0e0;
-}
-/* radar */
-#radar.ui-page {
-	position: relative;
-}
-
-#radar.ui-page #map {
-	width: 100%;
-	height: 100%;
-}
-
-#radar.ui-page #header #temperatureBox #unit {
-	margin-left: 1px;
-}
-
-#radar.ui-page #header #temperatureBox #at {
-	margin-left: 19px;
-}
-
-#radar.ui-page #header #temperatureBox #time {
-	margin-left: 13px;
-}
-
-#radar.ui-page #header #temperatureBox #ampm {
-	margin-left: 2px;
-}
-
 .refresh-button {
 	width: 25px;
 	height: 25px;
 	vertical-align: middle;
 	-webkit-transform-origin: center center;
-}
-
-#radar.ui-page #refreshBox #btn:disabled {
-	-webkit-animation:spin 1s linear infinite;
-}
-
-@-webkit-keyframes spin {
-	100% {
-		-webkit-transform: rotate(-360deg);
-	}
-}
-
-#radar.ui-page #refreshBox #text {
-	font-size: 18px;
-	color: #ffffff;
-	vertical-align: middle;
 }
 
 .ui-page .ui-selector .ui-selector-indicator-arrow {
@@ -222,43 +166,6 @@ body {
 	height: 170px;
 	border-radius: 50%;
 	z-index: auto;
-}
-
-#radar.ui-page #footer {
-	visibility: hidden;
-}
-
-#radar.ui-page #footer #alerts {
-	background-color: #009de8;
-	opacity: 0.75;
-}
-
-#radar.ui-page #footer #alerts #icon {
-	display: block;
-	width: 42px;
-	height: 42px;
-	background-image: url("../resources/gfx/icon-alerts.png");
-	margin: 29px auto;
-	background-size: contain;
-}
-
-#radar.ui-page #alerts-counter-container {
-	visibility: hidden;
-	position: absolute;
-	left: 191px;
-	top: 311px;
-	width: 20px;
-	height: 20px;
-	line-height: 5px;
-	border-radius: 50%;
-	background: #d6202b;
-	text-align: center;
-}
-
-#radar.ui-page #alerts-counter-value {
-	display:inline;
-	font-size: 12px;
-	color: white;
 }
 
 .alert-page-container {

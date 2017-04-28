@@ -1,203 +1,154 @@
-window.onload = function() {
-	var intervalUpdaterId = null;
+(function() {
+	var refreshViewId;
+	var ui = {};
+	var viewData = {};
 
-	var currentTimeRepr = {};
-	var snapshotTimeRepr = {};
-	var mapFilePath;
-	var data;
-	var ampm = null;
-	var ui = null;
-	
-	//run for first time when widget is added to a widget board
-	handleVisibilityChange();
-	
-	function launchRadar() {
+	function getUI() {
+		return {
+			body: document.getElementsByTagName('body')[0],
+			header: document.getElementsByClassName('header')[0],
+			currentTime: document.getElementsByClassName('current-time')[0],
+			currentFormat: document.getElementsByClassName('current-format')[0],
+			tempValue: document.getElementsByClassName('temp-value')[0],
+			tempUnit: document.getElementsByClassName('temp-unit')[0],
+			separator: document.getElementsByClassName('separator')[0],
+			tempTime: document.getElementsByClassName('temp-time')[0],
+			tempFormat: document.getElementsByClassName('temp-format')[0],
+			openBtn: document.getElementsByClassName('open')[0],
+			footer: document.getElementsByClassName('footer')[0],
+			badge: document.getElementsByClassName('badge')[0]
+		};
+	}
+
+	function getTempSystem() {
+		// 1 - system, 2 - fahrenheit, 3 - celsius
+		var value = parseInt(getFromStore('settings_units_temperature_key'), 10) || 3;
+		return (value === 2 ? 'F' : 'C');
+	}
+
+	function readData(data) {
+		if(!data) {
+			return false;
+		}
+
+		try {
+			return JSON.parse(data);
+		} catch(err) {
+			console.error('Failed to parse data ' + JSON.stringify(err));
+			return false;
+		}
+	}
+
+	function updateViewData(currentTimeOnly) {
+		viewData.is12hFormat = getFromStore('ampm');
+		viewData.currentTime = getTimeAsText(new Date(), viewData.is12hFormat);
+
+		if(currentTimeOnly) { return; }
+
+		viewData.map = getFromStore('map');
+		viewData.snapshotTime = ['', ''];
+		var tmpTemp;
+		viewData.temp = '-';
+		viewData.tempUnit = getTempSystem();
+		viewData.alertsCounter = 0;
+
+		var data = readData(getFromStore('data'));
+		
+		if(!data) { return; }
+		
+		if(data.weather && data.weather.observation) {
+			if(data.weather.observation.metric) {
+				tmpTemp = data.weather.observation.metric.temp || '-';
+				viewData.temp = !isNaN(tmpTemp) && viewData.tempUnit === 'F' ? celsiusToFahrenheit(tmpTemp) : tmpTemp;
+			}
+
+			if(data.weather.observation.obs_time) {
+				viewData.snapshotTime = getTimeAsText(new Date(data.weather.observation.obs_time * 1000), viewData.is12hFormat);
+			}
+		}
+
+		if(data.alerts && data.alerts.alerts) {
+			viewData.alertsCounter = data.alerts.alerts.length;
+		}
+	}
+
+	function isViewDataValid() {
+		return viewData &&
+			   viewData.currentTime[0] &&
+			   viewData.snapshotTime[0] &&
+			   viewData.map;
+	}
+
+	function updateUI(currentTimeOnly) {
+		if(!isViewDataValid()) { return; }
+
+		ui.header.style.display = 'block';
+
+		ui.currentTime.textContent = viewData.currentTime[0];
+		ui.currentFormat.textContent = viewData.currentTime[1];
+
+		if(currentTimeOnly) { return; }
+
+		ui.tempValue.textContent = viewData.temp + '°';
+		ui.tempUnit.textContent = viewData.tempUnit;
+		ui.separator.textContent = TIZEN_L10N.AT;
+		ui.tempTime.textContent = viewData.snapshotTime[0];
+		ui.tempFormat.textContent = viewData.snapshotTime[1];
+
+		ui.body.style['background-image'] = (viewData.map ? 'url(' + viewData.map + ')' : 'none');
+
+		var alertsCounter = viewData.alertsCounter;
+		if(alertsCounter > 9) {
+			alertsCounter = '9+';
+		}
+		ui.badge.textContent = alertsCounter;
+		ui.footer.style.display = !!alertsCounter ? 'block' : 'none';
+	}
+
+	function refreshView() {
+		updateViewData(true);
+		updateUI(true);
+		refreshViewId = setTimeout(refreshView, 1000);
+	}
+
+	function init() {
+		ui = getUI();
+		ui.openBtn.addEventListener('click', onRadarClick);
+		ui.footer.addEventListener('click', onAlertsClick);
+
+		updateViewData(false);
+		updateUI(false);
+		refreshView();
+	}
+
+	function onVisibilityChange() {
+		document.hidden ? destroy() : init();
+	}
+
+	function destroy() {
+		if(refreshViewId) {
+			clearTimeout(refreshViewId);
+			refreshViewId = null;
+		}
+
+		ui.openBtn.removeEventListener('click', onRadarClick);
+		ui.footer.removeEventListener('click', onAlertsClick);
+		ui = null;
+	}
+
+	function onRadarClick() {
 		launchApp('radar');
 	}
-	
-	function launchAlerts() {
+
+	function onAlertsClick() {
 		launchApp('alerts');
 	}
-	
-	/**
-	 * triggered on page visible state 
-	 * */
-	function onpageshow() {
-		var dataAsText;
-		
-		console.log('on page show');
-		ui = createUi(document);
-		
-		ui.map.addEventListener('click', launchRadar);
-		ui.footer.alert.container.addEventListener('click', launchAlerts);
-		
-		ampm = getFromStore('ampm');
 
-		mapFilePath = getFromStore('map');
-		
-		dataAsText = getFromStore('data');
-		if (dataAsText) {
-			try {
-				data = JSON.parse(dataAsText);
-			} catch (err) {
-				console.error('Failed to convert alerts into object: ' + JSON.stringify(err));
-			}
-		}
+	function onLoad() {
+		window.removeEventListener('load', onLoad);
 
-		//obtain temperature
-		var temperatureRepr = getTemperature(data);
-		if(temperatureRepr) {
-			ui.temperature.value.textContent = temperatureRepr[0];
-			ui.temperature.unit.textContent = temperatureRepr[1];
-		}
+		onVisibilityChange();
+		document.addEventListener('visibilitychange', onVisibilityChange);
 	}
-	
-	/**
-	 * triggered on page hidden state 
-	 * */
-	function onpagehide() {
-		console.log('on page hide');
-		if(ui) {
-			ui.map.removeEventListener('click', launchRadar);
-			ui.footer.alert.container.removeEventListener('click', launchAlerts);
-			ui.map = null;
-			ui = null;
-		}
-	}
-	
-	function isCelsiusSelected() {
-		if (parseInt(getFromStore('settings_units_temperature_key', '3')) === 2) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	function onUpdateUi() {
-		var displayInCelsius = isCelsiusSelected();
-		var currentTempInCelsius;
-		
-		//update UI only if there is all data available
-		if (ui && snapshotTimeRepr[0] && currentTimeRepr[0] && mapFilePath) {
-			if(ui.header.style.display !== 'inline') {
-				//show header if it was hidden
-				ui.header.style.display = 'inline';
-			}
-			//if header is visible and we have data to show
-			if(ui.header.style.display === 'inline') {
-				ui.currentTime.time.textContent = currentTimeRepr[0];
-				ui.currentTime.ampm.textContent = currentTimeRepr[1];
-				
-				ui.temperature.snapshotTime.textContent = snapshotTimeRepr[0];
-				ui.temperature.ampm.textContent = snapshotTimeRepr[1];
-				
-				currentTempInCelsius = getFromStore('temp', undefined);
-				if (currentTempInCelsius !== undefined) {
-					currentTempInCelsius = parseInt(currentTempInCelsius);
-					ui.temperature.value.textContent = [(displayInCelsius
-							? currentTempInCelsius
-							: Math.round(celsiusToFahrenheit(currentTempInCelsius))), '°'].join('');
-					ui.temperature.unit.textContent = displayInCelsius ? 'C' : 'F';
-				}
-				
-				ui.temperature.at.textContent = TIZEN_L10N.AT;
-			}
-
-			ui.map.style['background-image'] = 'url("' + mapFilePath + '")';
-			ui.footer.alert.value(getNbrOfAlerts());
-		}
-	}
-
-	/**
-	 * function for periodic tasks (like updating ui, etc)
-	 * */
-	function onUpdate() {
-		//because of limitations of web widget we cannot obtain system settings of am/pm
-		//so we are ignoring it and in case of empty ampm (system setting) use 24h format
-		var time = getTimeAsText(new Date(), ampm);
-		if(currentTimeRepr[0] !== time[0] || currentTimeRepr[1] !== time[1]) {
-			currentTimeRepr = time;
-		}
-		if(data) {
-			//snapshot time
-			var timestampMillis = data.weather.observation.obs_time * 1000;
-			snapshotTimeRepr = getTimeAsText(new Date(timestampMillis), ampm);
-		}
-		onUpdateUi();
-	}
-
-	/**
-	 * internal function to handle visibility state changes 
-	 * */
-	function handleVisibilityChange() {
-		if(document.visibilityState === 'visible') {
-			onpageshow();
-			//call it immideatelly for a first time
-			onUpdate();
-			
-			if(intervalUpdaterId === null) {
-				intervalUpdaterId = setInterval(onUpdate, 1000);
-			}
-		} else {
-			onpagehide();
-			
-			if(intervalUpdaterId) {
-				clearInterval(intervalUpdaterId);
-                intervalUpdaterId = null;
-			}
-		}
-	}
-
-	function createUi(root) {
-		var footer = root.getElementById('footer');
-		var footer_alerts_value = root.getElementById('footer-alerts-counter-container-value');
-
-		var element = {
-			header: root.getElementById('header'),
-			map: root.getElementById('main-screen'),
-			
-			currentTime: {
-				time: root.getElementById('time-value'),
-				ampm: root.getElementById('time-ampm'),
-			},
-			
-			temperature: {
-				value: root.getElementById('value'),
-				unit: root.getElementById('unit'),
-				at: root.getElementById('at'),
-				snapshotTime: root.getElementById('snapshot-time'),
-				ampm: root.getElementById('ampm'),
-			},
-
-			footer: {
-				alert: {
-					container: footer,
-					value: function(value) {
-						if (value > 0) {
-							value = value > 99 ? '99+' : value;
-							footer_alerts_value.textContent = value;
-							footer.style.visibility = 'visible';
-						} else {
-							footer.style.visibility = 'hidden';
-						}
- 					}
-				}
-			}
-		};
-		
-		return element;
-	}
-	
-	function getNbrOfAlerts() {
-		if (data &&
-				data.alerts &&
-				data.alerts.alerts &&
-				Array.isArray(data.alerts.alerts)) {
-			return data.alerts.alerts.length;
-		} else {
-			return 0;
-		}
-	}
-
-	document.addEventListener('visibilitychange', handleVisibilityChange);
-};
+	window.addEventListener('load', onLoad);
+})();
