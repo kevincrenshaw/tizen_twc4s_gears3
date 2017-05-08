@@ -22,6 +22,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      {pattern: './code/lib/jquery/jquery-1.11.1.min.js', included: false, watched: false},
+      {pattern: './code/lib/rx.lite.js', included: false, watched: false},
+      // {pattern: './code/js/tauConfig.js', included: true, watched: false}, // todo remove and mock
+      // {pattern: './code/lib/tau/wearable/js/tau.js', included: true, watched: false}, // todo remove and mock
+      {pattern: './code/language.js', included: true, watched: false}, // todo remove and mock
+
       './tests/test-main.js',
       {pattern: './code/js/**/*.js', included: false},
       {pattern: './tests/specs/**/*.js', included: false}
@@ -30,12 +36,14 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
+        './code/js/app.js'
     ],
 
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+        './code/js/**/*.js': ['coverage']
     },
 
 
@@ -43,10 +51,17 @@ module.exports = function(config) {
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: [
-        // 'nyan',
         'mocha',
-        // 'progress'
+        'coverage'
     ],
+
+
+    coverageReporter: {
+      includeAllSources: true,
+      type : 'html',
+      dir : 'tests/coverage/',
+      subdir: 'report'
+    },
 
 
     // web server port
