@@ -1,9 +1,17 @@
 /* jshint esversion: 6 */
 
-define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/const'], function(storage, utils, dom, updater, consts) {
+define([
+	'jquery',
+	'utils/storage',
+	'utils/utils',
+	'utils/dom',
+	'utils/updater',
+	'utils/const'
+], function($, storage, utils, dom, updater, consts) {
 
 	var updateHandler = null;
 	var adapter = null;
+	var refreshViewId;
 
 	/**
 	 * Creates adapter between data and UI
@@ -14,10 +22,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 
 		//view hierarchy holder
 		const holder = {
-			header: dom.queryWrappedElement(page, '#header'),
-			time: dom.queryWrappedElement(page, '#header .header-block-top #value'),
-			ampm: dom.queryWrappedElement(page, '#header .header-block-top #unit'),
-			district: dom.queryWrappedElement(page, '#header .header-block-middle #office-district'),
+			header: $('#alerts__header'),
+			time: dom.queryWrappedElement(page, '#alerts__header .header-block-top #value'),
+			ampm: dom.queryWrappedElement(page, '#alerts__header .header-block-top #unit'),
+			district: dom.queryWrappedElement(page, '#alerts__header .header-block-middle #office-district'),
+
+			update: {
+				btn: $('#alerts__header #alerts__update'),
+			},
 
 			noalerts: {
 				page: dom.queryWrappedElement(page, '#no-alerts-container'),
@@ -35,7 +47,6 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 		//view and logic (change visibility, click events, etc.) binder
 		const binder = {
 			header: {
-				visible: dom.createVisibilityHandler(holder.header),
 				district: dom.createSetInnerHtmlHandler(holder.district),
 
 				time: function(time, ampm) {
@@ -71,6 +82,14 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 
 		binder.more.onClick(function() {
 			utils.openDeepLinkOnPhone(consts.ALERT_DEEPLINK);
+		});
+
+		holder.header.on('click', function() {
+			if(updater.hardUpdate()) {
+				holder.update.btn.prop('disabled', true);
+			} else {
+				console.warn('Force update button cannot be clickable when update in progress');
+			}
 		});
 
 		const createListItem = function(alertData) {
@@ -135,7 +154,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 				}
 
 				//show header
-				binder.header.visible(true);
+				holder.header.show();
 
 				if(numberOfAlerts > 0) {
 					binder.noalerts.display('none');
@@ -161,6 +180,8 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 				const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 				binder.header.time(currentTimeRepr[0], currentTimeRepr[1]);
 
+				holder.update.btn.prop('disabled', updater.updateInProgress());
+
 				//add updating list item elements here
 				if(this.alertsData && this.alertsData.alerts) {
 					const alertsCount = this.alertsData.alerts.length;
@@ -176,7 +197,15 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 						}
 					}
 				}
-			}
+
+				this.refresh();
+			},
+
+			refresh: function() {
+				const lastUpdate = storage.lastUpdate.get();
+				const lastUpdateHuman = utils.humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), lastUpdate);
+				holder.update.btn.text(lastUpdateHuman);
+			},
 		};
 	};
 
@@ -190,31 +219,51 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 		};
 	}
 
+	function safeUpdate() {
+		if(adapter) {
+			adapter.update();
+		} else {
+			console.warn('date/time changed::adapter do not exist');
+		}
+	}
+
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
-			tizen.time.setDateTimeChangeListener(function() {
-				if(adapter) {
-					adapter.update();
-				} else {
-					console.warn('date/time changed::adapter isnt exist');
-				}
-			});
+			tizen.time.setDateTimeChangeListener(safeUpdate);
+			updater.setOnUpdateCompleteHandler(safeUpdate);
 			
 			adapter = createAdapter(page);
 			updateHandler = createOnPrefsUpdater();
 			storage.data.setChangeListener(updateHandler);
 			adapter.setData(storage.data.get());
 			updater.softUpdate();
+
+			if (!refreshViewId) {
+				refreshViewId = setInterval(adapter.refresh, 1000);
+			}
 		},
 
 		pagebeforehide: function(ev) {
 			const page = ev.target;
 			tizen.time.unsetDateTimeChangeListener();
+			updater.removeOnUpdateCompleteHandler();
 
 			storage.data.unsetChangeListener(updateHandler);
 			updateHandler = null;
 			adapter = null;
+
+			if (refreshViewId) {
+				clearInterval(refreshViewId);
+				refreshViewId = null;
+			}
+		},
+
+		visibilitychange: function() {		
+			if(!document.hidden) {
+				updater.softUpdate();
+				safeUpdate();
+			}
 		},
 	};
 });

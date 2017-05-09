@@ -23,44 +23,6 @@ define([
 			alertsCounter: $('.radar__badge')
 		}
 	}
-	
-	const diffCategoryToLocalizationKey = {
-		1: 'NOW',
-		2: 'MINUTES_AGO',
-		3: 'HOURS_AGO',
-		4: 'DAY_AGO',
-		5: 'DAYS_AGO',
-	};
-
-	function humanReadableTimeDiff(from, to) {
-		const diff = from - to;
-		const tier = utils.getCategoryForTimeDiff(diff);
-		const tierKey = diffCategoryToLocalizationKey[tier];
-
-		if(!tierKey) {
-			console.warn('Diff category "' + tier + '" cannot be mapped to localization key');
-			return '';
-		}
-
-		const text = TIZEN_L10N[tierKey];
-		if(!text) {
-			console.warn('Key "' + tierKey + '" not available in localization');
-			return '';
-		}
-
-		// TODO: fix that dirty hack
-		// initially, before data is retrieved from server, last update time is uknown
-		// the storage returns 0 though, so all calculations are correct,
-		// but a strange value would be returnd, i.e. '123456 days ago'
-		if(to === 0) {
-			return '- ' + text;
-		}
-
-		if(tier === 1) {
-			return text;
-		}
-		return utils.formatTimeDiffValue(diff, tier) + ' ' + text;
-	}
 
 	function updateViewData(data, currentTimeOnly) {
 		const timeUnit = storage.settings.units.time.get();
@@ -69,7 +31,7 @@ define([
 		viewData.currentTime = utils.getTimeAsText(new Date(), timeUnit, viewData.is12hFormat);
 
 		viewData.lastUpdate = storage.lastUpdate.get();
-		viewData.lastUpdateHuman = humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), viewData.lastUpdate);
+		viewData.lastUpdateHuman = utils.humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), viewData.lastUpdate);
 
 		if(currentTimeOnly) { return; }
 
