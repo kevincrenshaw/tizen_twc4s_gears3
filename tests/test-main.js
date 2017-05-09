@@ -1,8 +1,8 @@
 // Get a list of all the test files to include
-/*const allTestFiles = Object.keys(window.__karma__.files).filter(function(file) {
-  return file.indexOf('tests/specs') > -1; 
-});*/
-var allTestFiles = [];
+const allTestFiles = Object.keys(window.__karma__.files).filter(function(file) {
+  return file.indexOf('tests/specs/utils/map') > -1; 
+});
+/*var allTestFiles = [];
 Object.keys(window.__karma__.files).forEach(function (file) {
   if (file.indexOf('tests/specs/utils/map') > -1) {
     // Normalize paths to RequireJS module names.
@@ -11,7 +11,7 @@ Object.keys(window.__karma__.files).forEach(function (file) {
     var normalizedTestModule = file.replace(/^\/base\/|\.js$/g, '');
     allTestFiles.push('../../' + normalizedTestModule); // prepend with '../../' due to baseUrl config below
   }
-});
+});*/
 
 
 require.config({

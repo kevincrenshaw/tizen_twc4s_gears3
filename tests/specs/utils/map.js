@@ -7,6 +7,47 @@ define(['utils/map'], function(map) {
 
         describe('getAllowedPrecisionAccordingToLod method', function() {
 
+            // another approach to test data series
+            var testData = [
+                { args: [0.1, 1], expected: '0' },
+                { args: [0.24, 1], expected: '0' },
+                { args: [0.49, 1], expected: '0' },
+                { args: [0.5, 1], expected: '1' },
+                { args: [0.51, 1], expected: '1' },
+                { args: [0.99, 1], expected: '1' },
+                { args: [1.4, 1], expected: '1' },
+                { args: [1.5, 1], expected: '2' },
+
+                { args: [51.1030, 1], expected: '51' },
+                { args: [13.5, 2], expected: '14' },
+                { args: [3.65, 3], expected: '4' },
+                { args: [-7.93, 1], expected: '-8' }
+            ];
+
+            it('LOD 1-4 (precision 0)', function() {
+                testData.forEach(function(test) {
+                    var result = map.getAllowedPrecisionAccordingToLod.apply(null, test.args).toString();
+                    expect(result).to.be(test.expected);
+                });
+            });
+            // eof another approach
+
+            it('LOD 1-4 (precision 0)', function() {
+                expect(map.getAllowedPrecisionAccordingToLod(0.1, 1).toString()).to.be('0');
+                expect(map.getAllowedPrecisionAccordingToLod(0.24, 1).toString()).to.be('0');
+                expect(map.getAllowedPrecisionAccordingToLod(0.49, 1).toString()).to.be('0');
+                expect(map.getAllowedPrecisionAccordingToLod(0.5, 1).toString()).to.be('1');
+                expect(map.getAllowedPrecisionAccordingToLod(0.51, 1).toString()).to.be('1');
+                expect(map.getAllowedPrecisionAccordingToLod(0.99, 1).toString()).to.be('1');
+                expect(map.getAllowedPrecisionAccordingToLod(1.4, 1).toString()).to.be('1');
+                expect(map.getAllowedPrecisionAccordingToLod(1.5, 1).toString()).to.be('2');
+
+                expect(map.getAllowedPrecisionAccordingToLod(51.1030, 1).toString()).to.be('51');
+                expect(map.getAllowedPrecisionAccordingToLod(13.5, 2).toString()).to.be('14');
+                expect(map.getAllowedPrecisionAccordingToLod(3.65, 3).toString()).to.be('4');
+                expect(map.getAllowedPrecisionAccordingToLod(-7.93, 3).toString()).to.be('-8');
+            });
+
             it('LOD 1-4 (precision 0)', function() {
                 expect(map.getAllowedPrecisionAccordingToLod(0.1, 1).toString()).to.be('0');
                 expect(map.getAllowedPrecisionAccordingToLod(0.24, 1).toString()).to.be('0');
