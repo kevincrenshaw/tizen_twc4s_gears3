@@ -23,7 +23,6 @@ const exludedTestFiles = [
 ];
 // Get a list of all the test files to include
 const allTestFiles = Object.keys(window.__karma__.files).filter(function(file) {
-  console.log(file, file.indexOf('tests/specs/') > -1, exludedTestFiles.indexOf(file) < 0);
   return file.indexOf('tests/specs/') > -1 && exludedTestFiles.indexOf(file) < 0; 
 });
 
