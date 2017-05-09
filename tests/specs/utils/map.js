@@ -24,29 +24,13 @@ define(['utils/map'], function(map) {
                 { args: [-7.93, 1], expected: '-8' }
             ];
 
-            it('LOD 1-4 (precision 0)', function() {
+            it('LOD 1-4 (precision 0) w/ series', function() {
                 testData.forEach(function(test) {
                     var result = map.getAllowedPrecisionAccordingToLod.apply(null, test.args).toString();
                     expect(result).to.be(test.expected);
                 });
             });
             // eof another approach
-
-            it('LOD 1-4 (precision 0)', function() {
-                expect(map.getAllowedPrecisionAccordingToLod(0.1, 1).toString()).to.be('0');
-                expect(map.getAllowedPrecisionAccordingToLod(0.24, 1).toString()).to.be('0');
-                expect(map.getAllowedPrecisionAccordingToLod(0.49, 1).toString()).to.be('0');
-                expect(map.getAllowedPrecisionAccordingToLod(0.5, 1).toString()).to.be('1');
-                expect(map.getAllowedPrecisionAccordingToLod(0.51, 1).toString()).to.be('1');
-                expect(map.getAllowedPrecisionAccordingToLod(0.99, 1).toString()).to.be('1');
-                expect(map.getAllowedPrecisionAccordingToLod(1.4, 1).toString()).to.be('1');
-                expect(map.getAllowedPrecisionAccordingToLod(1.5, 1).toString()).to.be('2');
-
-                expect(map.getAllowedPrecisionAccordingToLod(51.1030, 1).toString()).to.be('51');
-                expect(map.getAllowedPrecisionAccordingToLod(13.5, 2).toString()).to.be('14');
-                expect(map.getAllowedPrecisionAccordingToLod(3.65, 3).toString()).to.be('4');
-                expect(map.getAllowedPrecisionAccordingToLod(-7.93, 3).toString()).to.be('-8');
-            });
 
             it('LOD 1-4 (precision 0)', function() {
                 expect(map.getAllowedPrecisionAccordingToLod(0.1, 1).toString()).to.be('0');

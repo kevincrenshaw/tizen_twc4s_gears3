@@ -1,17 +1,31 @@
+// b/c module mocking and injection is not ready yet, some deps may cause errors
+const exludedTestFiles = [
+  '/base/tests/specs/utils/back.js', // uses network
+  '/base/tests/specs/utils/storage.js', // uses network
+  '/base/tests/specs/utils/network.js', // uses fsutils
+  '/base/tests/specs/utils/updater.js', // uses network, storage
+  '/base/tests/specs/utils/fsutils.js', // uses tizen global object
+
+  // use fsutils directly or indirectly
+  '/base/tests/specs/pages/alerts.js',
+  '/base/tests/specs/pages/distance.js',
+  '/base/tests/specs/pages/information.js',
+  '/base/tests/specs/pages/main.js',
+  '/base/tests/specs/pages/mapzoom.js',
+  '/base/tests/specs/pages/partnerapp.js',
+  '/base/tests/specs/pages/radar.js',
+  '/base/tests/specs/pages/settings.js',
+  '/base/tests/specs/pages/temperature.js',
+  '/base/tests/specs/pages/time.js',
+  '/base/tests/specs/pages/units.js',
+  '/base/tests/specs/pages/weather.js',
+  '/base/tests/specs/app.js'
+];
 // Get a list of all the test files to include
 const allTestFiles = Object.keys(window.__karma__.files).filter(function(file) {
-  return file.indexOf('tests/specs/utils/map') > -1; 
+  console.log(file, file.indexOf('tests/specs/') > -1, exludedTestFiles.indexOf(file) < 0);
+  return file.indexOf('tests/specs/') > -1 && exludedTestFiles.indexOf(file) < 0; 
 });
-/*var allTestFiles = [];
-Object.keys(window.__karma__.files).forEach(function (file) {
-  if (file.indexOf('tests/specs/utils/map') > -1) {
-    // Normalize paths to RequireJS module names.
-    // If you require sub-dependencies of test files to be loaded as-is (requiring file extension)
-    // then do not normalize the paths
-    var normalizedTestModule = file.replace(/^\/base\/|\.js$/g, '');
-    allTestFiles.push('../../' + normalizedTestModule); // prepend with '../../' due to baseUrl config below
-  }
-});*/
 
 
 require.config({
