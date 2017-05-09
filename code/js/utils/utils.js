@@ -348,7 +348,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 			} catch(err) {
 				console.error('openDeepLinkOnPhone::cant to open deep link, error: ' + err);
 			}
-	}
+	};
 
 	/**
 	 * saves flag of used time format
@@ -366,6 +366,157 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		} else {
 			//'2' - 12h time option(am/pm - true), '3' - 24h time option (am/pm - false)
 			ampmStorageProvider.set(savedTimeUnitSetting == consts.settings.units.time.TIME_12H);
+		}
+	};
+
+	/**
+	 * Creates marquee widget from DOM html element
+	 * */
+	const createMarqueWidget = function(element, options) {
+		options = options || {};
+
+		options.marqueeStyle = options.marqueeStyle || 'endToEnd';
+		options.delay = options.delay || '1000';
+
+		return new tau.widget.Marquee(element, options);
+	};
+
+	const createAlertDetailsText = function(startsAtUTCSeconds, endAtUTCSeconds, timeFormatSetting) {
+		const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+
+		const startsAt = getDateAndTimeAsText(new Date(startsAtUTCSeconds * 1000), timeFormatSetting, systemUses12hFormat);
+		const endsAt = getDateAndTimeAsText(new Date(endAtUTCSeconds * 1000), timeFormatSetting, systemUses12hFormat);
+
+		return ['starts:', startsAt, 'ends:', endsAt].join(' ');
+	};
+
+	const createAlertsListItem = function(alertData, timeFormatSetting) {
+		const createDivElement = function(divId, innerHtml, className) {
+			var element = document.createElement('div');
+			element.id = divId;
+			if(innerHtml) {
+				element.innerHTML = innerHtml;
+			}
+			if(className) {
+				element.className = className;
+			}
+			return element;
+		};
+
+		var titleDiv = createDivElement('text_title', alertData.eventDescription, 'list-item-title');
+
+		const details = createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC, timeFormatSetting);
+		var subtitleDiv = createDivElement('text_subtitle', details, 'list-item-subtitle');
+
+		var iconDiv = createDivElement('alert_icon');
+		iconDiv.classList.add("img-icon", "warning-icon", "ui-li-thumb-left");
+
+		var listItem = document.createElement('li');
+		listItem.classList.add("li-has-thumb-left", "li-has-2line");
+		listItem.id = "alerts_list_item";
+
+		var textBlockDiv = createDivElement('text_block', null, 'ui-marquee');
+		textBlockDiv.appendChild(titleDiv);
+		textBlockDiv.appendChild(subtitleDiv);
+
+		listItem.appendChild(textBlockDiv);
+		listItem.appendChild(iconDiv);
+		return listItem;
+	};
+
+	//Creates object that manages array of destroyables.
+	const createDestroyableManager = function() {
+		const destroyableArr = [];
+
+		return {
+			add: function(destroyable) {
+				destroyableArr.push(destroyable);
+			},
+
+			destroy: function() {
+				//Destroy in reverse order
+				for (var i=destroyableArr.length-1; i>=0; --i) {
+					if(destroyableArr[i].hasOwnProperty('name')) {
+						console.log('destroying object: ' + destroyableArr[i].name);
+					}
+					destroyableArr[i].destroy();
+					destroyableArr[i] = null;
+				}
+				destroyableArr.length = 0; //clear array
+			},
+		};
+	};
+
+	const createMarqueeWidgetManager = function() {
+		var activeMarqueeWidget;
+
+		return {
+			set: function(widget) {
+				this.destroy();
+				activeMarqueeWidget = widget;
+			},
+			
+			destroy: function() {
+				if (activeMarqueeWidget) {
+					activeMarqueeWidget.stop();
+					activeMarqueeWidget.destroy();
+					activeMarqueeWidget = null;
+				}
+			},
+		};
+	};
+
+	///
+	const updateSnapListWithMarqueeWidgets = function(page, destroyablesManager, activeMaruqeeWidgetManager) {
+
+		const createMarqueeWidgetForListElement = function(element) {
+			if (element) {
+				activeMaruqeeWidgetManager.destroy();
+				activeMaruqeeWidgetManager.set(createMarqueWidget(element));
+			}
+		};
+
+		const listItemSelectedEventListener = function(ev) {
+			const page = ev.target;
+			createMarqueeWidgetForListElement(page.querySelector('.ui-marquee'));
+		};
+
+		const listItemScrollStartEventListener = function() {
+			activeMaruqeeWidgetManager.destroy();
+		};
+
+		const scrollToSelectedPosition = function(el) {
+			snapListStyleWidget.getSnapList().scrollToPosition(el.value - 1);
+		};
+
+		//Find every circle helper on current page, create widget for 
+		//it and save it for later destruction
+		const snapListNodeList = page.querySelectorAll('.ui-listview.dynamic.circle-helper-snap-list');
+
+		for(var i=0; i < snapListNodeList.length; ++i) {
+			var listNode = snapListNodeList[i];
+			var snapListStyleWidget = tau.helper.SnapListStyle.create(listNode, {animate: 'scale'});
+			destroyablesManager.add(snapListStyleWidget);
+			//Focus on checked element
+			tryModifyElement(
+					listNode,
+					'input:checked[value]',
+					scrollToSelectedPosition
+			);
+			
+			//List item selected by default do not triggers 'selected' event so we need to create marquee manually.
+			createMarqueeWidgetForListElement(listNode.querySelector('.ui-snap-listview-selected .ui-marquee'));
+
+			listNode.addEventListener('selected', listItemSelectedEventListener);
+			listNode.addEventListener('scrollstart', listItemScrollStartEventListener);
+
+			destroyablesManager.add({
+				destroy: function() {
+					listNode.removeEventListener('selected', listItemSelectedEventListener);
+					listNode.removeEventListener('scrollstart', listItemScrollStartEventListener);
+					activeMaruqeeWidgetManager.destroy();
+				},
+			});
 		}
 	};
 
@@ -405,7 +556,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 			return text;
 		}
 		return formatTimeDiffValue(diff, tier) + ' ' + text;
-	}
+	};
 
 	return {
 		tryModifyElement: tryModifyElement,
@@ -428,6 +579,11 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
 		openDeepLinkOnPhone: openDeepLinkOnPhone,
 		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
-		humanReadableTimeDiff: humanReadableTimeDiff,
+		createMarqueWidget: createMarqueWidget,
+		createAlertsListItem: createAlertsListItem,
+		createDestroyableManager: createDestroyableManager,
+		createMarqueeWidgetManager: createMarqueeWidgetManager,
+		updateSnapListWithMarqueeWidgets: updateSnapListWithMarqueeWidgets,
+		createAlertDetailsText: createAlertDetailsText,
 	};
 });
