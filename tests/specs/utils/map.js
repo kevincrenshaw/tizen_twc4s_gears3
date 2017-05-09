@@ -1,7 +1,4 @@
 define(['utils/map'], function(map) {
-    const MINUTE_IN_SECONDS = 60;
-    const HOUR_IN_SECONDS = MINUTE_IN_SECONDS * 60;
-    const DAY_IN_SECONDS = HOUR_IN_SECONDS * 24;
 
     describe('map utils', function() {
 
