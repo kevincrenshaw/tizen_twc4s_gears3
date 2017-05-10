@@ -7,12 +7,17 @@ define(['jquery'], function(jquery) {
     var $root;
     var $indicator;
 
+    var rotateStep;
+
     function create(config) {
         values = config.values || [0, 1, 2, 3, 4, 5, 6, 7];
         setValue(config.value || 0);
 
+        rotateStep = 360 / values.length;
+
         $root = $(config.root);
         $indicator = createMarkup();
+        setIndicatorSize();
 
         if(config.onChange) {
             onChangeCb = config.onChange;
@@ -28,7 +33,6 @@ define(['jquery'], function(jquery) {
         $root.addClass('bezel');
         var $indicator = $('<div class="bezel__indicator"></div>');
         $root.append($indicator).append([
-            '<div class="bezel__frame"></div>',
             '<div class="bezel__marker bezel__marker--top"></div>',
             '<div class="bezel__marker bezel__marker--bottom"></div>'
         ].join('\n'));
@@ -44,7 +48,7 @@ define(['jquery'], function(jquery) {
         document.removeEventListener('rotarydetent', onRotate);
     }
 
-    function onRotate(event) {console.log(event);
+    function onRotate(event) {
         var tmpIndex = valueIndex;
         if(event.detail.direction === 'CW') {
             tmpIndex++;
@@ -54,7 +58,7 @@ define(['jquery'], function(jquery) {
         } else {
             tmpIndex--;
             if(tmpIndex < 0) {
-                tmpIndex = values.length;
+                tmpIndex = values.length - 1;
             }
         }
 
@@ -77,8 +81,15 @@ define(['jquery'], function(jquery) {
         return values[valueIndex];
     }
 
+    function setIndicatorSize() {
+        $indicator.css(
+            'background-image',
+            $indicator.css('background-image').replace('90', 90 + rotateStep)
+        );
+    }
+
     function setIndicatorPosition(index) {
-        console.log('set indicator position', index);
+        $indicator.css('transform', 'rotate(' + (index * rotateStep) + 'deg)');
     }
 
     return {
