@@ -75,6 +75,8 @@ define(['jquery'], function(jquery) {
         if(valueIndex < 0) {
             throw new Error('values array must contain default value');
         }
+
+        setIndicatorPosition(valueIndex);
     }
 
     function getValue() {
