@@ -28,7 +28,7 @@ define([
 			district: dom.queryWrappedElement(page, '#alerts__header .header-block-middle #office-district'),
 
 			update: {
-				btn: $('#alerts__header #alerts__update'),
+				btn: $('#alerts__update'),
 			},
 
 			noalerts: {

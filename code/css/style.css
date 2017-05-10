@@ -117,7 +117,7 @@ body {
 
 .header-block-bottom {
 	position: absolute;
-	bottom: 12px;
+	bottom: -18px;
 	width: 100%;
 	text-align: center;
 }
