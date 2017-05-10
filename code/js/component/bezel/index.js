@@ -22,7 +22,6 @@ define(['jquery'], function(jquery) {
 
     function destroy() {
         unbindEvents();
-        console.log('destroyed');
     }
 
     function createMarkup() {
@@ -45,10 +44,25 @@ define(['jquery'], function(jquery) {
         document.removeEventListener('rotarydetent', onRotate);
     }
 
-    function onRotate(event) {
-        console.log(event);
+    function onRotate(event) {console.log(event);
+        var tmpIndex = valueIndex;
+        if(event.detail.direction === 'CW') {
+            tmpIndex++;
+            if(tmpIndex >= values.length) {
+                tmpIndex = 0;
+            }
+        } else {
+            tmpIndex--;
+            if(tmpIndex < 0) {
+                tmpIndex = values.length;
+            }
+        }
 
-        onChangeCb('dupa ' + event.detail.direction);
+        valueIndex = tmpIndex;
+
+        onChangeCb(values[valueIndex], valueIndex, event.detail.direction);
+
+        setIndicatorPosition(valueIndex);
     }
 
     function setValue(value) {
@@ -63,8 +77,8 @@ define(['jquery'], function(jquery) {
         return values[valueIndex];
     }
 
-    function setIndicatorPosition() {
-
+    function setIndicatorPosition(index) {
+        console.log('set indicator position', index);
     }
 
     return {

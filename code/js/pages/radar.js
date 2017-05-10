@@ -188,10 +188,10 @@ define([
 
 			bezel.create({
 				root: '.bezel-placeholder',
-				value: 0,
-				values: [0, 1, 2, 3],
-				onChange: function(value) {
-					console.log('onChangeCb: ' + value);
+				value: 'now',
+				values: ['now', '+1.5h', '+3h', '+4.5h', '-6h', '-4.5h', '-3h', '-1.5h'],
+				onChange: function(value, valueIndex, direction) {
+					console.log('onChange', value, valueIndex, direction);
 				}
 			});
 		},
