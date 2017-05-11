@@ -5,8 +5,9 @@ define([
 	'utils/storage',
 	'utils/const',
 	'utils/utils',
-	'utils/updater'
-], function($, storage, consts, utils, updater) {
+	'utils/updater',
+	'../component/bezel/index'
+], function($, storage, consts, utils, updater, bezel) {
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
@@ -184,6 +185,15 @@ define([
 			ui.moreBtn.on('click', function() {
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
+
+			bezel.create({
+				root: '.bezel-placeholder',
+				value: 'now',
+				values: ['now', '+1.5h', '+3h', '+4.5h', '-6h', '-4.5h', '-3h', '-1.5h'],
+				onChange: function(value, valueIndex, direction) {
+					console.log('onChange', value, valueIndex, direction);
+				}
+			});
 		},
 		
 		visibilitychange: function() {
@@ -194,6 +204,8 @@ define([
 		},
 
 		pagebeforehide: function(ev) {
+			bezel.destroy();
+
 			if(refreshViewId) {
 				clearTimeout(refreshViewId);
 				refreshViewId = null;
