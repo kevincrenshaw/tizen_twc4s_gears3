@@ -11,13 +11,12 @@ define(['jquery'], function(jquery) {
 
     function create(config) {
         values = config.values || [0, 1, 2, 3, 4, 5, 6, 7];
-        setValue(config.value || 0);
-
         rotateStep = 360 / values.length;
 
         $root = $(config.root);
         $indicator = createMarkup();
         setIndicatorSize();
+        setValue(config.value || 0);
 
         if(config.onChange) {
             onChangeCb = config.onChange;
