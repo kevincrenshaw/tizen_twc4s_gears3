@@ -40,7 +40,7 @@ define(['utils/storage', 'utils/utils', 'utils/dom', 'utils/updater', 'utils/con
 
 				time: function(time, ampm) {
 					dom.createSetInnerHtmlHandler(holder.time)(time);
-					dom.createSetInnerHtmlHandler(holder.ampm)(ampm);
+					dom.createSetInnerHtmlHandler(holder.ampm)(ampm.trim());
 				},
 			},
 			noalerts: {

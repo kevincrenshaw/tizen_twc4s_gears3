@@ -1,0 +1,68 @@
+.alerts__header {
+  height: 137px;
+  left: 0;
+  padding: 33px 0 0 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+
+  font-size: 28px;
+  line-height: 28px;
+  text-align: center;
+
+  background-color: rgba(0, 0, 0, .4);
+  color: #fff;
+}
+
+.alerts__date {
+  margin-bottom: 3px;
+  position: static;
+
+  font-size: 24px;
+  line-height: 24px;
+}
+
+.alerts__location {
+  display: block;
+  margin: 0;
+  position: static;
+  width: 100%;
+
+  line-height: 32px;
+}
+.alerts__date span:last-child {
+  margin-left: 2px;
+
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.alerts__update {
+  display: block;
+  height: 45px;
+  margin: 5px auto 0;
+  padding: 10px 0;
+  position: relative;
+  top: -10px;
+
+  font-size: 18px;
+  line-height: 26px;
+
+  background: none;
+  border: 0;
+  color: #fff;
+}
+.alerts__update input {
+  position: relative;
+  top: -1px;
+}
+
+.alerts__more {
+  height: 60px;
+  position: absolute;
+  right: 10px;
+  top: calc(50% - 30px);
+  width: 60px;
+
+  border-radius: 50%;
+}
