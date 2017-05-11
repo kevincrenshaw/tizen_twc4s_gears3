@@ -24,6 +24,7 @@
 
 .alerts__location {
   display: block;
+  height: 32px;
   margin: 0;
   position: static;
   width: 100%;
@@ -52,9 +53,25 @@
   border: 0;
   color: #fff;
 }
-.alerts__update input {
-  position: relative;
-  top: -1px;
+.alerts__update::before {
+  content: '';
+  display: inline-block;
+  height: 25px;
+  margin-right: 17px;
+  width: 25px;
+
+  vertical-align: top;
+
+  background: #009de8 url(../resources/gfx/refresh.png) 50% 50% / contain no-repeat;
+  border-radius: 50%;
+}
+.alerts__update:disabled::before {
+  -webkit-animation:spin 1s linear infinite;
+}
+@-webkit-keyframes spin {
+  100% {
+    -webkit-transform: rotate(-360deg);
+  }
 }
 
 .alerts__more {

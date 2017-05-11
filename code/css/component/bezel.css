@@ -1,0 +1,46 @@
+.bezel {
+    bottom: 0;
+    display: block;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+
+    pointer-events: none;
+}
+
+.bezel__indicator {
+    height: 100%;
+    position: absolute;
+    width: 100%;
+    z-index: 10;
+
+    background: #009de8;
+    border-radius: 50%;
+    background-image:
+        linear-gradient(90deg, transparent 50%, #000 50%),
+        linear-gradient(90deg, #000 50%, transparent 50%);
+    mask-image: radial-gradient(circle, transparent 169px, #000 170px);
+    -webkit-mask-image: radial-gradient(circle, transparent 169px, #000 170px);
+
+    transform: rotate(0deg);
+}
+
+.bezel__marker {
+    height: 20px;
+    left: 50%;
+    margin-left: -1px;
+    position: absolute;
+    width: 2px;
+    z-index: 20;
+
+    background: #000;
+}
+
+.bezel__marker--top {
+    top: 0;
+}
+
+.bezel__marker--bottom {
+    bottom: 0;
+}
