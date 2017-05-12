@@ -17,7 +17,7 @@ define(['jquery'], function(jquery) {
         bindEvents();
 
         if(config.snapshoots) {
-            createSnaps(config.snapshoots);
+            setSnapshoots(config.snapshoots);
         }
     }
 
