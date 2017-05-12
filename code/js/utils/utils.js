@@ -585,5 +585,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		createMarqueeWidgetManager: createMarqueeWidgetManager,
 		updateSnapListWithMarqueeWidgets: updateSnapListWithMarqueeWidgets,
 		createAlertDetailsText: createAlertDetailsText,
+		humanReadableTimeDiff: humanReadableTimeDiff,
 	};
 });

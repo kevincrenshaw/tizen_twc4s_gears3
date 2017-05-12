@@ -29,7 +29,7 @@ define([
 			header: $('#alerts__header'),
 			time: dom.queryWrappedElement(page, '#alerts__header .header-block-top #value'),
 			ampm: dom.queryWrappedElement(page, '#alerts__header .header-block-top #unit'),
-			district: dom.queryWrappedElement(page, '#alerts__header .header-block-middle #office-district'),
+			district: $('#alerts__header .header-block-middle #office-district'),
 
 			update: {
 				btn: $('#alerts__update'),
