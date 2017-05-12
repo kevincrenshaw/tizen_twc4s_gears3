@@ -297,7 +297,10 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 			//1: 'PERMISSION_DENIED',
 			//2: 'POSITION_UNAVAILABLE',
 			//3: 'TIMEOUT',
-			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: timeout });
+			navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+				timeout: timeout,
+				maximumAge: consts.COORDINATES_MAX_AGE_IN_MS,	//Allow to cache coordinates for COORDINATES_MAX_AGE_IN_MS [ms]
+			});
 		});
 	};
 

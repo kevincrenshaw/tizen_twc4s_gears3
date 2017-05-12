@@ -1,8 +1,6 @@
 /* jshint esversion: 6 */
 
-define([], function() {
-	
-	const separator = '/';
+define(['utils/const'], function(consts) {
 
 	/**
 	 * Search file in a current directory, subdirectories are ignored 
@@ -152,7 +150,7 @@ define([], function() {
 	const getFileNameFromPath = function(filePath) {
 		var result = filePath;
 		//trim directories
-		const posOfSlash = result.lastIndexOf(separator);
+		const posOfSlash = result.lastIndexOf(consts.SEPARATOR);
 		if(posOfSlash > -1) {
 			result = result.substring(posOfSlash + 1);
 		}
@@ -170,7 +168,7 @@ define([], function() {
 		
 		var result = ''; 
 		
-		const posOfSlash = filePath.lastIndexOf(separator);
+		const posOfSlash = filePath.lastIndexOf(consts.SEPARATOR);
 		if(posOfSlash > -1) {
 			result = filePath.substring(0, posOfSlash);
 		}
@@ -185,7 +183,7 @@ define([], function() {
 	 * 		full file path. 
 	 * */
 	const createFullPath = function() {
-		return Array.prototype.join.call(arguments, separator);
+		return Array.prototype.join.call(arguments, consts.SEPARATOR);
 	};
 	
 	return {

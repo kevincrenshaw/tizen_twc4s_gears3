@@ -41,10 +41,10 @@ define([
 			'../resources/tmpSnapshoots/map+1.5.jpg',
 			'../resources/tmpSnapshoots/map+3.jpg',
 			'../resources/tmpSnapshoots/map+4.5.jpg',
-			'../resources/tmpSnapshoots/map-6.jpg',
-			'../resources/tmpSnapshoots/map-4.5.jpg',
-			'../resources/tmpSnapshoots/map-3.jpg',
-			'../resources/tmpSnapshoots/map-1.5.jpg'
+			storage.pastMap[3].get(),
+			storage.pastMap[2].get(),
+			storage.pastMap[1].get(),
+			storage.pastMap[0].get(),
 		]);
 
 		const observation = data.weather.observation;

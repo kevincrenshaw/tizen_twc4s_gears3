@@ -432,6 +432,12 @@ define(['utils/fsutils'], function(fsutils) {
 		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
 		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)
 		ampm: createSimpleStorage('ampm', ''),
+		pastMap: [
+			createSimpleStorage('pastMap0', ''),
+			createSimpleStorage('pastMap1', ''),
+			createSimpleStorage('pastMap2', ''),
+			createSimpleStorage('pastMap3', ''),
+		]
 	};
 	
 	return storage;

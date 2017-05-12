@@ -1,7 +1,8 @@
 /* jshint esversion: 6 */
 
-define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'rx'], function(utils, consts, storage, map, network, rx) {
-	var subscription;
+define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'utils/fsutils', 'rx'], function(utils, consts, storage, map, network, fsutils, rx) {
+	var subscription1;
+	var subscription2;
 
 	//Flag to state wheather hard update is started. It may happen that hard update will be stopped by putting app in
 	//background. Then when app wokes up soft update will not trigger hard update if there been successful update not
@@ -18,13 +19,18 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 	 *		True if data download started, false if there is already update in progress.
 	 */
 	const tryGetNewData = function() {
-		if (subscription) {
+		tryGetNewMapAlertsWeatherData();
+		tryGetPastMapData();
+	}
+
+	const tryGetNewMapAlertsWeatherData = function() {
+		if (subscription1) {
 			return false;
 		}
 
 		console.log('getting current position...');
 
-		subscription = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
+		subscription1 = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
 			return [pos.coords.latitude, pos.coords.longitude];
 		})
 		.flatMap(function(coords) {
@@ -44,7 +50,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				rx.Observable.just(alertData));
 		})
 		.finally(function() {
-			subscription = null;
+			subscription1 = null;
 
 			if (updateCompleteHandler) {
 				try {
@@ -79,6 +85,12 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		return true;
 	};
 
+	const getMapLod = function() {
+		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
+		const distance = parseInt(storage.settings.units.distance.get());
+		return map.getMapLod(mapZoom, distance);
+	};
+
 	/*
 	 * Downloads weather object for given coords.
 	 * 
@@ -88,12 +100,9 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 	const getWeatherObject = function(coords) {
 		const latitude = coords[0];
 		const longitude = coords[1];
+		const lod = getMapLod();
 
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());
-		const lod = map.getMapLod(mapZoom, distance);
-
-		console.log('weather data: mapZoom=' + mapZoom + ', distance=' + distance + ', latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
+		console.log('weather data: latitude=' + latitude + ', longitude=' + longitude + ', lod=' + lod);
 
 		const weatherUrl = getWeatherUrl(latitude, longitude);
 		console.log('weatherUrl=' + weatherUrl);
@@ -178,6 +187,10 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			apiKey: consts.API_KEY,
 		};
 
+		if (options.ts !== undefined) {
+			params.ts = options.ts;
+		}
+
 		return utils.createUri(consts.MAPS_URL, params);
 	};
 
@@ -193,10 +206,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 	const getMap = function(coords) {
 		const latitude = coords[0];
 		const longitude = coords[1];
-
-		const mapZoom = parseInt(storage.settings.units.mapzoom.get());
-		const distance = parseInt(storage.settings.units.distance.get());		
-		const lod = map.getMapLod(mapZoom, distance);
+		const lod = getMapLod();
 		
 		const mapImgUrl = getMapImgUrl(latitude, longitude, lod);
 		console.log('getMap: lat=' + latitude + ', lon=' + longitude + ', lod=' + lod + ', mapImgUrl=' + mapImgUrl);
@@ -272,6 +282,123 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		}
 	};
 
+	//Never fails, in case of problems errors are redirected to console.warn
+	const tryRemoveFileRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function() {
+				observer.onNext(path)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				console.warn('tryRemoveFileRx(' + path + '): ' + JSON.stringify(err));
+				observer.onCompleted();
+			};
+
+			fsutils.removeFile(path, onSuccess, onError);
+		})
+	};
+
+	//Reactive wrapper for tizen.filesystem.resolve 
+	const fsRsolveRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function(file) {
+				observer.onNext(file)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				observer.onError(err);
+			};
+
+			tizen.filesystem.resolve(path, onSuccess, onError);
+		})
+	};
+
+	const getTimestampUrl = function() {
+		return utils.createUri(consts.TIMESTAMP_URL, { apiKey: consts.API_KEY });
+	};
+
+	const tryGetPastMapData = function() {
+		if (subscription2) {
+			return false;
+		}
+
+		const locationStream = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
+			return [pos.coords.latitude, pos.coords.longitude];
+		});
+
+		const timestampUrl = getTimestampUrl();
+		const timestampStream = network.getResourceByURLRx(timestampUrl)
+			.map(function(result) {
+				return result.data.seriesInfo.radar.series;
+			})
+			.flatMap(function(seriesArr) {
+				return rx.Observable.fromArray(seriesArr)
+			})
+			.map(function(result) {
+				return result.ts;
+			})
+			.skip(11)
+			.filter(function(timestamp, index) {
+				return index % 12 === 0;
+			})
+			.take(storage.pastMap.length);
+
+		subscription2 =
+			rx.Observable.zip(locationStream.repeat(), timestampStream)
+			.flatMap(function(next, index) {
+				const coords = next[0];
+				const timestamp = next[1];
+
+				const latitude = coords[0];
+				const longitude = coords[1];
+				const lod = getMapLod();
+
+				const mapUrl = getMapImgUrl(latitude, longitude, lod, { ts: timestamp, product:'radar' });
+
+				const epoch = utils.getNowAsEpochInMiliseconds();
+				const fileName = ['pastMap', index, timestamp, epoch, utils.guid()].join('_') + '.jpg';
+
+				console.log('tryGetPastMapData: index=' + index + ', mapUrl="' + mapUrl + '"');
+				return network.downloadFileRx(mapUrl, fileName);
+			})
+			.flatMap(fsRsolveRx)
+			.map(function(file) {
+				return file.toURI();
+			})
+			.flatMap(function(downloadedFilePath, index) {
+				const store = storage.pastMap[index];
+				const oldFile = store.get();
+
+				console.log('tryGetPastMapData: index=' + index + ', downloadedFilePath="' + downloadedFilePath + '", oldFile="' + oldFile + '"');
+
+				if (oldFile) {
+					return tryRemoveFileRx(oldFile)
+						.defaultIfEmpty()
+						.map(function() {
+							return [index, downloadedFilePath];
+						});
+				} else {
+					return rx.Observable.just([index, downloadedFilePath]);
+				}
+			})
+			.finally(function() {
+				subscription2 = null;
+			})
+			.subscribe(function(next) {
+				const index = next[0];
+				const downloadedFilePath = next[1];
+
+				const store = storage.pastMap[index];
+				store.set(downloadedFilePath);
+
+				console.log('tryGetPastMapData; new data received! index=' + index + ', file="' + downloadedFilePath + '"');
+			}, function(err) {
+				console.error('tryGetPastMapData error: ' + JSON.stringify(err));
+			});
+	};
+
 	return {
 		/*
 		 * Start data (weather, alerts, map) update process if not already started.
@@ -280,7 +407,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 * 		Return true if update process started, false otherwise (update proces already running)
 		 */
 		updateInProgress: function() {
-			if (subscription) {
+			if (subscription1) {
 				return true;
 			}
 
@@ -325,9 +452,14 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		 * Stops update proces (if any). May be safely called multiple times.
 		 */
 		stopUpdate: function() {
-			if (subscription) {
-				subscription.dispose();
-				subscription = null;
+			if (subscription1) {
+				subscription1.dispose();
+				subscription1 = null;
+			}
+
+			if (subscription2) {
+				subscription2.dispose();
+				subscription2 = null;
 			}
 		},
 
