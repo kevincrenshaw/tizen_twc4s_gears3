@@ -1,4 +1,7 @@
-define(['jquery'], function(jquery) {
+define([
+'jquery',
+'../bezel/index'
+], function(jquery, bezel) {
     var isPlaying;
 
     var $root, $button;
@@ -15,6 +18,17 @@ define(['jquery'], function(jquery) {
         $button = $(config.button);
         $noDataImage = $root.find('img');
 
+        bezel.create({
+            root: '.bezel-placeholder',
+            // value: 'now',
+            // values: ['now', '+1.5h', '+3h', '+4.5h', '-6h', '-4.5h', '-3h', '-1.5h'],
+            onChange: function(value, valueIndex, direction) {
+                console.log('onChange', value, valueIndex, direction);
+                cancel();
+                run(valueIndex);
+            }
+        });
+
         bindEvents();
 
         if(config.snapshoots) {
@@ -23,6 +37,8 @@ define(['jquery'], function(jquery) {
     }
 
     function destroy() {
+        bezel.destroy();
+
         stop();
         unbindEvents();
 
@@ -51,11 +67,18 @@ define(['jquery'], function(jquery) {
         $root.append($snaps);
     }
 
+    function cancel() {
+        if(animTimeout) {
+            clearTimeout(animTimeout);
+            animTimeout = null;
+        }
+    }
+
     function run(index) {
         if(index >= $snaps.length) {
             index = 0;
         }
-
+        bezel.setValue(index);
         $snaps[activeIndex].removeClass('is-active');
         $snaps[index].addClass('is-active');
         $snaps[index].fadeIn(
@@ -76,9 +99,7 @@ define(['jquery'], function(jquery) {
     function reset() {
         isPlaying = true;
 
-        if(animTimeout) {
-            clearTimeout(animTimeout);
-        }
+        cancel();
 
         $snaps[activeIndex].hide();
 
@@ -99,9 +120,7 @@ define(['jquery'], function(jquery) {
     function play() {
         isPlaying = true;
 
-        if(animTimeout) {
-            clearTimeout(animTimeout);
-        }
+        cancel();
 
         run(activeIndex);
     }
@@ -109,9 +128,7 @@ define(['jquery'], function(jquery) {
     function stop() {
         isPlaying = false;
 
-        if(animTimeout) {
-            clearTimeout(animTimeout);
-        }
+        cancel();
     }
 
     function setSnapshoots(snapshoots) {
