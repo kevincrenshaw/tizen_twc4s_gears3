@@ -24,7 +24,6 @@ http://www.tysoncadenhead.com/blog/dependency-injection-with-squire-and-sinon
 
 # Jenkins integration
 Karma config used by jenkins - **karma-jenkins.conf.js**
-Run script - **testScripts.sh**
 
 More info:
 https://karma-runner.github.io/1.0/plus/jenkins.html
