@@ -43,16 +43,6 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-        './tests/specs/js/**/*.js': ['eslint'],
-        './code/js/**/*.js': ['eslint']
-    },
-
-
-    eslint: {
-      stopOnError: true,
-      engine: {
-        configFile: './.eslintrc'
-      }
     },
 
 
@@ -78,7 +68,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_WARN,
+    logLevel: config.LOG_DEBUG,
 
 
     // enable / disable watching file and executing tests whenever any file changes
