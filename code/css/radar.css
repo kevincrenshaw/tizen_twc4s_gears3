@@ -103,6 +103,26 @@
   z-index: 20;
 }
 
+.radar__button {
+  display: none;
+  height: 70px;
+  left: calc(50% - 35px);
+  position: absolute;
+  top: calc(50% - 35px);
+  width: 70px;
+  z-index: 100;
+
+  background: #009de8 50% 50% no-repeat;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.radar__button--play {
+  background-image: url('../resources/gfx/play-icon.svg');
+}
+.radar__button--pause {
+  background-image: url('../resources/gfx/pause-icon.svg');
+}
+
 .radar__more {
   height: 60px;
   position: absolute;

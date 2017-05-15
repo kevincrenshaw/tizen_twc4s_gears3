@@ -132,6 +132,7 @@ define([
 
 			mapAnimation.create({
 				root: '.radar__map',
+				button: '.radar__button',
 				autoplay: true
 			});
 
@@ -174,7 +175,7 @@ define([
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
-				mapAnimation.restart();
+				mapAnimation.reset();
 			}
 		},
 

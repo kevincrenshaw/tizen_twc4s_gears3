@@ -1,7 +1,7 @@
 define(['jquery'], function(jquery) {
     var isPlaying;
 
-    var $root;
+    var $root, $button;
     var $snaps, $noDataImage;
 
     var activeIndex, delay, duration, animTimeout, autoplay;
@@ -12,6 +12,7 @@ define(['jquery'], function(jquery) {
         autoplay = config.autoplay || false;
 
         $root = $(config.root);
+        $button = $(config.button);
         $noDataImage = $root.find('img');
 
         bindEvents();
@@ -30,11 +31,11 @@ define(['jquery'], function(jquery) {
     }
 
     function bindEvents() {
-
+        $root.on('click', toggle);
     }
 
     function unbindEvents() {
-
+        $root.off('click', toggle);
     }
 
     function createSnaps(snapshoots) {
@@ -72,15 +73,27 @@ define(['jquery'], function(jquery) {
         }
     }
 
-    function restart() {
+    function reset() {
         isPlaying = true;
 
         if(animTimeout) {
             clearTimeout(animTimeout);
         }
-        
+
         $snaps[activeIndex].hide();
-        run(0);
+
+        activeIndex = 0;
+        run(activeIndex);
+    }
+
+    function toggle() {
+        isPlaying ? stop() : play();
+
+        $button.stop()
+            .toggleClass('radar__button--play', isPlaying)
+            .toggleClass('radar__button--pause', !isPlaying)
+            .fadeIn(50)
+            .fadeOut(500);
     }
 
     function play() {
@@ -120,6 +133,6 @@ define(['jquery'], function(jquery) {
         setSnapshoots: setSnapshoots,
         play: play,
         stop: stop,
-        restart: restart
+        reset: reset
     }
 });
