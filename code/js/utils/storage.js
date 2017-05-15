@@ -437,7 +437,12 @@ define(['utils/fsutils'], function(fsutils) {
 			createSimpleStorage('pastMap1', ''),
 			createSimpleStorage('pastMap2', ''),
 			createSimpleStorage('pastMap3', ''),
-		]
+		],
+		futureMap: [
+			createSimpleStorage('futureMap0', ''),
+			createSimpleStorage('futureMap1', ''),
+			createSimpleStorage('futureMap2', ''),
+		],
 	};
 	
 	return storage;

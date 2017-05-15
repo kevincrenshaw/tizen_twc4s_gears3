@@ -38,9 +38,9 @@ define([
 
 		mapAnimation.setSnapshoots([
 			storage.map.get(),
-			'../resources/tmpSnapshoots/map+1.5.jpg',
-			'../resources/tmpSnapshoots/map+3.jpg',
-			'../resources/tmpSnapshoots/map+4.5.jpg',
+			storage.futureMap[0].get(),
+			storage.futureMap[1].get(),
+			storage.futureMap[2].get(),
 			storage.pastMap[3].get(),
 			storage.pastMap[2].get(),
 			storage.pastMap[1].get(),
