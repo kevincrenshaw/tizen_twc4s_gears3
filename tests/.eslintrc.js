@@ -3,6 +3,5 @@ module.exports = {
         "ecmaVersion": 6
     },
     "rules": {
-        "radix": 2
     }
 };
