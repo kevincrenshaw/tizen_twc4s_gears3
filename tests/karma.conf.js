@@ -43,16 +43,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-        './tests/specs/js/**/*.js': ['eslint'],
-        './code/js/**/*.js': ['eslint', 'coverage']
-    },
-
-
-    eslint: {
-      stopOnError: true,
-      engine: {
-        configFile: './.eslintrc'
-      }
+        './code/js/**/*.js': ['coverage']
     },
 
 
