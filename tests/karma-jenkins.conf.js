@@ -54,6 +54,7 @@ module.exports = function(config) {
 
 
     coverageReporter: {
+        includeAllSources: true,
         dir: 'tests/report/coverage',
         reporters: [
             { type: 'cobertura', subdir: '.', file: 'cobertura.xml' }
