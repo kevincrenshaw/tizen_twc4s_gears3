@@ -12,7 +12,7 @@ define([
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
-parseInt(10);
+
 	function getUI() {
 		return {
 			header: $('.radar__header'),
