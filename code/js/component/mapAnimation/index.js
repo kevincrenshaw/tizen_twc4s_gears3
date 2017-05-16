@@ -1,10 +1,11 @@
 define(['jquery'], function(jquery) {
-    var isPlaying;
+    var isPlaying, isDataLoaded;
 
     var $root, $button;
     var $snaps, $noDataImage;
 
-    var activeIndex, delay, duration, animTimeout, autoplay;
+    var activeIndex, autoplay;
+    var delay, duration, animTimeout;
 
     function create(config) {
         delay = config.delay || 1000;
@@ -92,8 +93,8 @@ define(['jquery'], function(jquery) {
         $button.stop()
             .toggleClass('radar__button--play', isPlaying)
             .toggleClass('radar__button--pause', !isPlaying)
-            .fadeIn(50)
-            .fadeOut(500);
+            .fadeIn(150)
+            .fadeOut(600);
     }
 
     function play() {

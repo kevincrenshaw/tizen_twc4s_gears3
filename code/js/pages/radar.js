@@ -133,7 +133,8 @@ define([
 			mapAnimation.create({
 				root: '.radar__map',
 				button: '.radar__button',
-				autoplay: true
+				// navigating from widget should trigger autoplay
+				autoplay: utils.getAppControl().operation === 'navigate'
 			});
 
 			storage.data.setChangeListener(loadData);
