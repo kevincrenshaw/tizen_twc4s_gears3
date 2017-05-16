@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/const'], function(consts) {
+define(['rx', 'utils/const'], function(rx, consts) {
 
 	/**
 	 * Search file in a current directory, subdirectories are ignored 
@@ -14,6 +14,22 @@ define(['utils/const'], function(consts) {
 	 * */
 	const hasSuchFile = function(filePath, onSuccess, onError) {
 		tizen.filesystem.resolve(filePath, onSuccess, onError);
+	};
+
+	//Reactive wrapper for tizen.filesystem.resolve 
+	const hasSuchFileRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function(file) {
+				observer.onNext(file)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				observer.onError(err);
+			};
+
+			tizen.filesystem.resolve(path, onSuccess, onError);
+		})
 	};
 
 	/**
@@ -185,6 +201,23 @@ define(['utils/const'], function(consts) {
 	const createFullPath = function() {
 		return Array.prototype.join.call(arguments, consts.SEPARATOR);
 	};
+
+	//Never fails, in case of problems errors are redirected to console.warn
+	const tryRemoveFileRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function() {
+				observer.onNext(path)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				console.warn('tryRemoveFileRx(' + path + '): ' + JSON.stringify(err));
+				observer.onCompleted();
+			};
+
+			removeFile(path, onSuccess, onError);
+		})
+	};
 	
 	return {
 		hasSuchFile: hasSuchFile,
@@ -195,5 +228,7 @@ define(['utils/const'], function(consts) {
 		createFullPath: createFullPath,
 		getFileNameFromPath: getFileNameFromPath,
 		getDirectoryNameFromPath: getDirectoryNameFromPath,
+		hasSuchFileRx: hasSuchFileRx,
+		tryRemoveFileRx: tryRemoveFileRx,
 	};
 });

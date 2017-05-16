@@ -296,39 +296,6 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		}
 	};
 
-	//Never fails, in case of problems errors are redirected to console.warn
-	const tryRemoveFileRx = function(path) {
-		return rx.Observable.create(function(observer) {
-			const onSuccess = function() {
-				observer.onNext(path)
-				observer.onCompleted();
-			};
-
-			const onError = function(err) {
-				console.warn('tryRemoveFileRx(' + path + '): ' + JSON.stringify(err));
-				observer.onCompleted();
-			};
-
-			fsutils.removeFile(path, onSuccess, onError);
-		})
-	};
-
-	//Reactive wrapper for tizen.filesystem.resolve 
-	const fsRsolveRx = function(path) {
-		return rx.Observable.create(function(observer) {
-			const onSuccess = function(file) {
-				observer.onNext(file)
-				observer.onCompleted();
-			};
-
-			const onError = function(err) {
-				observer.onError(err);
-			};
-
-			tizen.filesystem.resolve(path, onSuccess, onError);
-		})
-	};
-
 	const getTimestampUrl = function() {
 		return utils.createUri(consts.TIMESTAMP_URL, { apiKey: consts.API_KEY });
 	};
@@ -386,7 +353,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', fts=' + futureTimestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return network.downloadFileRx(mapUrl, fileName);
 			})
-			.flatMap(fsRsolveRx)
+			.flatMap(fsutils.hasSuchFileRx)
 			.map(function(file) {
 				return file.toURI();
 			})
@@ -397,7 +364,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				console.log('tryGetFutureMapData: index=' + index + ', downloadedFilePath="' + downloadedFilePath + '", oldFile="' + oldFile + '"');
 
 				if (oldFile) {
-					return tryRemoveFileRx(oldFile)
+					return fsutils.tryRemoveFileRx(oldFile)
 						.defaultIfEmpty()
 						.map(function() {
 							return [index, downloadedFilePath];
@@ -464,7 +431,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				console.log('tryGetPastMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return network.downloadFileRx(mapUrl, fileName);
 			})
-			.flatMap(fsRsolveRx)
+			.flatMap(fsutils.hasSuchFileRx)
 			.map(function(file) {
 				return file.toURI();
 			})
@@ -475,7 +442,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				console.log('tryGetPastMapData: index=' + index + ', downloadedFilePath="' + downloadedFilePath + '", oldFile="' + oldFile + '"');
 
 				if (oldFile) {
-					return tryRemoveFileRx(oldFile)
+					return fsutils.tryRemoveFileRx(oldFile)
 						.defaultIfEmpty()
 						.map(function() {
 							return [index, downloadedFilePath];
