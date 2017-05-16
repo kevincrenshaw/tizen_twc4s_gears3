@@ -32,13 +32,21 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			});
 
 		tryGetNewMapAlertsWeatherData(positionSubject);
-
-		if (!subscription2 || !subscription3) {
-			const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
-
-			tryGetPastMapData(positionSubject, timestampSubject);
-			tryGetFutureMapData(positionSubject, timestampSubject);
+		
+		if (subscription2) {
+			subscription2.dispose();
+			subscription2 = null;
 		}
+
+		if (subscription3) {
+			subscription3.dispose();
+			subscription3 = null;
+		}
+
+		const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+
+		tryGetPastMapData(positionSubject, timestampSubject);
+		tryGetFutureMapData(positionSubject, timestampSubject);
 	}
 
 	const tryGetNewMapAlertsWeatherData = function(currentPositionObservable) {
@@ -376,6 +384,20 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			.finally(function() {
 				subscription3 = null;
 			})
+			.retryWhen(function(errors) {
+				return errors
+					.scan(function(errorCount, err) {
+						console.warn('Future map download attempt ' + (errorCount+1) + " failed with error: " + JSON.stringify(err));
+						if (errorCount >= consts.NBR_OF_DOWNLOAD_ERRORS_LEADING_TO_RETRY) {
+							throw err;
+						}
+						return errorCount + 1;
+					}, 0)
+					.flatMap(function(nbrOfErrorsCounter) {
+						console.log('Will wait ' + consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES + ' second(s) before retry');
+						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
+					});
+			})
 			.subscribe(function(next) {
 				const index = next[0];
 				const downloadedFilePath = next[1];
@@ -454,6 +476,20 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			.finally(function() {
 				subscription2 = null;
 			})
+			.retryWhen(function(errors) {
+				return errors
+					.scan(function(errorCount, err) {
+						console.warn('Past map download attempt ' + (errorCount+1) + " failed with error: " + JSON.stringify(err));
+						if (errorCount >= consts.NBR_OF_DOWNLOAD_ERRORS_LEADING_TO_RETRY) {
+							throw err;
+						}
+						return errorCount + 1;
+					}, 0)
+					.flatMap(function(nbrOfErrorsCounter) {
+						console.log('Will wait ' + consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES + ' second(s) before retry');
+						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
+					});
+			})
 			.subscribe(function(next) {
 				const index = next[0];
 				const downloadedFilePath = next[1];
@@ -528,6 +564,11 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			if (subscription2) {
 				subscription2.dispose();
 				subscription2 = null;
+			}
+
+			if (subscription3) {
+				subscription3.dispose();
+				subscription3 = null;
 			}
 		},
 

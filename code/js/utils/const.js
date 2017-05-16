@@ -40,5 +40,7 @@ define([], function() {
 		ALERT_DEEPLINK: 'android-app://com.weather.radar/radar/gpsAlerts',
 		SEPARATOR: SEPARATOR,
 		COORDINATES_MAX_AGE_IN_MS: 5 * ONE_SEC_IN_MS,
+		NBR_OF_DOWNLOAD_ERRORS_LEADING_TO_RETRY: 2,
+		NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES: 5,
 	};
 });
