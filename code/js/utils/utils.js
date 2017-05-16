@@ -369,6 +369,44 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		}
 	};
 
+	const diffCategoryToLocalizationKey = {
+		1: 'NOW',
+		2: 'MINUTES_AGO',
+		3: 'HOURS_AGO',
+		4: 'DAY_AGO',
+		5: 'DAYS_AGO',
+	};
+
+	const humanReadableTimeDiff = function(from, to) {
+		const diff = from - to;
+		const tier = getCategoryForTimeDiff(diff);
+		const tierKey = diffCategoryToLocalizationKey[tier];
+
+		if(!tierKey) {
+			console.warn('Diff category "' + tier + '" cannot be mapped to localization key');
+			return '';
+		}
+
+		const text = TIZEN_L10N[tierKey];
+		if(!text) {
+			console.warn('Key "' + tierKey + '" not available in localization');
+			return '';
+		}
+
+		// TODO: fix that dirty hack
+		// initially, before data is retrieved from server, last update time is uknown
+		// the storage returns 0 though, so all calculations are correct,
+		// but a strange value would be returnd, i.e. '123456 days ago'
+		if(to === 0) {
+			return '- ' + text;
+		}
+
+		if(tier === 1) {
+			return text;
+		}
+		return formatTimeDiffValue(diff, tier) + ' ' + text;
+	}
+
 	return {
 		tryModifyElement: tryModifyElement,
 		modifyElement: modifyElement,
@@ -390,5 +428,6 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 		convertTextToObjectOrUndefined: convertTextToObjectOrUndefined,
 		openDeepLinkOnPhone: openDeepLinkOnPhone,
 		saveIfSystemUsesAMPMTimeFormat: saveIfSystemUsesAMPMTimeFormat,
+		humanReadableTimeDiff: humanReadableTimeDiff,
 	};
 });
