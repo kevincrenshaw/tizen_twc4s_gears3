@@ -6,19 +6,19 @@ define([
 	'utils/const',
 	'utils/utils',
 	'utils/updater',
-	'../component/bezel/index'
-], function($, storage, consts, utils, updater, bezel) {
+	'../component/bezel/index',
+	'../component/mapAnimation/index'
+], function($, storage, consts, utils, updater, bezel, mapAnimation) {
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
-parseInt(10);
+
 	function getUI() {
 		return {
 			header: $('.radar__header'),
 			date: $('.radar__date'),
 			temp: $('.radar__temp'),
 			updateBtn: $('.radar__update'),
-			map: $('.radar__map'),
 			moreBtn: $('.radar__more'),
 			alertsBtn: $('.radar__alerts'),
 			alertsCounter: $('.radar__badge')
@@ -36,7 +36,16 @@ parseInt(10);
 
 		if(currentTimeOnly) { return; }
 
-		viewData.map = storage.map.get();
+		mapAnimation.setSnapshoots([
+			storage.map.get(),
+			'../resources/tmpSnapshoots/map+1.5.jpg',
+			'../resources/tmpSnapshoots/map+3.jpg',
+			'../resources/tmpSnapshoots/map+4.5.jpg',
+			'../resources/tmpSnapshoots/map-6.jpg',
+			'../resources/tmpSnapshoots/map-4.5.jpg',
+			'../resources/tmpSnapshoots/map-3.jpg',
+			'../resources/tmpSnapshoots/map-1.5.jpg'
+		]);
 
 		const observation = data.weather.observation;
 		viewData.tempOrig = observation.metric.temp;
@@ -69,8 +78,6 @@ parseInt(10);
 		);
 		
 		ui.updateBtn.prop('disabled', false);
-
-		ui.map.attr('src', data.map);
 
 		const alertsCounter = 
 			data.alertsCounter > consts.RADAR_ALERTS_MAX_NBR ?
@@ -123,6 +130,11 @@ parseInt(10);
 		pagebeforeshow: function(ev) {
 			ui = getUI();
 
+			mapAnimation.create({
+				root: '.radar__map',
+				autoplay: true
+			});
+
 			storage.data.setChangeListener(loadData);
 			loadData();
 			updater.softUpdate();
@@ -162,11 +174,13 @@ parseInt(10);
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
+				mapAnimation.restart();
 			}
 		},
 
 		pagebeforehide: function(ev) {
 			bezel.destroy();
+			mapAnimation.destroy();
 
 			if(refreshViewId) {
 				clearTimeout(refreshViewId);
