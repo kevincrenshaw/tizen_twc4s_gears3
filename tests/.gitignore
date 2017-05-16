@@ -1,0 +1,7 @@
+.tmp
+node_modules
+temp
+tmp
+coverage
+test-results.xml
+report
