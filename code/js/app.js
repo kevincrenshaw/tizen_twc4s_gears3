@@ -15,7 +15,6 @@ const modules = [
 	'utils/storage',
 	'utils/network',
 	'utils/back',
-	'utils/lowBatteryCheck',
 	'utils/dom',
 	'data/buildInfo',
 	'pages/main',

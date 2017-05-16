@@ -90,8 +90,20 @@
 
 .radar__map {
   display: block;  
+  height: 100vh;
+  position: relative;
+  width: 100vw;
+}
+.radar__map img {
+  display: block;
   height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
   width: 100%;
+}
+.radar__map .is-active {
+  z-index: 20;
 }
 
 .radar__more {
@@ -100,6 +112,7 @@
   right: 10px;
   top: calc(50% - 30px);
   width: 60px;
+  z-index: 100;
 
   text-align: center;
 
