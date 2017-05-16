@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['rx', 'utils/const'], function(Rx, consts) {
+define(['rx', 'utils/const'], function(rx, consts) {
 	/*
 	 * Converts temperature into textual representation.
 	 * Parameters:
@@ -124,7 +124,7 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 	
 		//Handle clicks on list view
 		modifyElement(page, 'ul.ui-listview', function(listView) {
-			Rx.Observable.fromEvent(listView, 'click')
+			rx.Observable.fromEvent(listView, 'click')
 				.map(function(ev) { return ev.target; })
 				.filter(function(el) { return function(el) { return el.name === radioButtonElementName; }; })
 				.map(function(el) { return el.value; })
@@ -279,29 +279,32 @@ define(['rx', 'utils/const'], function(Rx, consts) {
 
 	/**
 	 * Get current position
+	 * Thanks to subject the position is obtained once and then shared between observers.
 	 * */
 	const getCurrentPositionRx = function(timeout) {
-		return Rx.Observable.create(function(observer) {
-			const onSuccess = function(pos) {
-				observer.onNext(pos);
-				observer.onCompleted();
-			};
+		const subject = new rx.AsyncSubject();
 
-			//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
-			//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
-			const onError = function(err) {
-				observer.onError(err);
-			};
+		const onSuccess = function(pos) {
+			subject.onNext(pos);
+			subject.onCompleted();
+		};
 
-			//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
-			//1: 'PERMISSION_DENIED',
-			//2: 'POSITION_UNAVAILABLE',
-			//3: 'TIMEOUT',
-			navigator.geolocation.getCurrentPosition(onSuccess, onError, {
-				timeout: timeout,
-				maximumAge: consts.COORDINATES_MAX_AGE_IN_MS,	//Allow to cache coordinates for COORDINATES_MAX_AGE_IN_MS [ms]
-			});
+		//Seems navigator.geolocation.getCurrentPosition replaces "this" for 2nd parameter. observer.onError relay
+		//on "this" so it throws when "this" is replaced. Use wrapper to avoid this.
+		const onError = function(err) {
+			subject.onError(err);
+		};
+
+		//https://developer.mozilla.org/en-US/docs/Web/API/PositionError
+		//1: 'PERMISSION_DENIED',
+		//2: 'POSITION_UNAVAILABLE',
+		//3: 'TIMEOUT',
+		navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+			timeout: timeout,
+			maximumAge: consts.COORDINATES_MAX_AGE_IN_MS,	//Allow to cache coordinates for COORDINATES_MAX_AGE_IN_MS [ms]
 		});
+
+		return subject;
 	};
 
 	/**

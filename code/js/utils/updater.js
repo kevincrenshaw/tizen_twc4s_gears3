@@ -3,6 +3,7 @@
 define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/network', 'utils/fsutils', 'rx'], function(utils, consts, storage, map, network, fsutils, rx) {
 	var subscription1;
 	var subscription2;
+	var subscription3;
 
 	//Flag to state wheather hard update is started. It may happen that hard update will be stopped by putting app in
 	//background. Then when app wokes up soft update will not trigger hard update if there been successful update not
@@ -19,69 +20,81 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 	 *		True if data download started, false if there is already update in progress.
 	 */
 	const tryGetNewData = function() {
-		tryGetNewMapAlertsWeatherData();
-		tryGetPastMapData();
-		tryGetFutureMapData();
+		if (subscription1) {
+			return false;
+		}
+		
+		console.log('getting current position...');
+
+		const positionSubject = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
+			.map(function(pos) {
+				return [pos.coords.latitude, pos.coords.longitude];
+			});
+
+		tryGetNewMapAlertsWeatherData(positionSubject);
+
+		if (!subscription2 || !subscription3) {
+			const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+
+			tryGetPastMapData(positionSubject, timestampSubject);
+			tryGetFutureMapData(positionSubject, timestampSubject);
+		}
 	}
 
-	const tryGetNewMapAlertsWeatherData = function() {
+	const tryGetNewMapAlertsWeatherData = function(currentPositionObservable) {
 		if (subscription1) {
 			return false;
 		}
 
-		console.log('getting current position...');
+		subscription1 = currentPositionObservable
+			.flatMap(function(coords) {
+				return rx.Observable.zip(
+					getWeatherObject(coords),
+					getAlertObject(coords),
+					rx.Observable.just(coords));
+			})
+			.flatMap(function(data) {
+				const weatherData = data[0];
+				const alertData = data[1];
+				const coords = data[2];
 
-		subscription1 = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
-			return [pos.coords.latitude, pos.coords.longitude];
-		})
-		.flatMap(function(coords) {
-			return rx.Observable.zip(
-				getWeatherObject(coords),
-				getAlertObject(coords),
-				rx.Observable.just(coords));
-		})
-		.flatMap(function(data) {
-			const weatherData = data[0];
-			const alertData = data[1];
-			const coords = data[2];
+				return rx.Observable.zip(
+					getMap(coords),
+					rx.Observable.just(weatherData),
+					rx.Observable.just(alertData));
+			})
+			.finally(function() {
+				subscription1 = null;
 
-			return rx.Observable.zip(
-				getMap(coords),
-				rx.Observable.just(weatherData),
-				rx.Observable.just(alertData));
-		})
-		.finally(function() {
-			subscription1 = null;
-
-			if (updateCompleteHandler) {
-				try {
-					updateCompleteHandler();
-				} catch (err) {
-					console.error('Data download update complete handler error: ' + JSON.stringify(err));
+				if (updateCompleteHandler) {
+					try {
+						updateCompleteHandler();
+					} catch (err) {
+						console.error('Data download update complete handler error: ' + JSON.stringify(err));
+					}
 				}
-			}
-		})
-		.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
-		.subscribe(function(data) {
-			const mapFilePath = data[0];
-			const weatherData = data[1];
-			const alertData = data[2];
+			})
+			.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
+			.subscribe(function(data) {
+				const mapFilePath = data[0];
+				const weatherData = data[1];
+				const alertData = data[2];
 
-			const newStorageObject = {
-				weather: weatherData,
-				alerts: alertData,
-			};
+				const newStorageObject = {
+					weather: weatherData,
+					alerts: alertData,
+				};
 
-			storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
-			storage.map.set(mapFilePath);
-			storage.data.set(JSON.stringify(newStorageObject));
+				storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
+				storage.map.set(mapFilePath);
+				storage.data.set(JSON.stringify(newStorageObject));
 
-			hardUpdateInProgress = false;
+				hardUpdateInProgress = false;
 
-			console.log('new data received');
-		}, function(err) {
-			console.warn('download data failed: ' + JSON.stringify(err));
-		});
+				console.log('new data received');
+			}, function(err) {
+				console.warn('download data failed: ' + JSON.stringify(err));
+			});
 
 		return true;
 	};
@@ -320,13 +333,12 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		return utils.createUri(consts.TIMESTAMP_URL, { apiKey: consts.API_KEY });
 	};
 
-	const tryGetFutureMapData = function() {		
-		const locationStream = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
-			return [pos.coords.latitude, pos.coords.longitude];
-		});
+	const tryGetFutureMapData = function(currentPositionObservable, timestampDataObservable) {
+		if (subscription3) {
+			return false;
+		}
 
-		const timestampUrl = getTimestampUrl();
-		const timestampStream = network.getResourceByURLRx(timestampUrl)
+		const timestampStream = timestampDataObservable
 			.map(function(result) {
 				return result.data.seriesInfo.radarFcst.series;
 			})
@@ -349,8 +361,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			.take(storage.futureMap.length);
 
 
-
-		rx.Observable.zip(locationStream.repeat(), timestampStream)
+		subscription3 =
+			rx.Observable.zip(currentPositionObservable.repeat(), timestampStream)
 			.flatMap(function(next, index) {
 				const coords = next[0];
 				const timestamps = next[1];
@@ -371,7 +383,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const futureTimestampText = new Date(futureTimestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
 
-				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', fts=' + futureTimestampText + ', now=' + nowText + ', mapUrl="' + mapUrl + '"');
+				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', fts=' + futureTimestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return network.downloadFileRx(mapUrl, fileName);
 			})
 			.flatMap(fsRsolveRx)
@@ -395,8 +407,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				}
 			})
 			.finally(function() {
-				//TODO complete
-				// subscription3 = null;
+				subscription3 = null;
 			})
 			.subscribe(function(next) {
 				const index = next[0];
@@ -411,17 +422,12 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			});
 	};
 
-	const tryGetPastMapData = function() {
+	const tryGetPastMapData = function(currentPositionObservable, timestampDataObservable) {
 		if (subscription2) {
 			return false;
 		}
 
-		const locationStream = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS).map(function(pos) {
-			return [pos.coords.latitude, pos.coords.longitude];
-		});
-
-		const timestampUrl = getTimestampUrl();
-		const timestampStream = network.getResourceByURLRx(timestampUrl)
+		const timestampStream = timestampDataObservable
 			.map(function(result) {
 				return result.data.seriesInfo.radar.series;
 			})
@@ -438,7 +444,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			.take(storage.pastMap.length);
 
 		subscription2 =
-			rx.Observable.zip(locationStream.repeat(), timestampStream)
+			rx.Observable.zip(currentPositionObservable.repeat(), timestampStream)
 			.flatMap(function(next, index) {
 				const coords = next[0];
 				const timestamp = next[1];
@@ -455,7 +461,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const timestampText = new Date(timestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
 
-				console.log('tryGetPastMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl="' + mapUrl + '"');
+				console.log('tryGetPastMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return network.downloadFileRx(mapUrl, fileName);
 			})
 			.flatMap(fsRsolveRx)
