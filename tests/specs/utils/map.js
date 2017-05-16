@@ -6,8 +6,8 @@ define(['utils/map'], function(map) {
 
             // another approach to test data series
             var testData = [
-                { args: [0.1, 1], expected: '0' },
-                { args: [0.24, 1], expected: '0' },
+                { args: [0.1, 1], expected: '10' },
+                { args: [0.24, 1], expected: '20' },
                 { args: [0.49, 1], expected: '0' },
                 { args: [0.5, 1], expected: '1' },
                 { args: [0.51, 1], expected: '1' },
