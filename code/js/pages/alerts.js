@@ -101,7 +101,6 @@ define([
 						if(subtitleDiv) {
 							const details = utils.createAlertDetailsText(alertData.processTimeUTC, alertData.expireTimeUTC, storage.settings.units.time.get());
 							subtitleDiv.innerHTML = details;
-							console.log('updateListItem::list item updated!');
 						} else {
 							console.warn('updateListItem::cant find list item');
 						}
@@ -112,7 +111,6 @@ define([
 						updateListItemView();
 						activeMaruqeeWidgetManager.set(utils.createMarqueWidget(listItemView.querySelector('.ui-marquee')));
 					} else {
-						console.log('updating ordinary list item');
 						updateListItemView();
 					}
 				},
@@ -149,7 +147,6 @@ define([
 					//some locations can have null district so lets use area name
 					district = alertObject.alerts.alerts[0].officeAdminDistrict || alertObject.alerts.alerts[0].areaName;
 				}
-				console.log('setData, alerts array length: ' + numberOfAlerts);
 				//show header
 				holder.header.show();
 
@@ -168,9 +165,7 @@ define([
 			},
 			
 			update: function() {
-				const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-				const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-				binder.header.time(currentTimeRepr[0], currentTimeRepr[1]);
+				this.refreshCurrentTime();
 
 				holder.update.btn.prop('disabled', updater.updateInProgress());
 
@@ -191,10 +186,22 @@ define([
 				this.refresh();
 			},
 
+			updateRefreshButton : function() {
+				holder.update.btn.prop('disabled', updater.updateInProgress());
+			},
+
+			refreshCurrentTime : function() {
+				const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+				const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
+				binder.header.time(currentTimeRepr[0], currentTimeRepr[1]);
+			},
+
 			refresh: function() {
 				const lastUpdate = storage.lastUpdate.get();
 				const lastUpdateHuman = utils.humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), lastUpdate);
 				holder.update.btn.text(lastUpdateHuman);
+
+				this.refreshCurrentTime();
 			},
 
 		};
@@ -206,7 +213,7 @@ define([
 				adapter.clear();
 				adapter.setData(storage.data.get());
 			} else {
-				console.warn('createOnPrefsUpdater::adapter isn exist');
+				console.warn('createOnPrefsUpdater::adapter doesnt exist');
 			}
 		};
 	}
@@ -215,7 +222,7 @@ define([
 		if(adapter) {
 			adapter.update();
 		} else {
-			console.warn('date/time changed::adapter do not exist');
+			console.warn('safeUpdate::adapter doesnt exist');
 		}
 	}
 
@@ -235,6 +242,8 @@ define([
 			if (!refreshViewId) {
 				refreshViewId = setInterval(adapter.refresh, 1000);
 			}
+
+			adapter.updateRefreshButton();
 		},
 
 		pagebeforehide: function(ev) {
