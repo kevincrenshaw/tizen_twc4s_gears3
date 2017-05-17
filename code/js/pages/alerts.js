@@ -27,8 +27,8 @@ define([
 		//view hierarchy holder
 		const holder = {
 			header: $('#alerts__header'),
-			time: dom.queryWrappedElement(page, '#alerts__header .header-block-top #value'),
-			ampm: dom.queryWrappedElement(page, '#alerts__header .header-block-top #unit'),
+			time: $('#alerts__header .header-block-top #value'),
+			ampm: $('#alerts__header .header-block-top #unit'),
 			district: $('#alerts__header .header-block-middle #office-district'),
 
 			update: {
@@ -60,9 +60,11 @@ define([
 						destroyablesManager.add(marqueeWidget);
 				},
 
-				time: function(time, ampm) {
-					dom.createSetInnerHtmlHandler(holder.time)(time);
-					dom.createSetInnerHtmlHandler(holder.ampm)(ampm);
+				refreshCurrentTime : function() {
+					const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
+					const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
+					holder.time.html(currentTimeRepr[0]);
+					holder.ampm.html(currentTimeRepr[1]);
 				},
 			},
 			noalerts: {
@@ -105,7 +107,7 @@ define([
 							console.warn('updateListItem::cant find list item');
 						}
 					}
-					
+
 					if(listItemView.className.indexOf('ui-snap-listview-selected') !== -1) {
 						activeMaruqeeWidgetManager.destroy();
 						updateListItemView();
@@ -165,7 +167,7 @@ define([
 			},
 			
 			update: function() {
-				this.refreshCurrentTime();
+				binder.header.refreshCurrentTime();
 
 				holder.update.btn.prop('disabled', updater.updateInProgress());
 
@@ -177,7 +179,7 @@ define([
 					}
 				}
 			},
-			
+
 			clear: function() {
 				//Cleanup destroyable objects
 				destroyablesManager.destroy();
@@ -190,18 +192,12 @@ define([
 				holder.update.btn.prop('disabled', updater.updateInProgress());
 			},
 
-			refreshCurrentTime : function() {
-				const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
-				const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
-				binder.header.time(currentTimeRepr[0], currentTimeRepr[1]);
-			},
-
 			refresh: function() {
 				const lastUpdate = storage.lastUpdate.get();
 				const lastUpdateHuman = utils.humanReadableTimeDiff(utils.getNowAsEpochInSeconds(), lastUpdate);
 				holder.update.btn.text(lastUpdateHuman);
 
-				this.refreshCurrentTime();
+				binder.header.refreshCurrentTime();
 			},
 
 		};
