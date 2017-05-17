@@ -176,6 +176,9 @@ define([
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
+				mapAnimation.reset();
+			} else {
+				mapAnimation.stop();
 			}
 		},
 

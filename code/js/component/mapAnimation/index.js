@@ -30,8 +30,6 @@ define(['jquery'], function(jquery) {
         if(config.frames) {
             setFrames(config.frames);
         }
-
-        console.log('create', state);
     }
 
     function destroy() {
@@ -42,8 +40,6 @@ define(['jquery'], function(jquery) {
         $root = null;
         $info = null;
         $noData = null;
-
-        console.log('destroy', state);
     }
 
     function bindEvents() {
@@ -71,7 +67,7 @@ define(['jquery'], function(jquery) {
     }
 
     function loop() {
-        animTimeout = setTimeout(function() {
+        state.animTimeout = setTimeout(function() {
             if(!state.isPlaying) { return; }
 
             showFrame(state.activeIndex + 1);
@@ -88,13 +84,23 @@ define(['jquery'], function(jquery) {
         state.animTimeout = null;
     }
 
+    function reset() {
+        if(config.autoplay) { stop(); }
+
+        showFrame(0);
+
+        if(config.autoplay) { play(); }
+    }
+
     function showFrame(index) {
         index = index % $frames.length;
 
         var hideFn = $.noop;
         if(index !== state.activeIndex) {
             $frames[state.activeIndex].removeClass('is-active');
-            hideFn = $frames[state.activeIndex].hide;
+            hideFn = function(index) {
+                $frames[index].hide();
+            }.bind(null, state.activeIndex);
         }
         $frames[index].addClass('is-active').fadeIn(config.duration, hideFn);
 
@@ -102,6 +108,8 @@ define(['jquery'], function(jquery) {
     }
 
     function setFrames(frames) {
+        if(config.autoplay) { stop(); }
+
         $frames = createFrameImages(frames);
         createMarkup();
 
@@ -109,9 +117,7 @@ define(['jquery'], function(jquery) {
 
         showFrame(state.activeIndex);
 
-        if(config.autoplay) {
-            play();
-        }
+        if(config.autoplay) { play(); }
     }
 
     function createFrameImages(images) {
@@ -135,6 +141,7 @@ define(['jquery'], function(jquery) {
         destroy: destroy,
         play: play,
         stop: stop,
+        reset: reset,
         setFrames: setFrames
     }
 });
