@@ -93,10 +93,28 @@ define(['jquery'], function(jquery) {
         $indicator.css('transform', 'rotate(' + (index * rotateStep) + 'deg)');
     }
 
+    function show() {
+        if ($root) {
+            $root.show();
+        } else {
+            console.warn('show: bezel component not created yet');
+        }
+    }
+
+    function hide() {
+        if ($root) {
+            $root.hide();
+        } else {
+            console.warn('hide: bezel component not created yet');
+        }
+    }
+
     return {
         create: create,
         destroy: destroy,
         setValue: setValue,
-        getValue: getValue
+        getValue: getValue,
+        show: show,
+        hide: hide,
     }
 });

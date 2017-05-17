@@ -380,7 +380,7 @@ define(['utils/fsutils'], function(fsutils) {
 				tizen.preference.setChangeListener(key, listener);				
 			},
 			
-			unsetChangeListener: function(listener) {
+			unsetChangeListener: function() {
 				tizen.preference.unsetChangeListener(key);
 			},
 		}

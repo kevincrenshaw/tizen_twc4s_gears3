@@ -249,7 +249,7 @@ define([
 			tizen.time.unsetDateTimeChangeListener();
 			updater.removeOnUpdateCompleteHandler();
 
-			storage.data.unsetChangeListener(updateHandler);
+			storage.data.unsetChangeListener();
 			updateHandler = null;
 			adapter = null;
 
