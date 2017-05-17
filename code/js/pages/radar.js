@@ -36,7 +36,7 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		mapAnimation.setSnapshoots([
+		mapAnimation.setFrames([
 			storage.map.get(),
 			'../resources/tmpSnapshoots/map+1.5.jpg',
 			'../resources/tmpSnapshoots/map+3.jpg',
@@ -132,7 +132,7 @@ define([
 
 			mapAnimation.create({
 				root: '.radar__map',
-				button: '.radar__button',
+				info: '.radar__button',
 				// navigating from widget should trigger autoplay
 				autoplay: utils.getAppControl().operation === 'navigate'
 			});
@@ -176,7 +176,6 @@ define([
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
-				mapAnimation.reset();
 			}
 		},
 
