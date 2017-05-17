@@ -48,6 +48,11 @@ define(['jquery'], function(jquery) {
     }
 
     function onRotate(event) {
+        if (!$root || !$root.is(":visible")) {
+            //Ignore rotate events if bezel UI is not visible
+            return;
+        }
+
         var tmpIndex = valueIndex;
         if(event.detail.direction === 'CW') {
             tmpIndex++;
