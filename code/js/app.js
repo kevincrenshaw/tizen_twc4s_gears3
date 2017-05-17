@@ -15,7 +15,6 @@ const modules = [
 	'utils/storage',
 	'utils/network',
 	'utils/back',
-	'utils/lowBatteryCheck',
 	'utils/dom',
 	'data/buildInfo',
 	'pages/main',
@@ -52,65 +51,17 @@ define(modules, function(require, utils, updater, storage) {
 			console.error('Module "' + moduleName + '" not found (event: "' + ev.type + '")');
 		}
 	};
-
-	//Creates object that manages array of destroyables.
-	const createDestroyableManager = function() {
-		const destroyableArr = [];
-
-		return {
-			add: function(destroyable) {
-				destroyableArr.push(destroyable);
-			},
-
-			destroy: function() {
-				//Destroy in reverse order
-				for (i=destroyableArr.length-1; i>=0; --i) {
-					destroyableArr[i].destroy();
-					destroyableArr[i] = null;
-				}
-				destroyableArr.length = 0; //clear array
-			}
-		};
-	};
-
-	const createMarqueeWidgetManager = function() {
-		var activeMarqueeWidget;
-		
-		return {
-			set: function(widget) {
-				this.destroy();
-				activeMarqueeWidget = widget;
-			},
-			
-			destroy: function() {
-				if (activeMarqueeWidget) {
-					activeMarqueeWidget.stop();
-					activeMarqueeWidget.destroy();
-					activeMarqueeWidget = null;
-				}
-			},
-		};
-	};
 	
 	//Represents all destroyable object for given page (objects that need to be destroyed when leaving page)
-	const destroyables = createDestroyableManager();
+	const destroyables = utils.createDestroyableManager();
 	
 	//There is only one acrive marquee widget at the moment
-	const activeMaruqeeWidget = createMarqueeWidgetManager();
-
-	const createMarqueWidget = function(element, options) {
-		options = options || {};
-
-		options.marqueeStyle = options.marqueeStyle || 'endToEnd';
-		options.delay = options.delay || '1000';
-
-		return new tau.widget.Marquee(element, options);
-	};
+	const activeMaruqeeWidget = utils.createMarqueeWidgetManager();
 
 	const createMarqueeWidgetForListElement = function(element) {
 		if (element) {
 			activeMaruqeeWidget.destroy();
-			activeMaruqeeWidget.set(createMarqueWidget(element));
+			activeMaruqeeWidget.set(utils.createMarqueWidget(element));
 		}
 	};
 	
@@ -149,20 +100,15 @@ define(modules, function(require, utils, updater, storage) {
 
 		const title = page.querySelector(".ui-title");
 		if (title) {
-			destroyables.add(createMarqueWidget(title));
-		}
-
-		const allElementsWithMarqueeStyle = page.querySelectorAll('.marquee-infinitive-autorun');
-		for(var i = 0; i < allElementsWithMarqueeStyle.length; ++i) {
-			var listNode = allElementsWithMarqueeStyle[i];
-			destroyables.add(createMarqueWidget(listNode, {iteration: 'infinite', autoRun: true}));
+			destroyables.add(utils.createMarqueWidget(title));
 		}
 
 		//Find every circle helper on current page, create widget for it and save it for later destruction
-		const selector = '.ui-listview.circle-helper-snap-list';
+		const selector = '.ui-listview.static.circle-helper-snap-list';
 		const snapListNodeList = page.querySelectorAll(selector);
 		const snapListNodeListLen = snapListNodeList.length;
 		
+		console.log('app::snapListNodeListLen: ' + snapListNodeListLen);
 		for (var i=0; i<snapListNodeListLen; ++i) {
 			var listNode = snapListNodeList[i];
 			var snapListStyleWidget = tau.helper.SnapListStyle.create(listNode, {animate: "scale"});
@@ -220,7 +166,7 @@ define(modules, function(require, utils, updater, storage) {
 					console.log('visibilityChangeManager: No current page');
 				}
 			},
-		}
+		};
 	}();
 	
 	document.addEventListener('visibilitychange', function() {

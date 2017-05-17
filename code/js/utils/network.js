@@ -39,7 +39,7 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	 * get resource by given URL
 	 * */
 	const getResourceByURLRx = function(url, timeout) {
-		const timeout = (timeout >= 0) ? timeout : 30000;
+		const timeoutVal = (timeout >= 0) ? timeout : 30000;
 
 		return Rx.Observable.create(
 			function(observer) {
@@ -52,7 +52,7 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 					error: function(jqXHR) {
 						observer.onError(jqXHR);
 					},
-					timeout: timeout,
+					timeout: timeoutVal,
 				});
 			}
 		);
