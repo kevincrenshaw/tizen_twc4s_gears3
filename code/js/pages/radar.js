@@ -131,7 +131,6 @@ define([
 
 			mapAnimation.create({
 				root: '.radar__map',
-				button: '.radar__button',
 				autoplay: true
 			});
 
@@ -165,7 +164,9 @@ define([
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
-				mapAnimation.reset();
+				mapAnimation.restart();
+			} else {
+				mapAnimation.stop();
 			}
 		},
 
@@ -177,7 +178,7 @@ define([
 				refreshViewId = null;
 			}
 
-			storage.data.unsetChangeListener(loadData);
+			storage.data.unsetChangeListener();
 			updater.removeOnUpdateCompleteHandler();
 
 			ui.header.off();
