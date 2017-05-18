@@ -22,8 +22,8 @@
 
 	function getTempSystem() {
 		// 1 - system, 2 - fahrenheit, 3 - celsius
-		var value = parseInt(getFromStore('settings_units_temperature_key'), 10) || 3;
-		return (value === 2 ? 'F' : 'C');
+		var value = parseInt(getFromStore('settings_units_temperature_key'), 10) || 2;
+		return (value === 3 ? 'C' : 'F');
 	}
 
 	function readData(data) {
