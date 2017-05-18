@@ -126,6 +126,14 @@ define([
 		refreshView();
 	};
 
+	const setBezelVisibilityAccordingToMap = function() {
+		if (storage.map.get()) {
+			bezel.show();
+		} else {
+			bezel.hide();
+		}	
+	};
+
 	return {
 		pagebeforeshow: function(ev) {
 			ui = getUI();
@@ -142,6 +150,7 @@ define([
 			ui.updateBtn.prop('disabled', updater.updateInProgress());
 			updater.setOnUpdateCompleteHandler(function() {
 				ui.updateBtn.prop('disabled', false);
+				setBezelVisibilityAccordingToMap();
 			});
 			
 			ui.header.on('click', function() {
@@ -168,6 +177,8 @@ define([
 					console.log('onChange', value, valueIndex, direction);
 				}
 			});
+
+			setBezelVisibilityAccordingToMap();
 		},
 		
 		visibilitychange: function() {
@@ -187,7 +198,7 @@ define([
 				refreshViewId = null;
 			}
 
-			storage.data.unsetChangeListener(loadData);
+			storage.data.unsetChangeListener();
 			updater.removeOnUpdateCompleteHandler();
 
 			ui.header.off();
