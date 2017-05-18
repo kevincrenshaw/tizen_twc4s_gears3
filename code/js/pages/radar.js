@@ -35,7 +35,7 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		mapAnimation.setSnapshoots([
+		mapAnimation.setFrames([
 			storage.map.get(),
 			'../resources/tmpSnapshoots/map+1.5.jpg',
 			'../resources/tmpSnapshoots/map+3.jpg',
@@ -131,7 +131,15 @@ define([
 
 			mapAnimation.create({
 				root: '.radar__map',
-				autoplay: true
+				info: '.radar__button',
+				// navigating from widget should trigger autoplay
+				autoplay: utils.getAppControl().operation === 'navigate',
+				bezel: {
+					root: '.bezel-placeholder',
+					min: 0,
+					max: 7,
+					disabled: true
+				}
 			});
 
 			storage.data.setChangeListener(loadData);
@@ -164,7 +172,7 @@ define([
 			if(!document.hidden) {
 				updater.softUpdate();
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
-				mapAnimation.restart();
+				mapAnimation.reset();
 			} else {
 				mapAnimation.stop();
 			}
@@ -178,7 +186,7 @@ define([
 				refreshViewId = null;
 			}
 
-			storage.data.unsetChangeListener();
+			storage.data.unsetChangeListener(loadData);
 			updater.removeOnUpdateCompleteHandler();
 
 			ui.header.off();

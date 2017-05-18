@@ -139,6 +139,7 @@
 
 .radar__footer {
   background: transparent;
+  pointer-events: none;
 }
 
 .radar__alerts {
@@ -146,6 +147,7 @@
   top: 3px;
 
   background: rgba(0, 157, 232, .75) url(../resources/gfx/icon-alerts.png) 50% 25px / 42px 42px no-repeat !important;
+  pointer-events: auto;
 }
 
 .radar__badge {

@@ -1,42 +1,43 @@
 define(['jquery'], function(jquery) {
-    var valueIndex;
-    var values;
 
-    var onChangeCb = function() {};
+    var onChangeCb, config;
+    var $root, $indicator;
+    var rotateStep, value, isDisabled;
 
-    var $root;
-    var $indicator;
-
-    var rotateStep;
-
-    function create(config) {
-        values = config.values || [0, 1, 2, 3, 4, 5, 6, 7];
-        rotateStep = 360 / values.length;
+    function create(_config) {
+        config = _config;
+        rotateStep = 360 / (config.max + 1);
 
         $root = $(config.root);
-        $indicator = createMarkup();
+        createMarkup();
         setIndicatorSize();
         setValue(config.value || 0);
 
-        if(config.onChange) {
-            onChangeCb = config.onChange;
-        }
+        onChangeCb = config.onChange || $.noop;
+        
+        config.disabled ? disable() : enable();
+
         bindEvents();
     }
 
     function destroy() {
+        destroyMarkup();
         unbindEvents();
+        $root = null;
+        $indicator = null;
     }
 
     function createMarkup() {
         $root.addClass('bezel');
-        var $indicator = $('<div class="bezel__indicator"></div>');
+        $indicator = $('<div class="bezel__indicator"></div>');
         $root.append($indicator).append([
             '<div class="bezel__marker bezel__marker--top"></div>',
             '<div class="bezel__marker bezel__marker--bottom"></div>'
         ].join('\n'));
+    }
 
-        return $indicator;
+    function destroyMarkup() {
+        $root.removeClass('bezel').html('');
     }
 
     function bindEvents() {
@@ -47,44 +48,46 @@ define(['jquery'], function(jquery) {
         document.removeEventListener('rotarydetent', onRotate);
     }
 
-    function onRotate(event) {
-        if (!$root || !$root.is(":visible")) {
-            //Ignore rotate events if bezel UI is not visible
-            return;
-        }
-
-        var tmpIndex = valueIndex;
-        if(event.detail.direction === 'CW') {
-            tmpIndex++;
-            if(tmpIndex >= values.length) {
-                tmpIndex = 0;
-            }
-        } else {
-            tmpIndex--;
-            if(tmpIndex < 0) {
-                tmpIndex = values.length - 1;
-            }
-        }
-
-        valueIndex = tmpIndex;
-
-        onChangeCb(values[valueIndex], valueIndex, event.detail.direction);
-
-        setIndicatorPosition(valueIndex);
+    function disable() {
+        isDisabled = true;
+        $root.hide();
+    }
+    function enable() {
+        isDisabled = false;
+        $root.show();
     }
 
-    function setValue(value) {
-        valueIndex = values.indexOf(value);
+    function onRotate(event) {
+        if(isDisabled) { return; }
 
-        if(valueIndex < 0) {
-            throw new Error('values array must contain default value');
+        var tmpValue = value;
+        if(event.detail.direction === 'CW') {
+            tmpValue++;
+            if(tmpValue > config.max) {
+                tmpValue = 0;
+            }
+        } else {
+            tmpValue--;
+            if(tmpValue < 0) {
+                tmpValue = config.max;
+            }
         }
 
-        setIndicatorPosition(valueIndex);
+        value = tmpValue;
+
+        onChangeCb(value, event.detail.direction);
+
+        setIndicatorPosition(value);
+    }
+
+    function setValue(_value) {
+        value = _value;
+
+        setIndicatorPosition(value);
     }
 
     function getValue() {
-        return values[valueIndex];
+        return value;
     }
 
     function setIndicatorSize() {
@@ -94,24 +97,8 @@ define(['jquery'], function(jquery) {
         );
     }
 
-    function setIndicatorPosition(index) {
-        $indicator.css('transform', 'rotate(' + (index * rotateStep) + 'deg)');
-    }
-
-    function show() {
-        if ($root) {
-            $root.show();
-        } else {
-            console.warn('show: bezel component not created yet');
-        }
-    }
-
-    function hide() {
-        if ($root) {
-            $root.hide();
-        } else {
-            console.warn('hide: bezel component not created yet');
-        }
+    function setIndicatorPosition(value) {
+        $indicator.css('transform', 'rotate(' + (value * rotateStep) + 'deg)');
     }
 
     return {
@@ -119,7 +106,7 @@ define(['jquery'], function(jquery) {
         destroy: destroy,
         setValue: setValue,
         getValue: getValue,
-        show: show,
-        hide: hide,
+        disable: disable,
+        enable: enable
     }
 });

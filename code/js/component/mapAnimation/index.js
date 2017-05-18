@@ -1,49 +1,58 @@
-define([
-'jquery',
-'../bezel/index'
-], function(jquery, bezel) {
-    var isPlaying;
+define(['jquery', '../bezel/index'], function(jquery, bezel) {
+    var defaultConfig = {
+        delay: 1000,
+        duration: 150,
+        autplay: false,
+        root: '',
+        info: '',
+        infoClass: '',
+        bezel: {
+            root: '',
+            disabled: false,
+            value: 0,
+            max: 10,
+            onChange: function(value, direction) {
+                stop();
+                showFrame(value);
+            }
+        }
+    };
+    var defaultState = {
+        isPlaying: false,
+        isDataLoaded: false,
+        animTimeout: null,
+        activeIndex: 0
+    };
+    var config, state;
+    var $frames, $root, $noData, $info;
 
-    var $root, $button;
-    var $snaps, $noDataImage;
-
-    var activeIndex, delay, duration, animTimeout, autoplay;
-
-    function create(config) {
-        delay = config.delay || 1000;
-        duration = config.duration || 150;
-        autoplay = config.autoplay || false;
+    function create(options) {
+        config = $.extend(true, {}, defaultConfig, options);
+        state = $.extend({}, defaultState);
+        config.infoClass = config.info.substring(1);
 
         $root = $(config.root);
-        $button = $(config.button);
-        $noDataImage = $root.find('img');
+        $info = $(config.info);
+        $noData = $root.find('img');
 
-        bezel.create({
-            root: '.bezel-placeholder',
-            // value: 'now',
-            // values: ['now', '+1.5h', '+3h', '+4.5h', '-6h', '-4.5h', '-3h', '-1.5h'],
-            onChange: function(value, valueIndex, direction) {
-                console.log('onChange', value, valueIndex, direction);
-                cancel();
-                run(valueIndex);
-            }
-        });
+        bezel.create(config.bezel);
 
         bindEvents();
 
-        if(config.snapshoots) {
-            setSnapshoots(config.snapshoots);
+        if(config.frames) {
+            setFrames(config.frames);
         }
     }
 
     function destroy() {
         bezel.destroy();
-
         stop();
         unbindEvents();
+        destroyMarkup();
 
-        $snaps = [];
-        $root.html($noDataImage);
+        $root = null;
+        $info = null;
+        $noData = null;
     }
 
     function bindEvents() {
@@ -54,102 +63,102 @@ define([
         $root.off('click', toggle);
     }
 
-    function createSnaps(snapshoots) {
-        if($snaps && $snaps.length) {
-            $snaps = [];
-            $root.html('');
-        }
-
-        $snaps = snapshoots.map(function(img) {
-            return $('<img />').attr('src', img).hide();
-        });
-
-        $root.append($snaps);
-    }
-
-    function cancel() {
-        if(animTimeout) {
-            clearTimeout(animTimeout);
-            animTimeout = null;
-        }
-    }
-
-    function run(index) {
-        if(index >= $snaps.length) {
-            index = 0;
-        }
-        bezel.setValue(index);
-        $snaps[activeIndex].removeClass('is-active');
-        $snaps[index].addClass('is-active');
-        $snaps[index].fadeIn(
-            duration,
-            index !== activeIndex ? (function(prev) {
-                return function() {
-                    $snaps[prev].hide();
-                }
-            })(activeIndex) : $.noop
-        );
-        activeIndex = index;
-
-        if(isPlaying) {
-            animTimeout = setTimeout(run.bind(null, index+1), delay);
-        }
-    }
-
-    function reset() {
-        isPlaying = true;
-
-        cancel();
-
-        $snaps[activeIndex].hide();
-
-        activeIndex = 0;
-        run(activeIndex);
-    }
-
     function toggle() {
-        isPlaying ? stop() : play();
+        state.isPlaying ? stop() : play();
 
-        $button.stop()
-            .toggleClass('radar__button--play', isPlaying)
-            .toggleClass('radar__button--pause', !isPlaying)
-            .fadeIn(50)
-            .fadeOut(500);
+        $info.stop(true, true)
+            .toggleClass(config.infoClass + '--play', state.isPlaying)
+            .toggleClass(config.infoClass + '--pause', !state.isPlaying)
+            .fadeIn(config.duration)
+            .fadeOut(config.duration * 4);
     }
 
     function play() {
-        isPlaying = true;
+        state.isPlaying = true;
 
-        cancel();
+        loop();
+    }
 
-        run(activeIndex);
+    function loop() {
+        state.animTimeout = setTimeout(function() {
+            if(!state.isPlaying) { return; }
+
+            showFrame(state.activeIndex + 1);
+            loop();
+        }, config.delay);
     }
 
     function stop() {
-        isPlaying = false;
+        state.isPlaying = false;
 
-        cancel();
+        if(state.animTimeout) {
+            clearTimeout(state.animTimeout);
+        }
+        state.animTimeout = null;
     }
 
-    function setSnapshoots(snapshoots) {
-        $noDataImage.remove();
-        createSnaps(snapshoots);
+    function reset() {
+        if(config.autoplay) { stop(); }
 
-        activeIndex = 0;
+        showFrame(0);
 
-        if(autoplay) {
-            play();
-        } else {
-            $snaps[activeIndex].show();
+        if(config.autoplay) { play(); }
+    }
+
+    function showFrame(index) {
+        index = index % $frames.length;
+
+        var hideFn = $.noop;
+        if(index !== state.activeIndex) {
+            $frames[state.activeIndex].removeClass('is-active');
+            hideFn = function(index) {
+                $frames[index].hide();
+            }.bind(null, state.activeIndex);
         }
+        $frames[index].addClass('is-active').fadeIn(config.duration, hideFn);
+
+        bezel.setValue(index);
+
+        state.activeIndex = index;
+    }
+
+    function setFrames(frames) {
+        if(config.autoplay) { stop(); }
+
+        $frames = createFrameImages(frames);
+        createMarkup();
+
+        state.isDataLoaded = true;
+
+        showFrame(state.activeIndex);
+
+        bezel.enable();
+
+        if(config.autoplay) { play(); }
+    }
+
+    function createFrameImages(images) {
+        return images.map(function(img) {
+            return $('<img />').attr('src', img).hide();
+        });
+    }
+
+    function createMarkup() {
+        $noData.hide();
+        $root.html($frames);
+    }
+
+    function destroyMarkup() {
+        $noData.show();
+        $root.html('');
     }
 
     return {
         create: create,
         destroy: destroy,
-        setSnapshoots: setSnapshoots,
         play: play,
         stop: stop,
-        reset: reset
+        reset: reset,
+        setFrames: setFrames
     }
 });
