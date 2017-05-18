@@ -337,7 +337,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 
 		subscription3 =
-			rx.Observable.zip(currentPositionObservable.repeat(), timestampStream)
+			rx.Observable.zip(currentPositionObservable.repeat(consts.NBR_OF_FUTURE_MAPS), timestampStream)
 			.flatMap(function(next, index) {
 				const coords = next[0];
 				const timestamps = next[1];
@@ -433,7 +433,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			.take(storage.pastMap.length);
 
 		subscription2 =
-			rx.Observable.zip(currentPositionObservable.repeat(), timestampStream)
+			rx.Observable.zip(currentPositionObservable.repeat(consts.NBR_OF_PAST_MAPS), timestampStream)
 			.flatMap(function(next, index) {
 				const coords = next[0];
 				const timestamp = next[1];
