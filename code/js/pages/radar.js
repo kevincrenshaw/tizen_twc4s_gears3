@@ -136,6 +136,7 @@ define([
 				info: '.radar__button',
 				// navigating from widget should trigger autoplay
 				autoplay: utils.getAppControl().operation === 'navigate',
+				framesCount: (consts.NBR_OF_PAST_MAPS + 1 + consts.NBR_OF_FUTURE_MAPS),
 				clickable: false,
 				bezel: {
 					root: '.bezel-placeholder',

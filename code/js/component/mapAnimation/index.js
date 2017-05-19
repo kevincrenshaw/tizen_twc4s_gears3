@@ -6,6 +6,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         root: '',
         info: '',
         infoClass: '',
+        framesCount: 8,
         clickable: true,
         bezel: {
             root: '',
@@ -20,7 +21,6 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
     };
     var defaultState = {
         isPlaying: false,
-        isDataLoaded: false,
         animTimeout: null,
         activeIndex: 0
     };
@@ -39,6 +39,9 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         bezel.create(config.bezel);
 
         bindEvents();
+
+        $frames = createFrameImages(config.framesCount);
+        createMarkup();
 
         if(config.frames) {
             setFrames(config.frames);
@@ -127,13 +130,14 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         state.activeIndex = index;
     }
 
+    function setFrame(image, index) {
+        $frames[index].attr('src', image);
+    }
+
     function setFrames(frames) {
         if(config.autoplay) { stop(); }
 
-        $frames = createFrameImages(frames);
-        createMarkup();
-
-        state.isDataLoaded = true;
+        frames.forEach(setFrame);
 
         showFrame(state.activeIndex);
 
@@ -142,10 +146,12 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         if(config.autoplay) { play(); }
     }
 
-    function createFrameImages(images) {
-        return images.map(function(img) {
-            return $('<img />').attr('src', img).hide();
-        });
+    function createFrameImages(count) {
+        var $snaps = [];
+        while(count--) {
+            $snaps.push($('<img />').hide());
+        }
+        return $snaps;
     }
 
     function createMarkup() {
@@ -169,6 +175,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         stop: stop,
         reset: reset,
         setFrames: setFrames,
+        setFrame: setFrame,
         setClickable: setClickable,
     }
 });
