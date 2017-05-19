@@ -64,7 +64,7 @@ define([
 					const systemUses12hFormat = tizen.time.getTimeFormat() === 'h:m:s ap';
 					const currentTimeRepr = utils.getTimeAsText(new Date(), storage.settings.units.time.get(), systemUses12hFormat);
 					holder.time.html(currentTimeRepr[0]);
-					holder.ampm.html(currentTimeRepr[1]);
+					holder.ampm.html(currentTimeRepr[1].trim());
 				},
 			},
 			noalerts: {

@@ -17,10 +17,12 @@ define([], function() {
 	};
 	
 	const ONE_MINUTE_IN_SEC = 60;
-	const ONE_MINUTE_IN_MS = 1000 * ONE_MINUTE_IN_SEC;
+	const ONE_SEC_IN_MS = 1000;
+	const ONE_MINUTE_IN_MS = ONE_SEC_IN_MS * ONE_MINUTE_IN_SEC;
+	const SEPARATOR = '/';
 	
 	function getApiBaseUrl(version) {
-		return 'https://api.weather.com/v' + version + '/';
+		return 'https://api.weather.com/v' + version;
 	}
 
 	return {
@@ -29,11 +31,18 @@ define([], function() {
 		DATA_DOWNLOAD_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		ALERT_TIMEOUT_IN_MS: ONE_MINUTE_IN_MS * 5,
 		DATA_UPDATE_TIMEOUT_IN_SEC: ONE_MINUTE_IN_SEC * 15,
-		ALERTS_URL: getApiBaseUrl(3) + 'alerts/headlines',
-		MAPS_URL: getApiBaseUrl(2) + 'maps/dynamic',
-		WEATHER_URL: getApiBaseUrl(1) + 'geocode',
+		ALERTS_URL: [getApiBaseUrl(3), 'alerts', 'headlines'].join(SEPARATOR),
+		MAPS_URL: [getApiBaseUrl(2), 'maps', 'dynamic'].join(SEPARATOR),
+		WEATHER_URL: [getApiBaseUrl(1), 'geocode'].join(SEPARATOR),
+		TIMESTAMP_URL: [getApiBaseUrl(3), 'TileServer', 'series', 'productSet'].join(SEPARATOR),
 		RADAR_ALERTS_MAX_NBR: 9,
 		RADAR_DEEPLINK: 'android-app://com.weather.radar/radar/gps',
 		ALERT_DEEPLINK: 'android-app://com.weather.radar/radar/gpsAlerts',
+		SEPARATOR: SEPARATOR,
+		COORDINATES_MAX_AGE_IN_MS: 5 * ONE_SEC_IN_MS,
+		NBR_OF_DOWNLOAD_ERRORS_LEADING_TO_RETRY: 2,
+		NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES: 5,
+		NBR_OF_PAST_MAPS: 4,
+		NBR_OF_FUTURE_MAPS: 3,
 	};
 });

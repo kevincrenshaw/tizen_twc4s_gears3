@@ -1,8 +1,6 @@
 /* jshint esversion: 6 */
 
-define([], function() {
-	
-	const separator = '/';
+define(['rx', 'utils/const'], function(rx, consts) {
 
 	/**
 	 * Search file in a current directory, subdirectories are ignored 
@@ -16,6 +14,22 @@ define([], function() {
 	 * */
 	const hasSuchFile = function(filePath, onSuccess, onError) {
 		tizen.filesystem.resolve(filePath, onSuccess, onError);
+	};
+
+	//Reactive wrapper for tizen.filesystem.resolve 
+	const hasSuchFileRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function(file) {
+				observer.onNext(file)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				observer.onError(err);
+			};
+
+			tizen.filesystem.resolve(path, onSuccess, onError);
+		})
 	};
 
 	/**
@@ -152,7 +166,7 @@ define([], function() {
 	const getFileNameFromPath = function(filePath) {
 		var result = filePath;
 		//trim directories
-		const posOfSlash = result.lastIndexOf(separator);
+		const posOfSlash = result.lastIndexOf(consts.SEPARATOR);
 		if(posOfSlash > -1) {
 			result = result.substring(posOfSlash + 1);
 		}
@@ -170,7 +184,7 @@ define([], function() {
 		
 		var result = ''; 
 		
-		const posOfSlash = filePath.lastIndexOf(separator);
+		const posOfSlash = filePath.lastIndexOf(consts.SEPARATOR);
 		if(posOfSlash > -1) {
 			result = filePath.substring(0, posOfSlash);
 		}
@@ -185,7 +199,24 @@ define([], function() {
 	 * 		full file path. 
 	 * */
 	const createFullPath = function() {
-		return Array.prototype.join.call(arguments, separator);
+		return Array.prototype.join.call(arguments, consts.SEPARATOR);
+	};
+
+	//Never fails, in case of problems errors are redirected to console.warn
+	const tryRemoveFileRx = function(path) {
+		return rx.Observable.create(function(observer) {
+			const onSuccess = function() {
+				observer.onNext(path)
+				observer.onCompleted();
+			};
+
+			const onError = function(err) {
+				console.warn('tryRemoveFileRx(' + path + '): ' + JSON.stringify(err));
+				observer.onCompleted();
+			};
+
+			removeFile(path, onSuccess, onError);
+		})
 	};
 	
 	return {
@@ -197,5 +228,7 @@ define([], function() {
 		createFullPath: createFullPath,
 		getFileNameFromPath: getFileNameFromPath,
 		getDirectoryNameFromPath: getDirectoryNameFromPath,
+		hasSuchFileRx: hasSuchFileRx,
+		tryRemoveFileRx: tryRemoveFileRx,
 	};
 });

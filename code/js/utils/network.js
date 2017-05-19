@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
+define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, rx) {
 	const rootDir = 'downloads';
 	const cacheDir = 'stormAppCache';
 	const fullCachePath = rootDir + '/' + cacheDir;
@@ -14,7 +14,7 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 	};
 
 	const downloadFileRx = function(url, dest) {
-		return Rx.Observable.create(function(observer) {
+		return rx.Observable.create(function(observer) {
 			const downloadListener = {
 				oncompleted: function(id, fullPath) {
 					observer.onNext(fullPath);
@@ -28,7 +28,11 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 
 			prepareCache(function() {
 				const request = new tizen.DownloadRequest(url, fullCachePath, dest);
-				tizen.download.start(request, downloadListener);
+				try {
+					tizen.download.start(request, downloadListener);
+				} catch(err) {
+					observer.onError(err);
+				}
 			}, function(err) {
 				observer.onError(err);
 			});
@@ -37,25 +41,26 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, Rx) {
 
 	/**
 	 * get resource by given URL
+	 * Thanks to subject the data is downloaded once and then shared between observers.
 	 * */
 	const getResourceByURLRx = function(url, timeout) {
 		const timeoutVal = (timeout >= 0) ? timeout : 30000;
 
-		return Rx.Observable.create(
-			function(observer) {
-				$.ajax({
-					url: url,
-					success:  function(data, textStatus, xhr) {
-						observer.onNext({data: data, textStatus: textStatus, xhr: xhr});
-						observer.onCompleted();
-					},
-					error: function(jqXHR) {
-						observer.onError(jqXHR);
-					},
-					timeout: timeoutVal,
-				});
-			}
-		);
+		var subject = new rx.AsyncSubject();
+
+		$.ajax({
+			url: url,
+			success:  function(data, textStatus, xhr) {
+				subject.onNext({data: data, textStatus: textStatus, xhr: xhr});
+				subject.onCompleted();
+			},
+			error: function(jqXHR) {
+				subject.onError(jqXHR);
+			},
+			timeout: timeoutVal,
+		});
+
+		return subject;
 	};
 
 	return {
