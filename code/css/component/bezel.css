@@ -1,6 +1,6 @@
 .bezel {
     bottom: 0;
-    display: block;
+    display: none;
     left: 0;
     position: fixed;
     right: 0;

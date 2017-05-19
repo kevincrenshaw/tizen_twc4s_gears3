@@ -6,9 +6,8 @@ define([
 	'utils/const',
 	'utils/utils',
 	'utils/updater',
-	'../component/bezel/index',
 	'../component/mapAnimation/index'
-], function($, storage, consts, utils, updater, bezel, mapAnimation) {
+], function($, storage, consts, utils, updater, mapAnimation) {
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
@@ -126,14 +125,6 @@ define([
 		refreshView();
 	};
 
-	const setBezelVisibilityAccordingToMap = function() {
-		if (storage.map.get()) {
-			bezel.show();
-		} else {
-			bezel.hide();
-		}	
-	};
-
 	return {
 		pagebeforeshow: function(ev) {
 			ui = getUI();
@@ -142,7 +133,13 @@ define([
 				root: '.radar__map',
 				info: '.radar__button',
 				// navigating from widget should trigger autoplay
-				autoplay: utils.getAppControl().operation === 'navigate'
+				autoplay: utils.getAppControl().operation === 'navigate',
+				bezel: {
+					root: '.bezel-placeholder',
+					min: 0,
+					max: 7,
+					disabled: true
+				}
 			});
 
 			storage.data.setChangeListener(loadData);
@@ -152,7 +149,6 @@ define([
 			ui.updateBtn.prop('disabled', updater.updateInProgress());
 			updater.setOnUpdateCompleteHandler(function() {
 				ui.updateBtn.prop('disabled', false);
-				setBezelVisibilityAccordingToMap();
 			});
 			
 			ui.header.on('click', function() {
@@ -170,17 +166,6 @@ define([
 			ui.moreBtn.on('click', function() {
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
-
-			bezel.create({
-				root: '.bezel-placeholder',
-				value: 'now',
-				values: ['now', '+1.5h', '+3h', '+4.5h', '-6h', '-4.5h', '-3h', '-1.5h'],
-				onChange: function(value, valueIndex, direction) {
-					console.log('onChange', value, valueIndex, direction);
-				}
-			});
-
-			setBezelVisibilityAccordingToMap();
 		},
 		
 		visibilitychange: function() {
@@ -194,7 +179,6 @@ define([
 		},
 
 		pagebeforehide: function(ev) {
-			bezel.destroy();
 			mapAnimation.destroy();
 
 			if(refreshViewId) {
@@ -202,7 +186,7 @@ define([
 				refreshViewId = null;
 			}
 
-			storage.data.unsetChangeListener();
+			storage.data.unsetChangeListener(loadData);
 			updater.removeOnUpdateCompleteHandler();
 
 			ui.header.off();

@@ -1,11 +1,21 @@
-define(['jquery'], function(jquery) {
+define(['jquery', '../bezel/index'], function(jquery, bezel) {
     var defaultConfig = {
         delay: 1000,
         duration: 150,
         autplay: false,
         root: '',
         info: '',
-        infoClass: ''
+        infoClass: '',
+        bezel: {
+            root: '',
+            disabled: false,
+            value: 0,
+            max: 10,
+            onChange: function(value, direction) {
+                stop();
+                showFrame(value);
+            }
+        }
     };
     var defaultState = {
         isPlaying: false,
@@ -17,13 +27,15 @@ define(['jquery'], function(jquery) {
     var $frames, $root, $noData, $info;
 
     function create(options) {
-        config = $.extend({}, defaultConfig, options);
+        config = $.extend(true, {}, defaultConfig, options);
         state = $.extend({}, defaultState);
         config.infoClass = config.info.substring(1);
 
         $root = $(config.root);
         $info = $(config.info);
         $noData = $root.find('img');
+
+        bezel.create(config.bezel);
 
         bindEvents();
 
@@ -33,6 +45,7 @@ define(['jquery'], function(jquery) {
     }
 
     function destroy() {
+        bezel.destroy();
         stop();
         unbindEvents();
         destroyMarkup();
@@ -104,6 +117,8 @@ define(['jquery'], function(jquery) {
         }
         $frames[index].addClass('is-active').fadeIn(config.duration, hideFn);
 
+        bezel.setValue(index);
+
         state.activeIndex = index;
     }
 
@@ -116,6 +131,8 @@ define(['jquery'], function(jquery) {
         state.isDataLoaded = true;
 
         showFrame(state.activeIndex);
+
+        bezel.enable();
 
         if(config.autoplay) { play(); }
     }
