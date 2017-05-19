@@ -28,7 +28,11 @@ define(['utils/fsutils', 'jquery', 'rx'], function(fsutils, $, rx) {
 
 			prepareCache(function() {
 				const request = new tizen.DownloadRequest(url, fullCachePath, dest);
-				tizen.download.start(request, downloadListener);
+				try {
+					tizen.download.start(request, downloadListener);
+				} catch(err) {
+					observer.onError(err);
+				}
 			}, function(err) {
 				observer.onError(err);
 			});
