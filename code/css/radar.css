@@ -20,7 +20,7 @@
 }
 
 .radar__date {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 
   font-size: 24px;
   line-height: 24px;
@@ -28,7 +28,10 @@
 
 .radar__temp {
   display: block;
+  height: 32px;
   width: 100%;
+
+  line-height: 32px;
 }
 .radar__date span,
 .radar__temp span {
