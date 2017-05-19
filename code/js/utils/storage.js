@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/fsutils'], function(fsutils) {
+define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 	/*
 	 * Parameters:
 	 *	key
@@ -432,7 +432,17 @@ define(['utils/fsutils'], function(fsutils) {
 		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
 		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)
 		ampm: createSimpleStorage('ampm', ''),
+		pastMap: [],
+		futureMap: [],
 	};
 	
+	for (var i=0; i<consts.NBR_OF_PAST_MAPS; ++i) {
+		storage.pastMap.push(createSimpleStorage('pastMap' + i, ''));
+	}
+
+	for (var i=0; i<consts.NBR_OF_FUTURE_MAPS; ++i) {
+		storage.futureMap.push(createSimpleStorage('futureMap' + i, ''));
+	}
+
 	return storage;
 });

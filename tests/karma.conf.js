@@ -23,7 +23,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       {pattern: './code/lib/jquery/jquery-1.11.1.min.js', included: false, watched: false},
-      {pattern: './code/lib/rx.lite.js', included: false, watched: false},
+      {pattern: './code/lib/rx.all.js', included: false, watched: false},
       // {pattern: './code/js/tauConfig.js', included: true, watched: false}, // todo remove and mock
       // {pattern: './code/lib/tau/wearable/js/tau.js', included: true, watched: false}, // todo remove and mock
       {pattern: './code/language.js', included: true, watched: false}, // todo remove and mock
