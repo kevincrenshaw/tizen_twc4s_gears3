@@ -1,6 +1,6 @@
 /* jshint esversion: 6 */
 
-define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
+define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 	/*
 	 * Parameters:
 	 *	key
@@ -222,6 +222,14 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 		const FSIndex = key + '_fs_index';
 		const FSFileName = key + '_fs_filename_';
 
+		const notifier = key + '_notifier';
+		tizen.preference.setValue(notifier, 0);
+
+		//Notifies observer (if any) about file addition
+		const notify = function() {
+			increaseAndStoreIndex(notifier, getIndex(notifier), 1000000);
+		};
+
 		const getSavedFileNameAtIndex = function(index) {
 			try {
 				return tizen.preference.getValue(FSFileName + index);
@@ -248,6 +256,25 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 			} else {
 				onError('get::cant resolve file');
 			}
+		};
+
+		const getRx = function() {
+			return rx.Observable.create(function(observer) {
+				const onSuccess = function(file) {
+					observer.onNext(file);
+					observer.onCompleted();	
+				};
+
+				const onError = function(err) {
+					observer.onError(err);
+				}
+
+				try {
+					get(onSuccess, onError);
+				} catch (err) {
+					onError(err);
+				}
+			});
 		};
 		
 		/**
@@ -282,14 +309,17 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 				const fileName = fsutils.getFileNameFromPath(filePath);
 				tizen.preference.setValue(FSFileName + newIndex, fileName);
 				//create data file directory if its not exist
-		    	fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
-		    		function(result) {
-		    			//if all are ready move file from src directory to private data storage
-		    			const dstPath = fsutils.createFullPath(result.fullPath, fileName);
-		    			fsutils.moveFile(filePath, dstPath, onSuccess, onError);
-		    		},
-		    		onError
-		    	);
+				fsutils.createDirectoryIfNotExists(rootDirName, fileDataDirName, 
+					function(result) {
+						//if all are ready move file from src directory to private data storage
+						const dstPath = fsutils.createFullPath(result.fullPath, fileName);
+						fsutils.moveFile(filePath, dstPath, function(fileURI) {
+							onSuccess(fileURI);
+							notify();
+						}, onError);
+					},
+					onError
+				);
 			};
 
 			//at first we have to remove old file saved by current + 1 position
@@ -302,6 +332,25 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 					proceed();
 				}
 			);
+		};
+
+		const addRx = function(filePath) {
+			return rx.Observable.create(function(observer) {
+				const onSuccess = function(file) {
+					observer.onNext(file);
+					observer.onCompleted();	
+				};
+
+				const onError = function(err) {
+					observer.onError(err);
+				}
+
+				try {
+					add(filePath, { onSuccess:onSuccess, onError:onError });
+				} catch (err) {
+					onError(err);
+				}
+			});
 		};
 		
 		/**
@@ -353,12 +402,24 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 				decreaseAndStoreIndex(FSIndex, index, maxSize);
 			}
 		};
+
+		const setChangeListener = function(listener) {
+			tizen.preference.setChangeListener(notifier, listener);
+		};
+		
+		const unsetChangeListener = function() {
+			tizen.preference.unsetChangeListener(notifier);
+		};
 		
 		return {
 			get: get,
+			getRx: getRx,
 			add: add,
+			addRx: addRx,
 			empty: empty,
 			remove: remove,
+			setChangeListener: setChangeListener,
+			unsetChangeListener: unsetChangeListener,
 		};
 	};
 	
@@ -377,7 +438,7 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 			},
 			
 			setChangeListener: function(listener) {
-				tizen.preference.setChangeListener(key, listener);				
+				tizen.preference.setChangeListener(key, listener);
 			},
 			
 			unsetChangeListener: function() {
@@ -436,11 +497,11 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 	};
 	
 	for (var i=0; i<consts.NBR_OF_PAST_MAPS; ++i) {
-		storage.pastMap.push(createSimpleStorage('pastMap' + i, ''));
+		storage.pastMap.push(createFileStorage('pastMap' + i, 1));
 	}
 
 	for (var i=0; i<consts.NBR_OF_FUTURE_MAPS; ++i) {
-		storage.futureMap.push(createSimpleStorage('futureMap' + i, ''));
+		storage.futureMap.push(createFileStorage('futureMap' + i, 1));
 	}
 
 	return storage;
