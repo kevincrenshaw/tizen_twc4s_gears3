@@ -4,9 +4,8 @@ define([], function() {
 	const settings = {
 		units: {
 			temperature: {
-				SYSTEM: 1,
-				FAHRENHEIT: 2,
-				CELSIUS: 3,
+				FAHRENHEIT: 1,
+				CELSIUS: 2,
 			},
 			time: {
 				SYSTEM: 1,

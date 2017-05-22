@@ -14,9 +14,6 @@ define(['rx', 'utils/const'], function(rx, consts) {
 	 */
 	const getTemperatureAndUnitAsText = function(celsiusTemp, unit) {
 		switch (parseInt(unit, 10)) {
-			case consts.settings.units.temperature.SYSTEM:
-				console.warn('temperature system setting not supported yet, falling back to Celsius');
-				/* falls through */
 			case consts.settings.units.temperature.CELSIUS:
 				return [celsiusTemp, 'C'];
 				
