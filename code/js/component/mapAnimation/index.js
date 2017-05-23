@@ -6,6 +6,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         root: '',
         info: '',
         infoClass: '',
+        clickable: true,
         bezel: {
             root: '',
             disabled: false,
@@ -64,6 +65,10 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
     }
 
     function toggle() {
+        if (!config.clickable) {
+            return;
+        }
+
         state.isPlaying ? stop() : play();
 
         $info.stop(true, true)
@@ -153,12 +158,17 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         $root.html('');
     }
 
+    function setClickable(flag) {
+        config.clickable = flag ? true : false;
+    }
+
     return {
         create: create,
         destroy: destroy,
         play: play,
         stop: stop,
         reset: reset,
-        setFrames: setFrames
+        setFrames: setFrames,
+        setClickable: setClickable,
     }
 });

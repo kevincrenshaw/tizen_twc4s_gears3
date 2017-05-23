@@ -56,6 +56,8 @@ define([
 		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
 
 		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
+
+		mapAnimation.setClickable(storage.map.get());
 	}
 
 	function updateUI(data, currentTimeOnly) {
@@ -134,6 +136,7 @@ define([
 				info: '.radar__button',
 				// navigating from widget should trigger autoplay
 				autoplay: utils.getAppControl().operation === 'navigate',
+				clickable: false,
 				bezel: {
 					root: '.bezel-placeholder',
 					min: 0,
