@@ -115,12 +115,12 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
 
         var hideFn = $.noop;
         if(index !== state.activeIndex) {
-            $frames[state.activeIndex].removeClass('is-active');
+            $frames[state.activeIndex].stop(true, true).removeClass('is-active');
             hideFn = function(index) {
                 $frames[index].hide();
             }.bind(null, state.activeIndex);
         }
-        $frames[index].addClass('is-active').fadeIn(config.duration, hideFn);
+        $frames[index].stop(true, true).addClass('is-active').fadeIn(config.duration, hideFn);
 
         bezel.setValue(index);
 
