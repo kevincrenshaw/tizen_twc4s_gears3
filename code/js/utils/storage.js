@@ -412,9 +412,8 @@ define(['utils/fsutils', 'utils/const'], function(fsutils, consts) {
 						'settings_units_temperature_key', 
 						'1',
 						createValueToLocalizationKeyMapping({
-							'1': 'SETTINGS_MENU_UNITS_TEMPERATURE_SYSTEM',
-							'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
-							'3': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
+							'1': 'SETTINGS_MENU_UNITS_TEMPERATURE_FAHRENHEIT',
+							'2': 'SETTINGS_MENU_UNITS_TEMPERATURE_CELSIUS'})),
 							
 				partnerapp : createGetterAndSetterForStorageImpl(
 						'settings_units_partnerapp_key', 
