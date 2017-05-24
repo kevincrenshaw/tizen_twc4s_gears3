@@ -430,13 +430,17 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 		
 		return {
 			get: function() {
-				return tizen.preference.getValue(key); 
+				return tizen.preference.getValue(key);
 			},
 			
 			set: function(value) {
 				tizen.preference.setValue(key, value);
 			},
-			
+			getAndSet: function(value) {
+				const result = tizen.preference.getValue(key);
+				tizen.preference.setValue(key, value);
+				return result;
+			},
 			setChangeListener: function(listener) {
 				tizen.preference.setChangeListener(key, listener);
 			},
@@ -494,6 +498,7 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 		ampm: createSimpleStorage('ampm', ''),
 		pastMap: [],
 		futureMap: [],
+		navigateTo: createSimpleStorage('navigateTo', ''),
 	};
 	
 	for (var i=0; i<consts.NBR_OF_PAST_MAPS; ++i) {

@@ -2,7 +2,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
     var defaultConfig = {
         delay: 1000,
         duration: 150,
-        autplay: false,
+        autoplay: false,
         root: '',
         info: '',
         infoClass: '',
@@ -113,6 +113,12 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         if(config.autoplay) { play(); }
     }
 
+    function fullReset() {
+        config.autoplay = false;
+        reset();
+        stop();
+    }
+
     function showFrame(index) {
         index = index % $frames.length;
 
@@ -174,6 +180,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         play: play,
         stop: stop,
         reset: reset,
+        fullReset: fullReset,
         setFrames: setFrames,
         setFrame: setFrame,
         setClickable: setClickable,
