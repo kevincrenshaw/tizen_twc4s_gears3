@@ -200,21 +200,6 @@ button {
 	color: #a7abae;
 }
 
-.more-block {
-	position: absolute;
-	left: 290px;
-	top: 155px;
-	background-color: #009de8;
-	border-radius: 50%;
-}
-
-.more-button {
-	width: 40px;
-	height: 40px;
-	margin: 10px;
-	vertical-align: middle;
-}
-
 /* style for playing infinity marquee styled elements 
 use it with standard ui-marquee style */
 .marquee-infinitive-autorun {}

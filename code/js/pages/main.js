@@ -2,8 +2,6 @@
 define(['utils/utils', 'utils/const'], function(utils, consts) {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
-	var popupHeader;
-	var popup;
 	
 	const selectorClickHandler = function() {
 		if (!selector) {
@@ -52,10 +50,6 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 		return true;
 	};
 	
-	const popupCancelButtonClickHandler = function() {
-		tau.closePopup();
-	};
-	
 	return {
 		pagebeforeshow: function(ev) {
 			const page = ev.target;
@@ -77,18 +71,6 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 			
 			selector.style.visibility = 'visible';
 
-			popup = page.querySelector('#selector-value-popup');
-			if (!popup) {
-				console.warn('setupMainMenu: page element "#selector-value-popup" not found"');
-				return;
-			}
-
-			popupHeader = popup.querySelector('#header');
-			if (!popupHeader) {
-				console.warn('setupMainMenu: popup element "#header" not found"');
-				return;
-			}
-			
 			const selectorOptions = {
 				itemStartDegree: 0,
 				continousRotation: true,

@@ -127,11 +127,11 @@
 }
 
 .radar__more {
-  height: 60px;
+  height: 57px;
   position: absolute;
-  right: 10px;
-  top: calc(50% - 30px);
-  width: 60px;
+  right: 26px;
+  top: calc(50% - 29px);
+  width: 57px;
   z-index: 100;
 
   text-align: center;
