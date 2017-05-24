@@ -44,8 +44,7 @@ define([
 				page: dom.queryWrappedElement(page, '#alerts-container'),
 				list: page.querySelector('#alert-list'),
 			},
-
-			moreblock: dom.queryWrappedElement(page, '#moreblock'),
+			
 			morebutton: dom.queryWrappedElement(page, '#morebtn'),
 		};
 
@@ -118,7 +117,6 @@ define([
 				},
 			},
 			more: {
-				visible: dom.createVisibilityHandler(holder.moreblock),
 				onClick: dom.createOnClickHandler(holder.morebutton),
 			},
 		};
@@ -155,7 +153,6 @@ define([
 				if(numberOfAlerts > 0) {
 					binder.noalerts.display('none');
 					binder.alerts.display('inline');
-					binder.more.visible(true);
 					binder.alerts.set(alertObject.alerts.alerts, numberOfAlerts);
 				} else {
 					binder.noalerts.display('inline');
