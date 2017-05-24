@@ -99,7 +99,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 				hardUpdateInProgress = false;
 
-				console.log('new data received');
+				console.log('new data (map, weather, alerts) received');
 			}, function(err) {
 				console.warn('download data failed: ' + JSON.stringify(err));
 			});
@@ -355,31 +355,23 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const fileName = ['futureMap', index, timestamp, epoch, utils.guid()].join('_') + '.jpg';
 
 				const timestampText = new Date(timestamp * 1000).toGMTString();
-				const futureTimestampText = new Date(futureTimestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
 
-				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', fts=' + futureTimestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
-				return network.downloadFileRx(mapUrl, fileName);
+				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
+				return rx.Observable.zip(
+					rx.Observable.just(storage.futureMap[index]),
+					network.downloadFileRx(mapUrl, fileName)
+						.flatMap(fsutils.hasSuchFileRx)
+						.map(function(file) {
+							return file.toURI();
+						})
+					);
 			})
-			.flatMap(fsutils.hasSuchFileRx)
-			.map(function(file) {
-				return file.toURI();
-			})
-			.flatMap(function(downloadedFilePath, index) {
-				const store = storage.futureMap[index];
-				const oldFile = store.get();
+			.flatMap(function(data) {
+				const store = data[0];
+				const downloadedFilePath = data[1];
 
-				console.log('tryGetFutureMapData: index=' + index + ', downloadedFilePath="' + downloadedFilePath + '", oldFile="' + oldFile + '"');
-
-				if (oldFile) {
-					return fsutils.tryRemoveFileRx(oldFile)
-						.defaultIfEmpty()
-						.map(function() {
-							return [index, downloadedFilePath];
-						});
-				} else {
-					return rx.Observable.just([index, downloadedFilePath]);
-				}
+				return store.addRx(downloadedFilePath);
 			})
 			.finally(function() {
 				subscription3 = null;
@@ -398,14 +390,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
 					});
 			})
-			.subscribe(function(next) {
-				const index = next[0];
-				const downloadedFilePath = next[1];
-
-				const store = storage.futureMap[index];
-				store.set(downloadedFilePath);
-
-				console.log('tryGetFutureMapData; new data received! index=' + index + ', file="' + downloadedFilePath + '"');
+			.subscribe(function(fileUri) {
+				console.log('tryGetFutureMapData; new data received! uri=' + fileUri);
 			}, function(err) {
 				console.error('tryGetFutureMapData error: ' + JSON.stringify(err));
 			});
@@ -451,27 +437,20 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const nowText = new Date().toGMTString();
 
 				console.log('tryGetPastMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
-				return network.downloadFileRx(mapUrl, fileName);
+				return rx.Observable.zip(
+					rx.Observable.just(storage.pastMap[index]),
+					network.downloadFileRx(mapUrl, fileName)
+						.flatMap(fsutils.hasSuchFileRx)
+						.map(function(file) {
+							return file.toURI();
+						})
+					);
 			})
-			.flatMap(fsutils.hasSuchFileRx)
-			.map(function(file) {
-				return file.toURI();
-			})
-			.flatMap(function(downloadedFilePath, index) {
-				const store = storage.pastMap[index];
-				const oldFile = store.get();
+			.flatMap(function(data) {
+				const store = data[0];
+				const downloadedFilePath = data[1];
 
-				console.log('tryGetPastMapData: index=' + index + ', downloadedFilePath="' + downloadedFilePath + '", oldFile="' + oldFile + '"');
-
-				if (oldFile) {
-					return fsutils.tryRemoveFileRx(oldFile)
-						.defaultIfEmpty()
-						.map(function() {
-							return [index, downloadedFilePath];
-						});
-				} else {
-					return rx.Observable.just([index, downloadedFilePath]);
-				}
+				return store.addRx(downloadedFilePath);
 			})
 			.finally(function() {
 				subscription2 = null;
@@ -490,14 +469,8 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
 					});
 			})
-			.subscribe(function(next) {
-				const index = next[0];
-				const downloadedFilePath = next[1];
-
-				const store = storage.pastMap[index];
-				store.set(downloadedFilePath);
-
-				console.log('tryGetPastMapData; new data received! index=' + index + ', file="' + downloadedFilePath + '"');
+			.subscribe(function(fileUri) {
+				console.log('tryGetPastMapData; new data received! uri=' + fileUri);
 			}, function(err) {
 				console.error('tryGetPastMapData error: ' + JSON.stringify(err));
 			});

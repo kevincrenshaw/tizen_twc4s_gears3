@@ -2,12 +2,13 @@
 
 define([
 	'jquery',
+	'rx',
 	'utils/storage',
 	'utils/const',
 	'utils/utils',
 	'utils/updater',
 	'../component/mapAnimation/index'
-], function($, storage, consts, utils, updater, mapAnimation) {
+], function($, rx, storage, consts, utils, updater, mapAnimation) {
 	var refreshViewId;
 	var ui = {};
 	var viewData = {};
@@ -35,16 +36,7 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		mapAnimation.setFrames([
-			storage.map.get(),
-			storage.futureMap[0].get(),
-			storage.futureMap[1].get(),
-			storage.futureMap[2].get(),
-			storage.pastMap[3].get(),
-			storage.pastMap[2].get(),
-			storage.pastMap[1].get(),
-			storage.pastMap[0].get(),
-		]);
+		updateMapAnimationFrames();
 
 		const observation = data.weather.observation;
 		viewData.tempOrig = observation.metric.temp;
@@ -127,6 +119,30 @@ define([
 		refreshView();
 	};
 
+	const updateMapAnimationFrames = function() {
+		const frames = [ storage.map.get() ];
+
+		return rx.Observable.concat(
+			rx.Observable.fromArray(storage.futureMap),
+			rx.Observable.fromArray(storage.pastMap))
+				.flatMap(function(fileStore) {
+					return fileStore.getRx().catch(rx.Observable.just(null));
+				})
+				.scan(function(acc, file) {
+					frames.push(file ? file.toURI() : storage.map.get());
+					return frames;
+				}, frames)
+				.flatMap(function() {
+					return rx.Observable.just(frames);
+				})
+				.subscribe(function(framesArr) {
+				}, function(err) {
+					console.error('updateMapAnimationFrames: ' + JSON.stringify(err));
+				}, function() {
+					mapAnimation.setFrames(frames);
+				});
+	};
+
 	return {
 		pagebeforeshow: function(ev) {
 			ui = getUI();
@@ -136,6 +152,7 @@ define([
 				info: '.radar__button',
 				// navigating from widget should trigger autoplay
 				autoplay: utils.getAppControl().operation === 'navigate',
+				framesCount: (consts.NBR_OF_PAST_MAPS + 1 + consts.NBR_OF_FUTURE_MAPS),
 				clickable: false,
 				bezel: {
 					root: '.bezel-placeholder',
@@ -169,6 +186,24 @@ define([
 			ui.moreBtn.on('click', function() {
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
+
+			const createMapFrameChangeListener = function(store, index, defaultValue) {
+				return function() {
+					store.getRx()
+						.map(function(file) {
+							return file.toURI();
+						})
+						.catch(rx.Observable.just(storage.map.get()))
+						.subscribe(function(filePath) {
+							console.log('Update map animation frame; index=' + (index+1) + ', filePath=' + filePath);
+							mapAnimation.setFrame(filePath, index + 1);
+						});
+				};
+			};
+
+			storage.futureMap.concat(storage.pastMap).forEach(function(store, index) {
+				store.setChangeListener(createMapFrameChangeListener(store, index));
+			});
 		},
 		
 		visibilitychange: function() {
@@ -182,6 +217,10 @@ define([
 		},
 
 		pagebeforehide: function(ev) {
+			storage.futureMap.concat(storage.pastMap).forEach(function(store) {
+				store.unsetChangeListener();
+			});
+
 			mapAnimation.destroy();
 
 			if(refreshViewId) {
