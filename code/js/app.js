@@ -190,7 +190,7 @@ define(modules, function(require, utils, updater, storage) {
 	if (operation === 'navigate') {
 		const target = 'html/' + uri + '.html';
 		console.log('Navigating to: "' + target + '"');
-		
+		storage.navigateTo.set(uri);
 		tau.changePage(target, { transition:'none' });
 	} else {
 		const mainPage = document.getElementById('main');

@@ -162,6 +162,11 @@ define([
 				}
 			});
 
+			const to = storage.navigateTo.getAndSet('');
+			if(to === '') {
+				mapAnimation.fullReset();
+			}
+
 			storage.data.setChangeListener(loadData);
 			loadData();
 			updater.softUpdate();
@@ -209,6 +214,10 @@ define([
 		visibilitychange: function() {
 			if(!document.hidden) {
 				updater.softUpdate();
+				const to = storage.navigateTo.getAndSet('');
+				if(to === '') {
+					mapAnimation.fullReset();
+				}
 				ui.updateBtn.prop('disabled', updater.updateInProgress());
 				mapAnimation.reset();
 			} else {
