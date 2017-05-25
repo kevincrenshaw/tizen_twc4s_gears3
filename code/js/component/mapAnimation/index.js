@@ -8,6 +8,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         infoClass: '',
         framesCount: 8,
         clickable: true,
+        onShowFrame: undefined,
         bezel: {
             root: '',
             disabled: false,
@@ -134,6 +135,10 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         bezel.setValue(index);
 
         state.activeIndex = index;
+
+        if (config.onShowFrame) {
+            config.onShowFrame(index);
+        }
     }
 
     function setFrame(image, index) {

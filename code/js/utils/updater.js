@@ -350,15 +350,15 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 				const mapUrl = getMapImgUrl(latitude, longitude, lod, { product:'radarFcst', extraParams: { ts: timestamp, fts: futureTimestamp } });
 
-				const epoch = utils.getNowAsEpochInMiliseconds();
-				const fileName = ['futureMap', index, timestamp, epoch, utils.guid()].join('_') + '.jpg';
+				const fileName = ['futureMap', index, futureTimestamp].join('_') + '.jpg';
 
-				const timestampText = new Date(timestamp * 1000).toGMTString();
+				const futureTimestampText = new Date(futureTimestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
 
-				console.log('tryGetFutureMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
+				console.log('tryGetFutureMapData: index=' + index + ', fts=' + futureTimestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return rx.Observable.zip(
 					rx.Observable.just(storage.futureMap[index]),
+					rx.Observable.just(futureTimestamp),
 					network.downloadFileRx(mapUrl, fileName)
 						.flatMap(fsutils.hasSuchFileRx)
 						.map(function(file) {
@@ -367,10 +367,18 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 					);
 			})
 			.flatMap(function(data) {
-				const store = data[0];
-				const downloadedFilePath = data[1];
+				const fileAndTimestampStore = data[0];
+				const timestamp = data[1]
+				const downloadedFilePath = data[2];
 
-				return store.addRx(downloadedFilePath);
+				const fileStore = fileAndTimestampStore.file;
+				const timestampStore = fileAndTimestampStore.timestamp;
+
+				return rx.Observable.zip(
+					fileStore.addRx(downloadedFilePath),
+					rx.Observable.just(timestamp),
+					rx.Observable.just(timestampStore)
+				);
 			})
 			.finally(function() {
 				subscription3 = null;
@@ -389,8 +397,13 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
 					});
 			})
-			.subscribe(function(fileUri) {
+			.subscribe(function(data) {
+				const fileUri = data[0];
+				const timestamp = data[1];
+				const timestampStore = data[2];
+
 				console.log('tryGetFutureMapData; new data received! uri=' + fileUri);
+				timestampStore.set(timestamp);
 			}, function(err) {
 				console.error('tryGetFutureMapData error: ' + JSON.stringify(err));
 			});
@@ -423,14 +436,14 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const coords = next[0];
 				const timestamp = next[1];
 
+				index = consts.NBR_OF_PAST_MAPS - 1 - index;
+
 				const latitude = coords[0];
 				const longitude = coords[1];
 				const lod = getMapLod();
 
 				const mapUrl = getMapImgUrl(latitude, longitude, lod, { product:'radar', extraParams: { ts: timestamp } });
-
-				const epoch = utils.getNowAsEpochInMiliseconds();
-				const fileName = ['pastMap', index, timestamp, epoch, utils.guid()].join('_') + '.jpg';
+				const fileName = ['pastMap', index, timestamp].join('_') + '.jpg';
 
 				const timestampText = new Date(timestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
@@ -438,6 +451,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				console.log('tryGetPastMapData: index=' + index + ', ts=' + timestampText + ', now=' + nowText + ', mapUrl=' + mapUrl);
 				return rx.Observable.zip(
 					rx.Observable.just(storage.pastMap[index]),
+					rx.Observable.just(timestamp),
 					network.downloadFileRx(mapUrl, fileName)
 						.flatMap(fsutils.hasSuchFileRx)
 						.map(function(file) {
@@ -446,10 +460,18 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 					);
 			})
 			.flatMap(function(data) {
-				const store = data[0];
-				const downloadedFilePath = data[1];
+				const fileAndTimestampStore = data[0];
+				const timestamp = data[1];
+				const downloadedFilePath = data[2];
 
-				return store.addRx(downloadedFilePath);
+				const fileStore = fileAndTimestampStore.file;
+				const timestampStore = fileAndTimestampStore.timestamp;
+
+				return rx.Observable.zip(
+					fileStore.addRx(downloadedFilePath),
+					rx.Observable.just(timestamp),
+					rx.Observable.just(timestampStore)
+				);
 			})
 			.finally(function() {
 				subscription2 = null;
@@ -468,8 +490,13 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 						return rx.Observable.timer(1000 * consts.NBR_OF_SECOND_TO_WAIT_BETWEEN_RETRIES);
 					});
 			})
-			.subscribe(function(fileUri) {
+			.subscribe(function(data) {
+				const fileUri = data[0];
+				const timestamp = data[1];
+				const timestampStore = data[2];
+
 				console.log('tryGetPastMapData; new data received! uri=' + fileUri);
+				timestampStore.set(timestamp);
 			}, function(err) {
 				console.error('tryGetPastMapData error: ' + JSON.stringify(err));
 			});

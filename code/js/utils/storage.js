@@ -502,11 +502,17 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 	};
 	
 	for (var i=0; i<consts.NBR_OF_PAST_MAPS; ++i) {
-		storage.pastMap.push(createFileStorage('pastMap' + i, 1));
+		storage.pastMap.push({
+			file: createFileStorage('pastMap' + i, 1),
+			timestamp: createSimpleStorage('pastMapTimestamp' + i, 0),
+		});
 	}
 
 	for (var i=0; i<consts.NBR_OF_FUTURE_MAPS; ++i) {
-		storage.futureMap.push(createFileStorage('futureMap' + i, 1));
+		storage.futureMap.push({
+			file: createFileStorage('futureMap' + i, 1),
+			timestamp: createSimpleStorage('futureMapTimestamp' + i, 0),
+		});
 	}
 
 	return storage;

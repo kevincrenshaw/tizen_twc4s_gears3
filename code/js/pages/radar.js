@@ -52,6 +52,25 @@ define([
 		mapAnimation.setClickable(storage.map.get());
 	}
 
+	function getHtmlForTemp(temp, tempUnit, snapshotTimeArr) {
+		var result = [];
+
+		if (temp !== null && tempUnit !== null) {
+			result = result.concat([temp, '°', '<span>', tempUnit, '</span>']);
+		} else {
+			result = result.concat(['-']);
+		}
+
+		result = result.concat([
+			'<span class="radar__separator">',
+			TIZEN_L10N.RADAR_AT,
+			'</span>',
+			snapshotTimeArr[0],
+			(snapshotTimeArr[1] ? '<span>' + snapshotTimeArr[1].trim() + '</span>' : '')]);
+
+		return result.join('');
+	}
+
 	function updateUI(data, currentTimeOnly) {
 		ui.date.html(
 			viewData.currentTime[0] +
@@ -61,15 +80,6 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		ui.temp.html(
-			data.temp + 
-			'°' +
-			'<span>' + data.tempUnit + '</span>' +
-			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
-			viewData.snapshotTime[0] +
-			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1].trim() + '</span>' : '')
-		);
-		
 		ui.updateBtn.prop('disabled', false);
 
 		const alertsCounter = 
@@ -125,8 +135,8 @@ define([
 		return rx.Observable.concat(
 			rx.Observable.fromArray(storage.futureMap),
 			rx.Observable.fromArray(storage.pastMap))
-				.flatMap(function(fileStore) {
-					return fileStore.getRx().catch(rx.Observable.just(null));
+				.flatMap(function(fileTimestampStore) {
+					return fileTimestampStore.file.getRx().catch(rx.Observable.just(null));
 				})
 				.scan(function(acc, file) {
 					frames.push(file ? file.toURI() : storage.map.get());
@@ -159,6 +169,22 @@ define([
 					min: 0,
 					max: 7,
 					disabled: true
+				},
+				onShowFrame: function(frameIndex) {
+					if (frameIndex === 0) {
+						ui.temp.html(getHtmlForTemp(viewData.temp, viewData.tempUnit, viewData.snapshotTime));
+					} else {
+						const storageFutureAndPastFrames = storage.futureMap.concat(storage.pastMap);
+						const currentFileTimestampStorage = storageFutureAndPastFrames[frameIndex - 1];
+						const currentTimestampStorage = currentFileTimestampStorage.timestamp;
+
+						const timeUnit = storage.settings.units.time.get();
+						const frameDate = new Date(currentTimestampStorage.get() * 1000);
+
+						const snapshotTime = utils.getTimeAsText(frameDate, timeUnit, viewData.is12hFormat);
+
+						ui.temp.html(getHtmlForTemp(null, null, snapshotTime));
+					}
 				}
 			});
 
@@ -206,8 +232,8 @@ define([
 				};
 			};
 
-			storage.futureMap.concat(storage.pastMap).forEach(function(store, index) {
-				store.setChangeListener(createMapFrameChangeListener(store, index));
+			storage.futureMap.concat(storage.pastMap).forEach(function(fileTimestampStore, index) {
+				fileTimestampStore.file.setChangeListener(createMapFrameChangeListener(fileTimestampStore.file, index));
 			});
 		},
 		
@@ -226,8 +252,8 @@ define([
 		},
 
 		pagebeforehide: function(ev) {
-			storage.futureMap.concat(storage.pastMap).forEach(function(store) {
-				store.unsetChangeListener();
+			storage.futureMap.concat(storage.pastMap).forEach(function(fileTimestampStore) {
+				fileTimestampStore.file.unsetChangeListener();
 			});
 
 			mapAnimation.destroy();
