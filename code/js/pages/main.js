@@ -2,6 +2,7 @@
 define(['utils/utils', 'utils/const'], function(utils, consts) {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
+	var lastSelectedItem;
 	
 	const selectorClickHandler = function() {
 		if (!selector) {
@@ -19,18 +20,22 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 		switch(activeItem.id) {
 		case 'settings':
 			tau.changePage("html/settings.html", { transition:'none' });
+			lastSelectedItem = 3;
 			break;
 
 		case 'radar':
 			tau.changePage("html/radar.html", { transition:'none' });
+			lastSelectedItem = 0;
 			break;
 
 		case 'weather':
 			utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
+			lastSelectedItem = 1;
 			break;
 
 		case 'alerts':
 			tau.changePage("html/alerts.html", { transition:'none' });
+			lastSelectedItem = 2;
 			break;
 
 		default:
@@ -79,6 +84,12 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 			};
 			
 			selectorWidget = tau.widget.Selector(selector, selectorOptions);
+
+			if (lastSelectedItem !== undefined) {
+				selectorWidget.changeItem(lastSelectedItem);
+				lastSelectedItem = undefined;
+			}
+
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
 			}
