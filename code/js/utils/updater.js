@@ -237,21 +237,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		console.log('uniqueFileName: ' + uniqueFileName);
 
 		return network.downloadFileRx(mapImgUrl, uniqueFileName).flatMap(function(downloadedFilePath) {
-			return storageFileAdd(downloadedFilePath);
-		});
-	};
-
-	/*
-	 * Add file to storage in Rx way
-	 */
-	const storageFileAdd = function(filePath) {
-		return rx.Observable.create(function(observer) {
-			const onSuccess = function(fileUri) {
-		 		observer.onNext(fileUri);
-		 		observer.onCompleted();
-			};
-
-			storage.file.add(filePath, { onSuccess:onSuccess, onError:observer.onError });
+			return storage.file.addRx(downloadedFilePath);
 		});
 	};
 
