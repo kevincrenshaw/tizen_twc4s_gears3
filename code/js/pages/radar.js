@@ -54,6 +54,7 @@ define([
 
 	function getHtmlForTemp(temp, tempUnit, snapshotTimeArr) {
 		var result = [];
+		console.log('getHtmlForTemp: temp=' + JSON.stringify(temp) + ', tempUnit=' + JSON.stringify(tempUnit) + ', snapshotTimeArr=' + JSON.stringify(snapshotTimeArr));
 
 		if (temp !== null && tempUnit !== null) {
 			result = result.concat([temp, '°', '<span>', tempUnit, '</span>']);
@@ -172,7 +173,11 @@ define([
 				},
 				onShowFrame: function(frameIndex) {
 					if (frameIndex === 0) {
-						ui.temp.html(getHtmlForTemp(viewData.temp, viewData.tempUnit, viewData.snapshotTime));
+						if (viewData.snapshotTime) {
+							ui.temp.html(getHtmlForTemp(viewData.temp, viewData.tempUnit, viewData.snapshotTime));
+						} else {
+							console.log('onShowFrame: no snapshotTime data');
+						}
 					} else {
 						const storageFutureAndPastFrames = storage.futureMap.concat(storage.pastMap);
 						const currentFileTimestampStorage = storageFutureAndPastFrames[frameIndex - 1];
