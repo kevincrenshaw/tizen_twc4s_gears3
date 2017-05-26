@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-define(['utils/utils', 'utils/const'], function(utils, consts) {
+define(['jquery', 'utils/utils', 'utils/const'], function($, utils, consts) {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
 	var lastSelectedItem;
@@ -41,6 +41,12 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 		default:
 			console.warn('setupMainMenu::selectorClickHandler: missing menu element');
 		}
+	};
+
+	const onItemSelectedHandler = function(selectedItem) {
+		//.ui-page#main .ui-selector .ui-item-active
+		console.log('updated layerIndex: ' + selectedItem.detail.layerIndex + ' index: ' + selectedItem.detail.index + ' title: ' + selectedItem.detail.title);
+		
 	};
 
 	const setDataTitleAttributeValue = function(root, selector, value) {
@@ -92,12 +98,20 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
+				
+				selector.addEventListener('selectoritemchange', onItemSelectedHandler);
+				$('.ui-page#main .ui-selector .ui-item-active');
+//						function(selectedItem) {
+//					console.log('updated layerIndex: ' + selectedItem.detail.layerIndex + ' index: ' + selectedItem.detail.index + ' title: ' + selectedItem.detail.title);
+//					//console.log('updated layerIndex: ' + JSON.stringify(selectedItem.detail));
+//				});
 			}
 		},
 		
 		pagebeforehide: function(ev) {
 			if (selector) {
 				selector.removeEventListener('click', selectorClickHandler, false);
+				selector.removeEventListener('selectoritemchange', onItemSelectedHandler);
 			}
 			
 			if (selectorWidget) {

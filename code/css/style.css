@@ -13,7 +13,7 @@ button {
 }
 
 .ui-page#main .ui-selector .ui-item {
-	background-color: rgba(138,138,138,1);
+	background-color: rgba(255,255,255,1);
 }
 
 .ui-page#main .ui-selector .ui-item-active {
@@ -60,22 +60,22 @@ button {
 }
 
 .radar-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-radar.png");
+    background-image: url("../resources/gfx/storm-icon-weather-radar.svg");
     background-size: contain;
 }
 
 .weather-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-openapp.png");
+    background-image: url("../resources/gfx/storm-icon-weather-openapp.svg");
     background-size: contain;
 }
 
 .alerts-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-alerts.png");
+    background-image: url("../resources/gfx/storm-icon-weather-alerts.svg");
     background-size: contain;
 }
 
 .settings-icon {
-    background-image: url("../resources/gfx/storm-icon-settings.png");
+    background-image: url("../resources/gfx/storm-icon-settings.svg");
     background-size: contain;  
 }
 
@@ -199,7 +199,3 @@ button {
 	font-size: 18px;
 	color: #a7abae;
 }
-
-/* style for playing infinity marquee styled elements 
-use it with standard ui-marquee style */
-.marquee-infinitive-autorun {}
