@@ -42,7 +42,6 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         bindEvents();
 
         $frames = createFrameImages(config.framesCount);
-        createMarkup();
 
         if(config.frames) {
             setFrames(config.frames);
@@ -144,6 +143,8 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
     }
 
     function setFrames(frames) {
+        createMarkup();
+        
         if(config.autoplay) { stop(); }
 
         frames.forEach(setFrame);
