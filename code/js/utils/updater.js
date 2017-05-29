@@ -23,16 +23,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		if (subscription1) {
 			return false;
 		}
-		
-		console.log('getting current position...');
 
-		const positionSubject = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
-			.map(function(pos) {
-				return [pos.coords.latitude, pos.coords.longitude];
-			});
-
-		tryGetNewMapAlertsWeatherData(positionSubject);
-		
 		if (subscription2) {
 			subscription2.dispose();
 			subscription2 = null;
@@ -42,19 +33,54 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			subscription3.dispose();
 			subscription3 = null;
 		}
+		
+		console.log('getting current position...');
 
-		const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+		const positionSubject = utils.getCurrentPositionRx(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
+			.map(function(pos) {
+				return [pos.coords.latitude, pos.coords.longitude];
+			});
 
-		tryGetPastMapData(positionSubject, timestampSubject);
-		tryGetFutureMapData(positionSubject, timestampSubject);
+		subscription1 = tryGetNewMapAlertsWeatherData(positionSubject)
+			.finally(function() {
+				subscription1 = null;
+				hardUpdateInProgress = false;
+
+				if (updateCompleteHandler) {
+					try {
+						updateCompleteHandler();
+					} catch (err) {
+						console.error('Data download update complete handler error: ' + JSON.stringify(err));
+					}
+				}
+			})
+			.subscribe(function(data) {
+				const mapFilePath = data[0];
+				const weatherData = data[1];
+				const alertData = data[2];
+
+				const newStorageObject = {
+					weather: weatherData,
+					alerts: alertData,
+				};
+
+				storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
+				storage.map.set(mapFilePath);
+				storage.data.set(JSON.stringify(newStorageObject));
+
+				console.log('new data (map, weather, alerts) received, downloading future/past frames...');
+
+				const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+
+				tryGetPastMapData(positionSubject, timestampSubject);
+				tryGetFutureMapData(positionSubject, timestampSubject);
+			}, function(err) {
+				console.warn('download data failed: ' + JSON.stringify(err));
+			});
 	}
 
 	const tryGetNewMapAlertsWeatherData = function(currentPositionObservable) {
-		if (subscription1) {
-			return false;
-		}
-
-		subscription1 = currentPositionObservable
+		return currentPositionObservable
 			.flatMap(function(coords) {
 				return rx.Observable.zip(
 					getWeatherObject(coords),
@@ -71,39 +97,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 					rx.Observable.just(weatherData),
 					rx.Observable.just(alertData));
 			})
-			.finally(function() {
-				subscription1 = null;
-				hardUpdateInProgress = false;
-
-				if (updateCompleteHandler) {
-					try {
-						updateCompleteHandler();
-					} catch (err) {
-						console.error('Data download update complete handler error: ' + JSON.stringify(err));
-					}
-				}
-			})
-			.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS)
-			.subscribe(function(data) {
-				const mapFilePath = data[0];
-				const weatherData = data[1];
-				const alertData = data[2];
-
-				const newStorageObject = {
-					weather: weatherData,
-					alerts: alertData,
-				};
-
-				storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
-				storage.map.set(mapFilePath);
-				storage.data.set(JSON.stringify(newStorageObject));
-
-				console.log('new data (map, weather, alerts) received');
-			}, function(err) {
-				console.warn('download data failed: ' + JSON.stringify(err));
-			});
-
-		return true;
+			.timeout(consts.DATA_DOWNLOAD_TIMEOUT_IN_MS);
 	};
 
 	const getMapLod = function() {

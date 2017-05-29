@@ -36,8 +36,6 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		updateMapAnimationFrames();
-
 		const observation = data.weather.observation;
 		viewData.tempOrig = observation.metric.temp;
 		const tempData = utils.getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
@@ -50,6 +48,8 @@ define([
 		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
 
 		mapAnimation.setClickable(storage.map.get());
+
+		updateMapAnimationFrames();
 	}
 
 	function getHtmlForTemp(temp, tempUnit, snapshotTimeArr) {
