@@ -131,22 +131,35 @@ define([
 	};
 
 	const updateMapAnimationFrames = function() {
-		const frames = [ storage.map.get() ];
+		const frames = [];
+
+		const standardMap = storage.map.get();
+		for (var i=0; i<mapAnimation.getFramesCount(); ++i) {
+			frames[i] = standardMap;
+		}
 
 		return rx.Observable.concat(
 			rx.Observable.fromArray(storage.futureMap),
 			rx.Observable.fromArray(storage.pastMap))
-				.flatMap(function(fileTimestampStore) {
-					return fileTimestampStore.file.getRx().catch(rx.Observable.just(null));
-				})
-				.scan(function(acc, file) {
-					frames.push(file ? file.toURI() : storage.map.get());
-					return frames;
-				}, frames)
-				.flatMap(function() {
-					return rx.Observable.just(frames);
-				})
-				.subscribe(function(framesArr) {
+				.flatMap(function(fileTimestampStore, index) {
+					return rx.Observable.zip(
+						rx.Observable.just(index + 1),			//+1 because setFrames uses first frame for current map
+						fileTimestampStore.file.getRx()
+							.map(function(file) {
+								return file.toURI();
+							})
+							.catch(rx.Observable.just(null))	//return file URI or null in case of any problem
+					);
+ 				})
+				.subscribe(function(next) {
+					const index = next[0];
+					const filePathUriOrNull = next[1];
+
+					if (filePathUriOrNull) {
+						frames[index] = filePathUriOrNull;
+					} else {
+						//If there is no downloaded frame leave default (standardMap)
+					}
 				}, function(err) {
 					console.error('updateMapAnimationFrames: ' + JSON.stringify(err));
 				}, function() {
