@@ -491,7 +491,7 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 						}))
 			},
 		},
-		file: createFileStorage('file', 4),
+		file: createFileStorage('file', 1),
 		data: createSimpleStorage('data', ''),
 		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
 		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)

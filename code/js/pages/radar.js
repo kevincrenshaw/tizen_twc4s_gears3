@@ -195,13 +195,18 @@ define([
 						const storageFutureAndPastFrames = storage.futureMap.concat(storage.pastMap);
 						const currentFileTimestampStorage = storageFutureAndPastFrames[frameIndex - 1];
 						const currentTimestampStorage = currentFileTimestampStorage.timestamp;
+						const timestampForFrame = currentTimestampStorage.get();
 
-						const timeUnit = storage.settings.units.time.get();
-						const frameDate = new Date(currentTimestampStorage.get() * 1000);
+						if (timestampForFrame) {
+							const timeUnit = storage.settings.units.time.get();
+							const frameDate = new Date(timestampForFrame * 1000);
 
-						const snapshotTime = utils.getTimeAsText(frameDate, timeUnit, viewData.is12hFormat);
+							const snapshotTime = utils.getTimeAsText(frameDate, timeUnit, viewData.is12hFormat);
 
-						ui.temp.html(getHtmlForTemp(null, null, snapshotTime));
+							ui.temp.html(getHtmlForTemp(null, null, snapshotTime));
+						} else {
+							ui.temp.html(getHtmlForTemp(null, null, ['-', '']));
+						}						
 					}
 				}
 			});
