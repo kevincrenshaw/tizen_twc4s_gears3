@@ -13,6 +13,32 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 	//Handler called when update completes (successful or error)
 	var updateCompleteHandler;
 
+	//Clean each future/past storage
+	//Emits one item (undefined) when all future/past map/timestamp are removed
+	const removeFutureAndPastFramesAndTimestamps = function() {
+		const subject = new rx.AsyncSubject();
+
+		rx.Observable.fromArray(storage.futureMap.concat(storage.pastMap))
+			.flatMap(function(storage) {
+				//Set timestamp of frame to 0
+				storage.timestamp.set(0);
+
+				//Remove file from filesystem
+				return storage.file.removeRx();
+			})
+
+			.subscribe(function(next) {
+			}, function(err) {
+				subject.onError(err);
+			}, function() {
+				subject.onNext();
+				subject.onCompleted();
+			});
+
+
+		return subject;
+	};
+
 	/*
 	 * Attempts to get current location, fetch data for given location and store it in storage.data.
 	 *
@@ -68,12 +94,21 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				storage.map.set(mapFilePath);
 				storage.data.set(JSON.stringify(newStorageObject));
 
-				console.log('new data (map, weather, alerts) received, downloading future/past frames...');
+				console.log('new data (map, weather, alerts) received, cleaning future/past frames');
 
-				const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+				//Cleanup past/future frames first...
+				removeFutureAndPastFramesAndTimestamps()
+					.subscribe(function(next) {
+					}, function(err) {
+						console.error('removeFutureAndPastFramesAndTimestamps: ' + JSON.stringify(err));
+					}, function() {
+						console.log('cleanup complete, downloading future/past frames...');
 
-				tryGetPastMapData(positionSubject, timestampSubject);
-				tryGetFutureMapData(positionSubject, timestampSubject);
+						const timestampSubject = network.getResourceByURLRx(getTimestampUrl());
+
+						tryGetFutureMapData(positionSubject, timestampSubject);
+						tryGetPastMapData(positionSubject, timestampSubject);
+					});
 			}, function(err) {
 				console.warn('download data failed: ' + JSON.stringify(err));
 			});

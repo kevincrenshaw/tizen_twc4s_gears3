@@ -241,13 +241,13 @@ define([
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
 
-			const createMapFrameChangeListener = function(store, index, defaultValue) {
+			const createMapFrameChangeListener = function(store, index) {
 				return function() {
 					store.getRx()
 						.map(function(file) {
 							return file.toURI();
 						})
-						.catch(rx.Observable.just(storage.map.get()))
+						.catch(rx.Observable.just(storage.map.get()))	//If there is problem with getting file replace it with current map
 						.subscribe(function(filePath) {
 							console.log('Update map animation frame; index=' + (index+1) + ', filePath=' + filePath);
 							mapAnimation.setFrame(filePath, index + 1);

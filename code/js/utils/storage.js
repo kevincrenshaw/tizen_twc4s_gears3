@@ -403,6 +403,29 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 			}
 		};
 
+		const removeRx = function() {
+			return rx.Observable.create(function(observer) {
+				const onSuccess = function() {
+					observer.onNext();
+					observer.onCompleted();	
+				};
+
+				const onError = function(err) {
+					observer.onError(err);
+				}
+
+				try {
+					if (!empty()) {
+						remove( { onSuccess:onSuccess, onError:onError} );
+					} else {
+						onSuccess();
+					}
+				} catch (err) {
+					onError(err);
+				}
+			});
+		};
+
 		const setChangeListener = function(listener) {
 			tizen.preference.setChangeListener(notifier, listener);
 		};
@@ -418,6 +441,7 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 			addRx: addRx,
 			empty: empty,
 			remove: remove,
+			removeRx: removeRx,
 			setChangeListener: setChangeListener,
 			unsetChangeListener: unsetChangeListener,
 		};
