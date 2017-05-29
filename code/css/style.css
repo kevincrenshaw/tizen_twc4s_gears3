@@ -59,24 +59,44 @@ button {
 	color:#fff;
 }
 
-.radar-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-radar.svg");
+div#radar.ui-item.radar-icon {
+	background-image: url("../resources/gfx/storm-icon-weather-radar.svg");
+	background-size: contain;
+}
+
+div#radar.ui-item.radar-icon.ui-item-active {
+	background-image: url("../resources/gfx/storm-icon-weather-radar-white.svg");
+	background-size: contain;
+}
+
+div#weather.ui-item.weather-icon {
+	background-image: url("../resources/gfx/storm-icon-weather-openapp.svg");
+	background-size: contain;
+}
+
+div#weather.ui-item.weather-icon.ui-item-active {
+	background-image: url("../resources/gfx/storm-icon-weather-openapp-white.svg");
+	background-size: contain;
+}
+
+div#alerts.ui-item.alerts-icon {
+	background-image: url("../resources/gfx/storm-icon-weather-alerts.svg");
     background-size: contain;
 }
 
-.weather-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-openapp.svg");
+div#alerts.ui-item.alerts-icon.ui-item-active {
+	background-image: url("../resources/gfx/storm-icon-weather-alerts-white.svg");
     background-size: contain;
 }
 
-.alerts-icon {
-    background-image: url("../resources/gfx/storm-icon-weather-alerts.svg");
-    background-size: contain;
+div#settings.ui-item.settings-icon {
+	background-image: url("../resources/gfx/storm-icon-settings.svg");
+	background-size: contain;
 }
 
-.settings-icon {
-    background-image: url("../resources/gfx/storm-icon-settings.svg");
-    background-size: contain;  
+div#settings.ui-item.settings-icon.ui-item-active {
+	background-image: url("../resources/gfx/storm-icon-settings-white.svg");
+	background-size: contain;
 }
 
 .warning-icon:before {

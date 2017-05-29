@@ -43,12 +43,6 @@ define(['jquery', 'utils/utils', 'utils/const'], function($, utils, consts) {
 		}
 	};
 
-	const onItemSelectedHandler = function(selectedItem) {
-		//.ui-page#main .ui-selector .ui-item-active
-		console.log('updated layerIndex: ' + selectedItem.detail.layerIndex + ' index: ' + selectedItem.detail.index + ' title: ' + selectedItem.detail.title);
-		
-	};
-
 	const setDataTitleAttributeValue = function(root, selector, value) {
 		const element = root.querySelector(selector);
 		
@@ -79,7 +73,7 @@ define(['jquery', 'utils/utils', 'utils/const'], function($, utils, consts) {
 			setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
 			setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
-			
+
 			selector.style.visibility = 'visible';
 
 			const selectorOptions = {
@@ -98,20 +92,12 @@ define(['jquery', 'utils/utils', 'utils/const'], function($, utils, consts) {
 
 			if (selector) {
 				selector.addEventListener('click', selectorClickHandler, false);
-				
-				selector.addEventListener('selectoritemchange', onItemSelectedHandler);
-				$('.ui-page#main .ui-selector .ui-item-active');
-//						function(selectedItem) {
-//					console.log('updated layerIndex: ' + selectedItem.detail.layerIndex + ' index: ' + selectedItem.detail.index + ' title: ' + selectedItem.detail.title);
-//					//console.log('updated layerIndex: ' + JSON.stringify(selectedItem.detail));
-//				});
 			}
 		},
-		
+
 		pagebeforehide: function(ev) {
 			if (selector) {
 				selector.removeEventListener('click', selectorClickHandler, false);
-				selector.removeEventListener('selectoritemchange', onItemSelectedHandler);
 			}
 			
 			if (selectorWidget) {
