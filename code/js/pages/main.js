@@ -1,5 +1,5 @@
 /* jshint esversion: 6 */
-define(['jquery', 'utils/utils', 'utils/const'], function($, utils, consts) {
+define(['utils/utils', 'utils/const'], function(utils, consts) {
 	//Remember widget object to destory it on leaving page (if not bezel may stop working)
 	var selectorWidget;
 	var lastSelectedItem;
