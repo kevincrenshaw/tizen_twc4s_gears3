@@ -336,7 +336,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 
 				const mapUrl = getMapImgUrl(latitude, longitude, lod, { product:'radarFcst', extraParams: { ts: timestamp, fts: futureTimestamp } });
 
-				const fileName = ['futureMap', index, futureTimestamp].join('_') + '.jpg';
+				const fileName = ['futureMap', index, futureTimestamp, utils.guid()].join('_') + '.jpg';
 
 				const futureTimestampText = new Date(futureTimestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
@@ -429,7 +429,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				const lod = getMapLod();
 
 				const mapUrl = getMapImgUrl(latitude, longitude, lod, { product:'radar', extraParams: { ts: timestamp } });
-				const fileName = ['pastMap', index, timestamp].join('_') + '.jpg';
+				const fileName = ['pastMap', index, timestamp, utils.guid()].join('_') + '.jpg';
 
 				const timestampText = new Date(timestamp * 1000).toGMTString();
 				const nowText = new Date().toGMTString();
