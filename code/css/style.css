@@ -70,13 +70,11 @@ div#radar.ui-item.radar-icon.ui-item-active {
 }
 
 div#weather.ui-item.weather-icon {
-	background-image: url("../resources/gfx/storm-icon-weather-openapp.svg");
-	background-size: contain;
+	background: url("../resources/gfx/storm-icon-weather-openapp.svg") 75% 50% / 50px 45px no-repeat;
 }
 
 div#weather.ui-item.weather-icon.ui-item-active {
-	background-image: url("../resources/gfx/storm-icon-weather-openapp-white.svg");
-	background-size: contain;
+	background: #009DE8 url("../resources/gfx/storm-icon-weather-openapp-white.svg") 75% 50% / 50px 45px no-repeat;
 }
 
 div#alerts.ui-item.alerts-icon {
