@@ -210,7 +210,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 		params.w = options.width || 400;
 		params.h = options.height || 400;
 		params.lod = lod;
-		params.product = options.product || 'satrad';
+		params.product = options.product || 'radar';
 		params.apiKey = consts.API_KEY;
 
 		return utils.createUri(consts.MAPS_URL, params);
