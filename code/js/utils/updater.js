@@ -73,6 +73,7 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 			})
 			.finally(function() {
 				subscription1 = null;
+				hardUpdateInProgress = false;
 
 				if (updateCompleteHandler) {
 					try {
@@ -96,8 +97,6 @@ define(['utils/utils', 'utils/const', 'utils/storage', 'utils/map', 'utils/netwo
 				storage.lastUpdate.set(utils.getNowAsEpochInSeconds());
 				storage.map.set(mapFilePath);
 				storage.data.set(JSON.stringify(newStorageObject));
-
-				hardUpdateInProgress = false;
 
 				console.log('new data (map, weather, alerts) received');
 			}, function(err) {
