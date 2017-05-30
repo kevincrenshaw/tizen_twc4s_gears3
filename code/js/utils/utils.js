@@ -245,7 +245,7 @@ define(['rx', 'utils/const'], function(rx, consts) {
 
 	const getDateAndTimeAsText = function(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat) {
 		const timeRepr = getTimeAsText(dateTimeData, currentTimeUnitSetting, isSystemUses12hFormat);
-		const date = [dateTimeData.getDate(), '.', parseInt(dateTimeData.getMonth()) + 1, '.', dateTimeData.getFullYear()].join('');
+		const date = [parseInt(dateTimeData.getMonth()) + 1, '.', dateTimeData.getDate(), '.', dateTimeData.getFullYear()].join('');
 		return date + ' @ ' + timeRepr[0] + timeRepr[1];
 	};
 
@@ -469,7 +469,6 @@ define(['rx', 'utils/const'], function(rx, consts) {
 		};
 	};
 
-	///
 	const updateSnapListWithMarqueeWidgets = function(page, destroyablesManager, activeMaruqeeWidgetManager) {
 
 		const createMarqueeWidgetForListElement = function(element) {
@@ -571,7 +570,6 @@ define(['rx', 'utils/const'], function(rx, consts) {
 		celsiusToFahrenheit: celsiusToFahrenheit,
 		getTimeAsText: getTimeAsText,
 		getTemperatureAndUnitAsText: getTemperatureAndUnitAsText,
-		getDateAndTimeAsText: getDateAndTimeAsText,
 		getNowAsEpochInMiliseconds: getNowAsEpochInMiliseconds,
 		getNowAsEpochInSeconds: getNowAsEpochInSeconds,
 		getCategoryForTimeDiff: getCategoryForTimeDiff,

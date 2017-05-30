@@ -22,7 +22,7 @@ define([
 			moreBtn: $('.radar__more'),
 			alertsBtn: $('.radar__alerts'),
 			alertsCounter: $('.radar__badge')
-		}
+		};
 	}
 
 	function updateViewData(data, currentTimeOnly) {
