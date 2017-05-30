@@ -73,7 +73,7 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 			setDataTitleAttributeValue(selector, '#weather',  TIZEN_L10N.MAIN_MENU_WEATHER);
 			setDataTitleAttributeValue(selector, '#alerts',   TIZEN_L10N.MAIN_MENU_ALERTS);
 			setDataTitleAttributeValue(selector, '#settings', TIZEN_L10N.MAIN_MENU_SETTINGS);
-			
+
 			selector.style.visibility = 'visible';
 
 			const selectorOptions = {
@@ -94,7 +94,7 @@ define(['utils/utils', 'utils/const'], function(utils, consts) {
 				selector.addEventListener('click', selectorClickHandler, false);
 			}
 		},
-		
+
 		pagebeforehide: function(ev) {
 			if (selector) {
 				selector.removeEventListener('click', selectorClickHandler, false);
