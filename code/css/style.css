@@ -78,13 +78,11 @@ div#weather.ui-item.weather-icon.ui-item-active {
 }
 
 div#alerts.ui-item.alerts-icon {
-	background-image: url("../resources/gfx/storm-icon-weather-alerts.svg");
-    background-size: contain;
+	background: url("../resources/gfx/storm-icon-weather-alerts.svg")  50% 40% / 50px 50px no-repeat;
 }
 
 div#alerts.ui-item.alerts-icon.ui-item-active {
-	background-image: url("../resources/gfx/storm-icon-weather-alerts-white.svg");
-    background-size: contain;
+	background: #009DE8 url("../resources/gfx/storm-icon-weather-alerts-white.svg")  50% 40% / 50px 50px no-repeat;
 }
 
 div#settings.ui-item.settings-icon {
