@@ -8,6 +8,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         infoClass: '',
         framesCount: 8,
         clickable: true,
+        onShowFrame: $.noop,
         bezel: {
             root: '',
             disabled: false,
@@ -41,7 +42,6 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         bindEvents();
 
         $frames = createFrameImages(config.framesCount);
-        createMarkup();
 
         if(config.frames) {
             setFrames(config.frames);
@@ -134,6 +134,8 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         bezel.setValue(index);
 
         state.activeIndex = index;
+
+        config.onShowFrame(index);
     }
 
     function setFrame(image, index) {
@@ -141,6 +143,8 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
     }
 
     function setFrames(frames) {
+        createMarkup();
+        
         if(config.autoplay) { stop(); }
 
         frames.forEach(setFrame);
@@ -174,6 +178,10 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         config.clickable = flag ? true : false;
     }
 
+    function getFramesCount() {
+        return config.framesCount;
+    }
+
     return {
         create: create,
         destroy: destroy,
@@ -184,5 +192,6 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         setFrames: setFrames,
         setFrame: setFrame,
         setClickable: setClickable,
+        getFramesCount: getFramesCount
     }
 });

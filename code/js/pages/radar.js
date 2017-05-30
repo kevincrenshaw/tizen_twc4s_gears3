@@ -36,8 +36,6 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		updateMapAnimationFrames();
-
 		const observation = data.weather.observation;
 		viewData.tempOrig = observation.metric.temp;
 		const tempData = utils.getTemperatureAndUnitAsText(viewData.tempOrig, storage.settings.units.temperature.get());
@@ -50,6 +48,28 @@ define([
 		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
 
 		mapAnimation.setClickable(storage.map.get());
+
+		updateMapAnimationFrames();
+	}
+
+	function getHtmlForTemp(temp, tempUnit, snapshotTimeArr) {
+		var result = [];
+		console.log('getHtmlForTemp: temp=' + JSON.stringify(temp) + ', tempUnit=' + JSON.stringify(tempUnit) + ', snapshotTimeArr=' + JSON.stringify(snapshotTimeArr));
+
+		if (temp !== null && tempUnit !== null) {
+			result = result.concat([temp, '°', '<span>', tempUnit, '</span>']);
+		} else {
+			result = result.concat(['-']);
+		}
+
+		result = result.concat([
+			'<span class="radar__separator">',
+			TIZEN_L10N.RADAR_AT,
+			'</span>',
+			snapshotTimeArr[0],
+			(snapshotTimeArr[1] ? '<span>' + snapshotTimeArr[1].trim() + '</span>' : '')]);
+
+		return result.join('');
 	}
 
 	function updateUI(data, currentTimeOnly) {
@@ -61,15 +81,6 @@ define([
 
 		if(currentTimeOnly) { return; }
 
-		ui.temp.html(
-			data.temp + 
-			'°' +
-			'<span>' + data.tempUnit + '</span>' +
-			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' + 
-			viewData.snapshotTime[0] +
-			(viewData.snapshotTime[1] ? '<span>' + viewData.snapshotTime[1].trim() + '</span>' : '')
-		);
-		
 		ui.updateBtn.prop('disabled', false);
 
 		const alertsCounter = 
@@ -120,22 +131,35 @@ define([
 	};
 
 	const updateMapAnimationFrames = function() {
-		const frames = [ storage.map.get() ];
+		const frames = [];
+
+		const standardMap = storage.map.get();
+		for (var i=0; i<mapAnimation.getFramesCount(); ++i) {
+			frames[i] = standardMap;
+		}
 
 		return rx.Observable.concat(
 			rx.Observable.fromArray(storage.futureMap),
 			rx.Observable.fromArray(storage.pastMap))
-				.flatMap(function(fileStore) {
-					return fileStore.getRx().catch(rx.Observable.just(null));
-				})
-				.scan(function(acc, file) {
-					frames.push(file ? file.toURI() : storage.map.get());
-					return frames;
-				}, frames)
-				.flatMap(function() {
-					return rx.Observable.just(frames);
-				})
-				.subscribe(function(framesArr) {
+				.flatMap(function(fileTimestampStore, index) {
+					return rx.Observable.zip(
+						rx.Observable.just(index + 1),			//+1 because setFrames uses first frame for current map
+						fileTimestampStore.file.getRx()
+							.map(function(file) {
+								return file.toURI();
+							})
+							.catch(rx.Observable.just(null))	//return file URI or null in case of any problem
+					);
+ 				})
+				.subscribe(function(next) {
+					const index = next[0];
+					const filePathUriOrNull = next[1];
+
+					if (filePathUriOrNull) {
+						frames[index] = filePathUriOrNull;
+					} else {
+						//If there is no downloaded frame leave default (standardMap)
+					}
 				}, function(err) {
 					console.error('updateMapAnimationFrames: ' + JSON.stringify(err));
 				}, function() {
@@ -159,6 +183,31 @@ define([
 					min: 0,
 					max: 7,
 					disabled: true
+				},
+				onShowFrame: function(frameIndex) {
+					if (frameIndex === 0) {
+						if (viewData.snapshotTime) {
+							ui.temp.html(getHtmlForTemp(viewData.temp, viewData.tempUnit, viewData.snapshotTime));
+						} else {
+							console.log('onShowFrame: no snapshotTime data');
+						}
+					} else {
+						const storageFutureAndPastFrames = storage.futureMap.concat(storage.pastMap);
+						const currentFileTimestampStorage = storageFutureAndPastFrames[frameIndex - 1];
+						const currentTimestampStorage = currentFileTimestampStorage.timestamp;
+						const timestampForFrame = currentTimestampStorage.get();
+
+						if (timestampForFrame) {
+							const timeUnit = storage.settings.units.time.get();
+							const frameDate = new Date(timestampForFrame * 1000);
+
+							const snapshotTime = utils.getTimeAsText(frameDate, timeUnit, viewData.is12hFormat);
+
+							ui.temp.html(getHtmlForTemp(null, null, snapshotTime));
+						} else {
+							ui.temp.html(getHtmlForTemp(null, null, ['-', '']));
+						}						
+					}
 				}
 			});
 
@@ -192,13 +241,13 @@ define([
 				utils.openDeepLinkOnPhone(consts.RADAR_DEEPLINK);
 			});
 
-			const createMapFrameChangeListener = function(store, index, defaultValue) {
+			const createMapFrameChangeListener = function(store, index) {
 				return function() {
 					store.getRx()
 						.map(function(file) {
 							return file.toURI();
 						})
-						.catch(rx.Observable.just(storage.map.get()))
+						.catch(rx.Observable.just(storage.map.get()))	//If there is problem with getting file replace it with current map
 						.subscribe(function(filePath) {
 							console.log('Update map animation frame; index=' + (index+1) + ', filePath=' + filePath);
 							mapAnimation.setFrame(filePath, index + 1);
@@ -206,8 +255,8 @@ define([
 				};
 			};
 
-			storage.futureMap.concat(storage.pastMap).forEach(function(store, index) {
-				store.setChangeListener(createMapFrameChangeListener(store, index));
+			storage.futureMap.concat(storage.pastMap).forEach(function(fileTimestampStore, index) {
+				fileTimestampStore.file.setChangeListener(createMapFrameChangeListener(fileTimestampStore.file, index));
 			});
 		},
 		
@@ -226,8 +275,8 @@ define([
 		},
 
 		pagebeforehide: function(ev) {
-			storage.futureMap.concat(storage.pastMap).forEach(function(store) {
-				store.unsetChangeListener();
+			storage.futureMap.concat(storage.pastMap).forEach(function(fileTimestampStore) {
+				fileTimestampStore.file.unsetChangeListener();
 			});
 
 			mapAnimation.destroy();

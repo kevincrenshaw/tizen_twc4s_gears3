@@ -403,6 +403,29 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 			}
 		};
 
+		const removeRx = function() {
+			return rx.Observable.create(function(observer) {
+				const onSuccess = function() {
+					observer.onNext();
+					observer.onCompleted();	
+				};
+
+				const onError = function(err) {
+					observer.onError(err);
+				}
+
+				try {
+					if (!empty()) {
+						remove( { onSuccess:onSuccess, onError:onError} );
+					} else {
+						onSuccess();
+					}
+				} catch (err) {
+					onError(err);
+				}
+			});
+		};
+
 		const setChangeListener = function(listener) {
 			tizen.preference.setChangeListener(notifier, listener);
 		};
@@ -418,6 +441,7 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 			addRx: addRx,
 			empty: empty,
 			remove: remove,
+			removeRx: removeRx,
 			setChangeListener: setChangeListener,
 			unsetChangeListener: unsetChangeListener,
 		};
@@ -491,7 +515,7 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 						}))
 			},
 		},
-		file: createFileStorage('file', 4),
+		file: createFileStorage('file', 1),
 		data: createSimpleStorage('data', ''),
 		map: createSimpleStorage('map', ''),	//current file path to map (for widget)
 		lastUpdate: createSimpleStorage('lastUpdate', 0),	//last successful data update time (as epoch in seconds)
@@ -502,11 +526,17 @@ define(['rx', 'utils/fsutils', 'utils/const'], function(rx, fsutils, consts) {
 	};
 	
 	for (var i=0; i<consts.NBR_OF_PAST_MAPS; ++i) {
-		storage.pastMap.push(createFileStorage('pastMap' + i, 1));
+		storage.pastMap.push({
+			file: createFileStorage('pastMap' + i, 1),
+			timestamp: createSimpleStorage('pastMapTimestamp' + i, 0),
+		});
 	}
 
 	for (var i=0; i<consts.NBR_OF_FUTURE_MAPS; ++i) {
-		storage.futureMap.push(createFileStorage('futureMap' + i, 1));
+		storage.futureMap.push({
+			file: createFileStorage('futureMap' + i, 1),
+			timestamp: createSimpleStorage('futureMapTimestamp' + i, 0),
+		});
 	}
 
 	return storage;
