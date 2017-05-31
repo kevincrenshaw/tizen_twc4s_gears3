@@ -88,7 +88,6 @@ define([
 
 			if(ui.temp.html() !== newValue) {
 				ui.temp.html(newValue);
-				console.log('new value has been applied: ' + newValue);
 			}
 		}
 
