@@ -77,7 +77,7 @@ define([
 		ui.date.html( viewData.currentTime[0] + ampm );
 		ui.updateBtn.text(data.lastUpdateHuman);
 
-		if(viewData.snapshotTimeUTCMillis !== undefined) {
+		if(mapAnimation.getCurrentFrame() === 0 && viewData.snapshotTimeUTCMillis !== undefined) {
 			const snapshotDate = new Date(viewData.snapshotTimeUTCMillis);
 			viewData.snapshotTime = utils.getTimeAsText(snapshotDate, viewData.timeUnit, viewData.is12hFormat);
 

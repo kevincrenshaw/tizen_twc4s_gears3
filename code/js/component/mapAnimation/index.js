@@ -182,6 +182,10 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         return config.framesCount;
     }
 
+    function getCurrentFrame() {
+        return state.activeIndex;
+    }
+
     return {
         create: create,
         destroy: destroy,
@@ -192,6 +196,7 @@ define(['jquery', '../bezel/index'], function(jquery, bezel) {
         setFrames: setFrames,
         setFrame: setFrame,
         setClickable: setClickable,
-        getFramesCount: getFramesCount
+        getFramesCount: getFramesCount,
+        getCurrentFrame: getCurrentFrame,
     }
 });
