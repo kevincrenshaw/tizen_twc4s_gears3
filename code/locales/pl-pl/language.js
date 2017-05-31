@@ -37,4 +37,5 @@ TIZEN_L10N=
 	"DAYS_AGO" : "dni temu",
 	"RADAR_AT": "o",
 	"NO_ALERTS": "Brak alarmów",
+	"UPDATE_NOW": "odśwież",
 };
