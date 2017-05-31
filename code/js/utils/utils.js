@@ -151,33 +151,36 @@ define(['rx', 'utils/const'], function(rx, consts) {
 	 * 		diffInSecconds - difference between two points in time (in seconds)
 	 * 
 	 * Result:
-	 * 		returns 1 if diffInSeconds < 60s
-	 * 		returns 2 if 60s <= diffInSeconds < 1h
+	 *		returns 0 if diffInSeconds < 0
+	 *		returns 1 if 0s <= diffInSeconds < 60s
+	 *		returns 2 if 60s <= diffInSeconds < 1h
 	 *		returns 3 if 1h <= diffInSeconds < 24h=1day
 	 *		returns 4 if 1day <= diffInSeconds < 2days
 	 *		returns 5 if 2days <= diffInSeconds
 	 */
 	const getCategoryForTimeDiff = function(diffInSeconds) {
+		if(diffInSeconds < 0) {
+			return 0;
+		}
+
 		if (diffInSeconds < 60) {
 			return 1;
-		} else {
-			const minutes = Math.floor(diffInSeconds / 60);
-	
-			if (minutes < 60) {
-				return 2;
-			} else {
-				const hours = Math.floor(minutes / 60);
-	
-				if (hours < 24) {
-					return 3;
-				} else {
-					const days = Math.floor(hours / 24);
-					return days < 2 ? 4 : 5;
-				}
-			}
 		}
+
+		const minutes = Math.floor(diffInSeconds / 60);
+		if (minutes < 60) {
+			return 2;
+		}
+
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) {
+			return 3;
+		}
+
+		const days = Math.floor(hours / 24);
+		return days < 2 ? 4 : 5;
 	};
-	
+
 	/*
 	 * Format time diff for given category
 	 * Parameters:
@@ -523,6 +526,7 @@ define(['rx', 'utils/const'], function(rx, consts) {
 	};
 
 	const diffCategoryToLocalizationKey = {
+		0: 'UPDATE_NOW',
 		1: 'NOW',
 		2: 'MINUTES_AGO',
 		3: 'HOURS_AGO',
@@ -557,6 +561,11 @@ define(['rx', 'utils/const'], function(rx, consts) {
 		if(tier === 1) {
 			return text;
 		}
+
+		if(tier === 0) {
+			return text;
+		}
+
 		return formatTimeDiffValue(diff, tier) + ' ' + text;
 	};
 
