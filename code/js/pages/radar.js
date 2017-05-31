@@ -42,8 +42,8 @@ define([
 		viewData.temp = tempData[0];
 		viewData.tempUnit = tempData[1];
 		
-		viewData.snapshotDate = new Date(observation.obs_time * 1000);
-		viewData.snapshotTime = utils.getTimeAsText(viewData.snapshotDate, timeUnit, viewData.is12hFormat);
+		viewData.snapshotTimeUTCMillis = observation.obs_time * 1000;
+		viewData.timeUnit = timeUnit;
 
 		viewData.alertsCounter = parseInt(($.isArray(data.alerts.alerts) ? data.alerts.alerts.length : 0), 10);
 
@@ -72,14 +72,26 @@ define([
 		return result.join('');
 	}
 
-	function updateUI(data, currentTimeOnly) {
-		ui.date.html(
-			viewData.currentTime[0] +
-			(viewData.currentTime[1] ? '<span>' + viewData.currentTime[1].trim() + '</span>' : '')
-		);
+	function updateUI(data, timeOnly) {
+		const ampm = viewData.currentTime[1] ? '<span>' + viewData.currentTime[1].trim() + '</span>' : '';
+		ui.date.html( viewData.currentTime[0] + ampm );
 		ui.updateBtn.text(data.lastUpdateHuman);
 
-		if(currentTimeOnly) { return; }
+		if(viewData.snapshotTimeUTCMillis !== undefined) {
+			const snapshotDate = new Date(viewData.snapshotTimeUTCMillis);
+			viewData.snapshotTime = utils.getTimeAsText(snapshotDate, viewData.timeUnit, viewData.is12hFormat);
+
+			const newValue = data.temp + '°' +
+			'<span>' + data.tempUnit + '</span>' +
+			'<span class="radar__separator">' + TIZEN_L10N.RADAR_AT + '</span>' +
+			viewData.snapshotTime[0] + ampm;
+
+			if(ui.temp.html() !== newValue) {
+				ui.temp.html(newValue);
+			}
+		}
+
+		if(timeOnly) { return; }
 
 		ui.updateBtn.prop('disabled', false);
 
