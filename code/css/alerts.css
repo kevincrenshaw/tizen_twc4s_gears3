@@ -70,7 +70,7 @@
 }
 @-webkit-keyframes spin {
   100% {
-    -webkit-transform: rotate(-360deg);
+    -webkit-transform: rotate(360deg);
   }
 }
 
