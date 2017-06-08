@@ -57,15 +57,10 @@ define([
 		console.log('getHtmlForTemp: temp=' + JSON.stringify(temp) + ', tempUnit=' + JSON.stringify(tempUnit) + ', snapshotTimeArr=' + JSON.stringify(snapshotTimeArr));
 
 		if (temp !== null && tempUnit !== null) {
-			result = result.concat([temp, '°', '<span>', tempUnit, '</span>']);
-		} else {
-			result = result.concat(['-']);
+			result = result.concat([temp, '°', '<span>', tempUnit, '</span>', '<span class="radar__separator">', TIZEN_L10N.RADAR_AT, '</span>']);
 		}
 
 		result = result.concat([
-			'<span class="radar__separator">',
-			TIZEN_L10N.RADAR_AT,
-			'</span>',
 			snapshotTimeArr[0],
 			(snapshotTimeArr[1] ? '<span>' + snapshotTimeArr[1].trim() + '</span>' : '')]);
 
